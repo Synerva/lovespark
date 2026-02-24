@@ -9,6 +9,7 @@ import { UnderstandModule } from './modules/UnderstandModule'
 import { AlignModule } from './modules/AlignModule'
 import { ElevateModule } from './modules/ElevateModule'
 import { ProfileSettings } from './modules/ProfileSettings'
+import { CheckInHistory } from './modules/CheckInHistory'
 import { BottomNav } from './components/BottomNav'
 import type { RISScore, User } from './lib/types'
 
@@ -17,6 +18,7 @@ export type AppView =
   | 'dashboard'
   | 'ai-coach'
   | 'check-in'
+  | 'check-in-history'
   | 'understand'
   | 'align'
   | 'elevate'
@@ -57,6 +59,8 @@ function App() {
         }} onNavigate={setCurrentView} />
       case 'check-in':
         return <CheckIn onComplete={() => setCurrentView('dashboard')} />
+      case 'check-in-history':
+        return <CheckInHistory onNavigate={setCurrentView} />
       case 'understand':
         return <UnderstandModule onNavigate={setCurrentView} />
       case 'align':

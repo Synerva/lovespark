@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { PillarProgressBar } from '@/components/PillarProgressBar'
 import { InsightCard } from '@/components/InsightCard'
-import { Brain, UsersThree, TrendUp, ArrowRight } from '@phosphor-icons/react'
+import { Brain, UsersThree, TrendUp, ArrowRight, ChartLine } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, Insight, User } from '@/lib/types'
 
@@ -162,9 +162,15 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <p className="text-muted-foreground mb-6">
               Regular reflection drives progress. Update your RIS and unlock new insights.
             </p>
-            <Button onClick={() => onNavigate('check-in')} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-              Start Check-In
-            </Button>
+            <div className="flex gap-4 justify-center">
+              <Button onClick={() => onNavigate('check-in')} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                Start Check-In
+              </Button>
+              <Button onClick={() => onNavigate('check-in-history')} size="lg" variant="outline">
+                <ChartLine className="mr-2" />
+                View History
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

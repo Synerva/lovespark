@@ -40,6 +40,13 @@ This is a multi-module platform with AI integration, real-time score calculation
 - **Progression**: Check-in prompt → Question cards (slider/multiple choice) → Submission → AI processing animation → RIS update reveal → New insights delivery → Dashboard refresh
 - **Success criteria**: Completes in under 3 minutes, generates 2-3 insights, updates RIS with visible delta, feels rewarding
 
+### Check-In History & Trends
+- **Functionality**: Comprehensive view of all completed check-ins with RIS score progression charts, pillar-specific trend analysis, statistics, and insight timeline
+- **Purpose**: Enables users to visualize their relationship intelligence journey over time, identify patterns, and track progress across all three pillars
+- **Trigger**: User accesses from dashboard "View History" button or profile settings
+- **Progression**: History view entry → Overview tab (statistics + score progression chart) → Trends tab (individual pillar charts with change metrics) → Insights timeline tab (historical check-ins with generated insights) → Back to dashboard
+- **Success criteria**: Displays all check-ins chronologically, shows overall and pillar-specific trends with clear visualizations, calculates streak and progress statistics, allows users to review past insights
+
 ### UNDERSTAND Module
 - **Functionality**: Houses Relationship Pattern Scan, Emotional Intelligence Profile, Attachment Style results, Trigger Map, and Behavioral Blind Spot analysis
 - **Purpose**: Builds self-awareness foundation through psychological assessments and AI pattern recognition
