@@ -7,6 +7,7 @@ import { RISScoreRing } from '@/components/RISScoreRing'
 import { Sparkle } from '@phosphor-icons/react'
 import type { User, RISScore } from '@/lib/types'
 import { calculateRISScore } from '@/lib/ris-calculator'
+import { authService } from '@/lib/auth-service'
 
 interface OnboardingProps {
   onComplete: () => void
@@ -18,13 +19,15 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const [, setRisScore] = useKV<RISScore>('lovespark-ris-score', null as any)
 
   const handleModeSelect = async (mode: 'individual' | 'couple') => {
+    const authUser = authService.getSession()
+    
     const newUser: User = {
-      id: `user-${Date.now()}`,
-      name: 'User',
-      email: 'user@lovespark.ai',
+      id: authUser?.id || `user-${Date.now()}`,
+      name: authUser?.name || 'User',
+      email: authUser?.email || 'user@lovespark.ai',
       mode,
       onboardingCompleted: false,
-      createdAt: new Date().toISOString(),
+      createdAt: authUser?.createdAt || new Date().toISOString(),
     }
     
     setStep('processing')

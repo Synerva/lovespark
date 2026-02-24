@@ -13,6 +13,13 @@ export interface RISScore {
   lastUpdated: string
 }
 
+export interface AuthUser {
+  id: string
+  email: string
+  name: string
+  createdAt: string
+}
+
 export interface User {
   id: string
   name: string

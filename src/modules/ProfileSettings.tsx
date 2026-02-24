@@ -1,14 +1,29 @@
-import { Card } from '@/components/ui/card'
+import { useKV } from '@github/spark/hooks'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User } from '@phosphor-icons/react'
+import { User, SignOut, EnvelopeSimple, Calendar } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { ArrowLeft } from '@phosphor-icons/react'
+import { authService } from '@/lib/auth-service'
+import { toast } from 'sonner'
+import type { User as UserType, AuthUser } from '@/lib/types'
 
 interface ProfileSettingsProps {
   onNavigate: (view: AppView) => void
+  onLogout: () => void
 }
 
-export function ProfileSettings({ onNavigate }: ProfileSettingsProps) {
+export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) {
+  const [user] = useKV<UserType | null>('lovespark-user', null)
+  
+  const authUser = authService.getSession()
+
+  const handleLogout = () => {
+    authService.logout()
+    toast.success('Logged out successfully')
+    onLogout()
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
@@ -17,8 +32,8 @@ export function ProfileSettings({ onNavigate }: ProfileSettingsProps) {
         </Button>
         
         <div className="flex items-center gap-4 mb-8">
-          <div className="p-3 bg-muted rounded-lg">
-            <User size={32} weight="duotone" />
+          <div className="p-3 bg-secondary/20 rounded-lg">
+            <User size={32} weight="duotone" className="text-secondary" />
           </div>
           <div>
             <h1 className="text-3xl font-bold" style={{ fontFamily: 'Sora, sans-serif' }}>
@@ -28,11 +43,74 @@ export function ProfileSettings({ onNavigate }: ProfileSettingsProps) {
           </div>
         </div>
 
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground">
-            Profile management coming soon
-          </p>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Your personal details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <User size={20} weight="duotone" className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Name</p>
+                  <p className="font-medium">{authUser?.name || user?.name || 'User'}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <EnvelopeSimple size={20} weight="duotone" className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{authUser?.email || user?.email || 'user@lovespark.ai'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Calendar size={20} weight="duotone" className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Member Since</p>
+                  <p className="font-medium">
+                    {user?.createdAt 
+                      ? new Date(user.createdAt).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })
+                      : 'Recently'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-muted rounded">
+                  <div className="w-2 h-2 rounded-full bg-secondary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Mode</p>
+                  <p className="font-medium capitalize">{user?.mode || 'Individual'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Session</CardTitle>
+              <CardDescription>Manage your login session</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={handleLogout}
+                variant="destructive"
+                className="w-full"
+              >
+                <SignOut className="mr-2" size={20} />
+                Log Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

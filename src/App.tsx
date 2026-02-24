@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster } from '@/components/ui/sonner'
 import { Dashboard } from './modules/Dashboard'
 import { Onboarding } from './modules/Onboarding'
+import { Login } from './modules/Login'
+import { Register } from './modules/Register'
 import { AICoach } from './modules/AICoach'
 import { CheckIn } from './modules/CheckIn'
 import { UnderstandModule } from './modules/UnderstandModule'
@@ -11,9 +13,12 @@ import { ElevateModule } from './modules/ElevateModule'
 import { ProfileSettings } from './modules/ProfileSettings'
 import { CheckInHistory } from './modules/CheckInHistory'
 import { BottomNav } from './components/BottomNav'
-import type { RISScore, User } from './lib/types'
+import { authService } from './lib/auth-service'
+import type { RISScore, User, AuthUser } from './lib/types'
 
 export type AppView =
+  | 'login'
+  | 'register'
   | 'onboarding'
   | 'dashboard'
   | 'ai-coach'
@@ -25,8 +30,10 @@ export type AppView =
   | 'profile'
 
 function App() {
-  const [currentView, setCurrentView] = useState<AppView>('onboarding')
+  const [currentView, setCurrentView] = useState<AppView>('login')
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [user] = useKV<User | null>('lovespark-user', null)
+  const [, setUser] = useKV<User | null>('lovespark-user', null)
   const [risScore] = useKV<RISScore>('lovespark-ris-score', {
     overall: 0,
     understand: 0,
@@ -35,16 +42,63 @@ function App() {
     lastUpdated: new Date().toISOString(),
   })
 
+  useEffect(() => {
+    const session = authService.getSession()
+    if (session) {
+      if (user?.onboardingCompleted) {
+        setCurrentView('dashboard')
+      } else {
+        setCurrentView('onboarding')
+      }
+    } else {
+      setCurrentView('login')
+    }
+    setIsCheckingAuth(false)
+  }, [user?.onboardingCompleted])
+
+  const handleLoginSuccess = (authUser: AuthUser) => {
+    if (user?.onboardingCompleted) {
+      setCurrentView('dashboard')
+    } else {
+      setCurrentView('onboarding')
+    }
+  }
+
+  const handleRegisterSuccess = (authUser: AuthUser) => {
+    setCurrentView('onboarding')
+  }
+
   const handleOnboardingComplete = () => {
     setCurrentView('dashboard')
   }
 
+  const handleLogout = () => {
+    setUser(null)
+    setCurrentView('login')
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
+        </div>
+      </div>
+    )
+  }
+
   const renderView = () => {
-    if (!user) {
-      return <Onboarding onComplete={handleOnboardingComplete} />
+    const isAuthenticated = authService.isAuthenticated()
+
+    if (!isAuthenticated && currentView !== 'login' && currentView !== 'register') {
+      return <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setCurrentView('register')} />
     }
 
     switch (currentView) {
+      case 'login':
+        return <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setCurrentView('register')} />
+      case 'register':
+        return <Register onRegisterSuccess={handleRegisterSuccess} onSwitchToLogin={() => setCurrentView('login')} />
       case 'onboarding':
         return <Onboarding onComplete={handleOnboardingComplete} />
       case 'dashboard':
@@ -68,16 +122,19 @@ function App() {
       case 'elevate':
         return <ElevateModule onNavigate={setCurrentView} />
       case 'profile':
-        return <ProfileSettings onNavigate={setCurrentView} />
+        return <ProfileSettings onNavigate={setCurrentView} onLogout={handleLogout} />
       default:
-        return <Dashboard onNavigate={setCurrentView} />
+        return <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setCurrentView('register')} />
     }
   }
+
+  const showBottomNav = authService.isAuthenticated() && user?.onboardingCompleted && 
+    currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding'
 
   return (
     <div className="min-h-screen bg-background">
       <div className="pb-20 md:pb-0">{renderView()}</div>
-      {user && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
+      {showBottomNav && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
       <Toaster />
     </div>
   )
