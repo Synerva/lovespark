@@ -1,5 +1,71 @@
 import type { RISScore, PillarType, Insight, AssessmentResponse } from './types'
 
+export async function generateCheckInInsights(
+  responses: Record<string, number>,
+  previousScore: RISScore,
+  newScore: RISScore
+): Promise<Insight[]> {
+  const responseSummary = Object.entries(responses)
+    .map(([key, value]) => `${key}: ${value}/100`)
+    .join(', ')
+
+  const promptText = `You are an AI relationship intelligence analyst for LoveSpark. Analyze this weekly check-in and generate 2-3 actionable insights.
+
+Previous RIS Score: ${previousScore.overall}/100
+New RIS Score: ${newScore.overall}/100
+Score Delta: ${newScore.delta ? `${newScore.delta > 0 ? '+' : ''}${newScore.delta}` : '0'}
+
+Pillar Scores:
+- UNDERSTAND: ${previousScore.understand} → ${newScore.understand}
+- ALIGN: ${previousScore.align} → ${newScore.align}
+- ELEVATE: ${previousScore.elevate} → ${newScore.elevate}
+
+Check-in Responses: ${responseSummary}
+
+Generate insights that are:
+- Analytical and data-driven, not therapeutic
+- Specific and actionable
+- Focus on patterns and behavioral optimization
+- Appropriate tone: warm but precise, like a sophisticated coach
+
+Return a JSON object with this structure:
+{
+  "insights": [
+    {
+      "type": "pattern" | "suggestion" | "warning" | "celebration",
+      "pillar": "understand" | "align" | "elevate",
+      "title": "Brief insight title (5-8 words)",
+      "content": "Detailed insight (2-3 sentences)",
+      "actionable": "Specific next step recommendation"
+    }
+  ]
+}`
+
+  try {
+    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const parsed = JSON.parse(response)
+
+    return parsed.insights.map((insight: {
+      type: 'pattern' | 'suggestion' | 'warning' | 'celebration'
+      pillar: PillarType
+      title: string
+      content: string
+      actionable: string
+    }) => ({
+      id: `insight-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: insight.type,
+      pillar: insight.pillar,
+      title: insight.title,
+      content: insight.content,
+      actionable: insight.actionable,
+      createdAt: new Date().toISOString(),
+      read: false,
+    }))
+  } catch (error) {
+    return getFallbackInsights(newScore)
+  }
+}
+
 export async function generateInsightsFromCheckIn(
   userId: string,
   risScore: RISScore,
@@ -10,7 +76,7 @@ export async function generateInsightsFromCheckIn(
     .map((r) => `${r.questionId}: ${r.value}`)
     .join(', ')
 
-  const prompt = spark.llmPrompt`You are an AI relationship intelligence analyst for LoveSpark. Analyze this weekly check-in and generate 2-3 actionable insights.
+  const promptText = `You are an AI relationship intelligence analyst for LoveSpark. Analyze this weekly check-in and generate 2-3 actionable insights.
 
 User's RIS Score: ${risScore.overall}/100
 Pillar Scores - UNDERSTAND: ${risScore.understand}, ALIGN: ${risScore.align}, ELEVATE: ${risScore.elevate}
@@ -38,10 +104,16 @@ Return a JSON object with this structure:
 }`
 
   try {
-    const response = await spark.llm(prompt, 'gpt-4o', true)
+    const response = await window.spark.llm(promptText, 'gpt-4o', true)
     const parsed = JSON.parse(response)
 
-    return parsed.insights.map((insight: any) => ({
+    return parsed.insights.map((insight: {
+      type: 'pattern' | 'suggestion' | 'warning' | 'celebration'
+      pillar: PillarType
+      title: string
+      content: string
+      actionable: string
+    }) => ({
       id: `insight-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: insight.type,
       pillar: insight.pillar,
@@ -73,7 +145,7 @@ ${activePillar ? `Currently viewing: ${activePillar.toUpperCase()} module` : ''}
 ${recentCheckIn ? 'Just completed weekly check-in' : ''}
 `
 
-  const prompt = spark.llmPrompt`You are an AI Relationship Intelligence Coach for LoveSpark. You help users optimize their relationship patterns through data-driven insights.
+  const promptText = `You are an AI Relationship Intelligence Coach for LoveSpark. You help users optimize their relationship patterns through data-driven insights.
 
 Your tone is:
 - Analytical yet warm
@@ -89,7 +161,7 @@ User Message: ${message}
 Provide a helpful, actionable response (2-4 sentences). If relevant, suggest specific exercises, assessments, or protocols from their pillar modules.`
 
   try {
-    const response = await spark.llm(prompt, 'gpt-4o', false)
+    const response = await window.spark.llm(promptText, 'gpt-4o', false)
     return response
   } catch (error) {
     return "I'm processing your request. Could you rephrase that or ask about a specific area of your relationship intelligence?"
@@ -118,7 +190,7 @@ export async function generateWeeklyBrief(
     .map((i) => i.title)
     .join(', ')
 
-  const prompt = spark.llmPrompt`Generate a weekly optimization brief for a LoveSpark user.
+  const promptText = `Generate a weekly optimization brief for a LoveSpark user.
 
 Week ${weekNumber} Data:
 - RIS Score: ${risScore.overall}/100 (Change: ${risScore.delta ?? 0})
@@ -141,7 +213,7 @@ Return as JSON:
 }`
 
   try {
-    const response = await spark.llm(prompt, 'gpt-4o', true)
+    const response = await window.spark.llm(promptText, 'gpt-4o', true)
     const parsed = JSON.parse(response)
 
     return {

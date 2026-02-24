@@ -48,7 +48,13 @@ function App() {
       case 'dashboard':
         return <Dashboard onNavigate={setCurrentView} />
       case 'ai-coach':
-        return <AICoach risScore={risScore} onNavigate={setCurrentView} />
+        return <AICoach risScore={risScore || {
+          overall: 52,
+          understand: 51,
+          align: 53,
+          elevate: 50,
+          lastUpdated: new Date().toISOString(),
+        }} onNavigate={setCurrentView} />
       case 'check-in':
         return <CheckIn onComplete={() => setCurrentView('dashboard')} />
       case 'understand':

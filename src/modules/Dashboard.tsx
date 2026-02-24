@@ -27,6 +27,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     // Mark insight as read
   }
 
+  const currentRisScore = risScore || {
+    overall: 52,
+    understand: 51,
+    align: 53,
+    elevate: 50,
+    lastUpdated: new Date().toISOString(),
+  }
+
+  const currentInsights = insights || []
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
@@ -48,8 +58,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </CardHeader>
             <CardContent className="flex justify-center">
               <RISScoreRing
-                score={risScore.overall}
-                delta={risScore.delta}
+                score={currentRisScore.overall}
+                delta={currentRisScore.delta}
                 animate
               />
             </CardContent>
@@ -60,9 +70,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               <CardTitle>Pillar Breakdown</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <PillarProgressBar pillar="understand" score={risScore.understand} />
-              <PillarProgressBar pillar="align" score={risScore.align} />
-              <PillarProgressBar pillar="elevate" score={risScore.elevate} />
+              <PillarProgressBar pillar="understand" score={currentRisScore.understand} />
+              <PillarProgressBar pillar="align" score={currentRisScore.align} />
+              <PillarProgressBar pillar="elevate" score={currentRisScore.elevate} />
             </CardContent>
           </Card>
         </div>
@@ -126,13 +136,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </Card>
         </div>
 
-        {insights.length > 0 && (
+        {currentInsights.length > 0 && (
           <div>
             <h2 className="text-2xl font-semibold mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
               Recent Insights
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {insights.slice(0, 3).map((insight, index) => (
+              {currentInsights.slice(0, 3).map((insight, index) => (
                 <InsightCard
                   key={insight.id}
                   insight={insight}
