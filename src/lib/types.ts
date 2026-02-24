@@ -1,0 +1,151 @@
+export type UserMode = 'individual' | 'couple'
+
+export type OnboardingStep = 'welcome' | 'mode-selection' | 'attachment' | 'communication' | 'history' | 'processing' | 'reveal'
+
+export type PillarType = 'understand' | 'align' | 'elevate'
+
+export interface RISScore {
+  overall: number
+  understand: number
+  align: number
+  elevate: number
+  delta?: number
+  lastUpdated: string
+}
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  avatarUrl?: string
+  mode: UserMode
+  partnerId?: string
+  onboardingCompleted: boolean
+  createdAt: string
+}
+
+export interface AttachmentStyle {
+  primary: 'secure' | 'anxious' | 'avoidant' | 'fearful-avoidant'
+  score: number
+  description: string
+}
+
+export interface AssessmentResponse {
+  questionId: string
+  value: number | string | string[]
+  timestamp: string
+}
+
+export interface Assessment {
+  id: string
+  type: 'attachment' | 'communication' | 'relationship-pattern' | 'emotional-intelligence' | 'compatibility'
+  pillar: PillarType
+  title: string
+  description: string
+  questions: AssessmentQuestion[]
+  completed: boolean
+  completedAt?: string
+  responses?: AssessmentResponse[]
+  result?: AssessmentResult
+}
+
+export interface AssessmentQuestion {
+  id: string
+  type: 'slider' | 'multiple-choice' | 'text' | 'scale'
+  question: string
+  options?: string[]
+  min?: number
+  max?: number
+  labels?: { min: string; max: string }
+}
+
+export interface AssessmentResult {
+  score: number
+  category?: string
+  insights: string[]
+  visualData?: any
+}
+
+export interface Insight {
+  id: string
+  type: 'pattern' | 'suggestion' | 'warning' | 'celebration'
+  pillar: PillarType
+  title: string
+  content: string
+  actionable?: string
+  createdAt: string
+  read: boolean
+}
+
+export interface CheckIn {
+  id: string
+  userId: string
+  responses: AssessmentResponse[]
+  risScoreBefore: RISScore
+  risScoreAfter: RISScore
+  insightsGenerated: string[]
+  completedAt: string
+  weekNumber: number
+}
+
+export interface Protocol {
+  id: string
+  title: string
+  description: string
+  pillar: PillarType
+  durationDays: number
+  dailyActions: string[]
+  active: boolean
+  startedAt?: string
+  currentDay?: number
+  completedDays?: number[]
+}
+
+export interface AIMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+  context?: {
+    risScore?: number
+    activePillar?: PillarType
+    recentCheckIn?: boolean
+  }
+}
+
+export interface WeeklyBrief {
+  id: string
+  weekNumber: number
+  generatedAt: string
+  risChange: number
+  highlights: string[]
+  focusArea: PillarType
+  suggestedProtocols: string[]
+  insights: string[]
+}
+
+export interface CoupleAlignment {
+  overallScore: number
+  communicationScore: number
+  valueAlignmentScore: number
+  expectationClarityScore: number
+  gaps: AlignmentGap[]
+  strengths: string[]
+}
+
+export interface AlignmentGap {
+  area: string
+  partner1Response: string
+  partner2Response: string
+  severity: 'low' | 'medium' | 'high'
+  recommendation: string
+}
+
+export interface PsychologistSession {
+  id: string
+  scheduledAt: string
+  psychologistName: string
+  focus: string
+  notes?: string
+  completed: boolean
+}
