@@ -1,17 +1,72 @@
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { UsersThree } from '@phosphor-icons/react'
+import { Badge } from '@/components/ui/badge'
+import { 
+  UsersThree,
+  ArrowLeft,
+  ChatsCircle,
+  Target,
+  Scales,
+  HeartStraightBreak,
+  Crosshair,
+  ListChecks,
+  Lightbulb
+} from '@phosphor-icons/react'
 import type { AppView } from '../App'
-import { ArrowLeft } from '@phosphor-icons/react'
 
 interface AlignModuleProps {
   onNavigate: (view: AppView) => void
 }
 
+const comingSoonFeatures = [
+  {
+    icon: Scales,
+    title: 'Compatibility Intelligence Scan™',
+    description: 'Comprehensive analysis of value alignment, lifestyle compatibility, and long-term vision matching',
+    category: 'Assessment',
+  },
+  {
+    icon: Target,
+    title: 'Alignment Score Visualization',
+    description: 'Real-time tracking of relationship alignment across key dimensions with trend analysis',
+    category: 'Assessment',
+  },
+  {
+    icon: ChatsCircle,
+    title: 'Communication Analyzer',
+    description: 'AI-powered analysis of communication patterns, effectiveness, and emotional tone',
+    category: 'Communication',
+  },
+  {
+    icon: Lightbulb,
+    title: 'AI Conversation Guidance',
+    description: 'Real-time suggestions for navigating difficult conversations and expressing needs clearly',
+    category: 'Communication',
+  },
+  {
+    icon: ListChecks,
+    title: 'Expectation Clarity Tools',
+    description: 'Structured exercises to surface and align expectations across relationship dimensions',
+    category: 'Tools',
+  },
+  {
+    icon: HeartStraightBreak,
+    title: 'Conflict Resolution Patterns',
+    description: 'Identify and improve conflict repair strategies based on behavioral data',
+    category: 'Pattern Analysis',
+  },
+  {
+    icon: Crosshair,
+    title: 'Couple Alignment Dashboard',
+    description: 'Shared view for couples to track alignment progress and celebrate improvements together',
+    category: 'Tools',
+  },
+]
+
 export function AlignModule({ onNavigate }: AlignModuleProps) {
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <Button variant="ghost" onClick={() => onNavigate('dashboard')} className="mb-6">
           <ArrowLeft className="mr-2" /> Back to Dashboard
         </Button>
@@ -28,10 +83,78 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
           </div>
         </div>
 
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground">
-            Communication analysis tools coming soon
-          </p>
+        <div className="mb-8">
+          <Card className="p-6 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-secondary/20 rounded-lg">
+                <Lightbulb size={24} weight="duotone" className="text-secondary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+                  Advanced Alignment Tools Coming Soon
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  We're developing powerful communication analysis and alignment tracking tools to help you 
+                  bridge gaps, improve understanding, and strengthen connection through data-driven insights.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {comingSoonFeatures.map((feature, index) => {
+            const Icon = feature.icon
+            return (
+              <Card 
+                key={index}
+                className="p-6 hover:shadow-lg transition-shadow relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+                
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-2 bg-secondary/10 rounded-lg">
+                      <Icon size={24} weight="duotone" className="text-secondary" />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {feature.category}
+                    </Badge>
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+                    {feature.title}
+                  </h3>
+                  
+                  <p className="text-sm text-muted-foreground">
+                    {feature.description}
+                  </p>
+
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                      <span>In Development</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+
+        <Card className="mt-8 p-6 bg-muted/30">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+              Get Notified When ALIGN Launches
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Be the first to access these alignment and communication tools when they become available
+            </p>
+            <Button variant="outline" disabled>
+              <UsersThree className="mr-2" size={16} />
+              Notify Me
+            </Button>
+          </div>
         </Card>
       </div>
     </div>
