@@ -18,37 +18,86 @@ interface CheckInProps {
 const checkInQuestions = [
   { 
     id: 'emotional-awareness', 
-    question: 'How aware were you of your emotions this week?', 
-    min: 'Not at all aware', 
-    max: 'Very aware',
+    question: 'How deeply did you connect with your emotional landscape this week?', 
+    min: 'Surface level', 
+    max: 'Profoundly connected',
     pillar: 'understand' as const
   },
   { 
-    id: 'trigger-recognition', 
-    question: 'How quickly did you recognize your emotional triggers?', 
-    min: 'Rarely noticed', 
-    max: 'Always noticed',
+    id: 'emotional-expression', 
+    question: 'How freely did you express what truly matters to you?', 
+    min: 'Held back', 
+    max: 'Authentically open',
     pillar: 'understand' as const
   },
   { 
-    id: 'communication-quality', 
-    question: 'How would you rate your communication quality?', 
-    min: 'Poor', 
-    max: 'Excellent',
+    id: 'pattern-recognition', 
+    question: 'How clearly did you see your relationship patterns unfolding?', 
+    min: 'Unclear patterns', 
+    max: 'Crystal clear',
+    pillar: 'understand' as const
+  },
+  { 
+    id: 'self-compassion', 
+    question: 'How kind were you to yourself during challenging moments?', 
+    min: 'Self-critical', 
+    max: 'Deeply compassionate',
+    pillar: 'understand' as const
+  },
+  { 
+    id: 'curiosity-mindset', 
+    question: 'How curious were you about understanding your partner\'s perspective?', 
+    min: 'Fixed viewpoint', 
+    max: 'Genuinely curious',
     pillar: 'align' as const
   },
   { 
-    id: 'conflict-handling', 
-    question: 'How effectively did you handle disagreements?', 
-    min: 'Not well', 
-    max: 'Very well',
+    id: 'communication-clarity', 
+    question: 'How clearly did you communicate your needs and desires?', 
+    min: 'Vague signals', 
+    max: 'Beautifully clear',
     pillar: 'align' as const
   },
   { 
-    id: 'habit-consistency', 
-    question: 'How consistent were you with relationship-building habits?', 
-    min: 'Not consistent', 
-    max: 'Very consistent',
+    id: 'active-listening', 
+    question: 'How present were you when your partner shared their world with you?', 
+    min: 'Distracted', 
+    max: 'Fully present',
+    pillar: 'align' as const
+  },
+  { 
+    id: 'shared-joy', 
+    question: 'How often did you create moments of genuine connection and joy?', 
+    min: 'Rarely', 
+    max: 'Frequently',
+    pillar: 'align' as const
+  },
+  { 
+    id: 'intentional-growth', 
+    question: 'How intentionally did you invest in your relationship\'s evolution?', 
+    min: 'On autopilot', 
+    max: 'Highly intentional',
+    pillar: 'elevate' as const
+  },
+  { 
+    id: 'positive-momentum', 
+    question: 'How much forward momentum did you create together this week?', 
+    min: 'Stagnant', 
+    max: 'Thriving progress',
+    pillar: 'elevate' as const
+  },
+  { 
+    id: 'appreciation-expression', 
+    question: 'How often did you celebrate what\'s working in your relationship?', 
+    min: 'Overlooked wins', 
+    max: 'Celebrated often',
+    pillar: 'elevate' as const
+  },
+  { 
+    id: 'future-visioning', 
+    question: 'How aligned are you feeling about your shared future vision?', 
+    min: 'Uncertain path', 
+    max: 'Clear direction',
     pillar: 'elevate' as const
   },
 ]
