@@ -281,3 +281,146 @@ function getStrongestPillar(risScore: RISScore): string {
     return 'ELEVATE'
   }
 }
+
+export async function generateFollowUpQuestions(
+  baseQuestions: Array<{
+    id: string
+    question: string
+    min: string
+    max: string
+    pillar: PillarType
+  }>,
+  previousCheckIns: Array<{
+    responses: AssessmentResponse[]
+    completedAt: string
+    risScoreAfter: RISScore
+  }>,
+  currentResponses: Record<string, number>
+): Promise<Array<{
+  id: string
+  question: string
+  min: string
+  max: string
+  pillar: PillarType
+  isFollowUp: boolean
+}>> {
+  if (previousCheckIns.length === 0) {
+    return []
+  }
+
+  const recentCheckIns = previousCheckIns.slice(-3)
+  
+  const trends = analyzeResponseTrends(recentCheckIns, currentResponses)
+  
+  const promptText = `You are an AI relationship intelligence analyst for LoveSpark. Based on a user's check-in response patterns, generate 2-3 personalized follow-up questions.
+
+Response Trends:
+${JSON.stringify(trends, null, 2)}
+
+Current Check-in Context:
+${Object.entries(currentResponses).map(([key, value]) => `${key}: ${value}/100`).join('\n')}
+
+Generate follow-up questions that:
+- Build on specific patterns noticed in their responses (e.g., consistently low scores in certain areas, improvements, declines)
+- Are curious and growth-oriented, not judgmental
+- Help uncover deeper insights about their relationship patterns
+- Use positive, forward-thinking language
+- Are specific to what they've shared, not generic
+
+Return a JSON object with this structure:
+{
+  "questions": [
+    {
+      "question": "The personalized question based on their patterns",
+      "min": "Lower end label",
+      "max": "Upper end label",
+      "pillar": "understand" | "align" | "elevate",
+      "context": "Brief note about why this question matters for them"
+    }
+  ]
+}
+
+Generate 2-3 questions maximum. Focus on the most meaningful patterns.`
+
+  try {
+    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const parsed = JSON.parse(response)
+
+    return parsed.questions.map((q: any, index: number) => ({
+      id: `followup-${Date.now()}-${index}`,
+      question: q.question,
+      min: q.min,
+      max: q.max,
+      pillar: q.pillar,
+      isFollowUp: true,
+    }))
+  } catch (error) {
+    console.error('Failed to generate follow-up questions:', error)
+    return []
+  }
+}
+
+function analyzeResponseTrends(
+  previousCheckIns: Array<{
+    responses: AssessmentResponse[]
+    completedAt: string
+    risScoreAfter: RISScore
+  }>,
+  currentResponses: Record<string, number>
+): any {
+  const trends: Record<string, any> = {}
+
+  const questionIds = Object.keys(currentResponses)
+  
+  questionIds.forEach(questionId => {
+    const historicalValues = previousCheckIns
+      .map(checkIn => {
+        const response = checkIn.responses.find(r => r.questionId === questionId)
+        return response ? Number(response.value) : null
+      })
+      .filter(v => v !== null) as number[]
+
+    if (historicalValues.length > 0) {
+      const avg = historicalValues.reduce((a, b) => a + b, 0) / historicalValues.length
+      const currentValue = currentResponses[questionId]
+      const trend = currentValue > avg + 10 ? 'improving' : currentValue < avg - 10 ? 'declining' : 'stable'
+      const consistency = Math.max(...historicalValues) - Math.min(...historicalValues)
+
+      trends[questionId] = {
+        average: Math.round(avg),
+        current: currentValue,
+        trend,
+        consistency: consistency < 20 ? 'very consistent' : consistency < 40 ? 'moderate variance' : 'high variance',
+        historicalValues,
+      }
+    }
+  })
+
+  const pillarAverages = {
+    understand: 0,
+    align: 0,
+    elevate: 0,
+  }
+  
+  previousCheckIns.forEach(checkIn => {
+    pillarAverages.understand += checkIn.risScoreAfter.understand
+    pillarAverages.align += checkIn.risScoreAfter.align
+    pillarAverages.elevate += checkIn.risScoreAfter.elevate
+  })
+
+  Object.keys(pillarAverages).forEach(key => {
+    pillarAverages[key as PillarType] = Math.round(
+      pillarAverages[key as PillarType] / previousCheckIns.length
+    )
+  })
+
+  return {
+    questionTrends: trends,
+    pillarAverages,
+    checkInCount: previousCheckIns.length,
+    overallTrend: previousCheckIns.length >= 2
+      ? previousCheckIns[previousCheckIns.length - 1].risScoreAfter.overall -
+        previousCheckIns[0].risScoreAfter.overall
+      : 0,
+  }
+}

@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { CheckCircle, ArrowLeft, Sparkle } from '@phosphor-icons/react'
+import { CheckCircle, ArrowLeft, Sparkle, Lightbulb } from '@phosphor-icons/react'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { InsightCard } from '@/components/InsightCard'
 import type { RISScore, Insight, CheckIn as CheckInType } from '@/lib/types'
 import { updateScoreFromCheckIn } from '@/lib/ris-calculator'
-import { generateCheckInInsights } from '@/lib/ai-service'
+import { generateCheckInInsights, generateFollowUpQuestions } from '@/lib/ai-service'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface CheckInProps {
@@ -104,6 +104,15 @@ const checkInQuestions = [
 
 type CheckInStage = 'questions' | 'processing' | 'results'
 
+interface QuestionItem {
+  id: string
+  question: string
+  min: string
+  max: string
+  pillar: 'understand' | 'align' | 'elevate'
+  isFollowUp?: boolean
+}
+
 export function CheckIn({ onComplete }: CheckInProps) {
   const [stage, setStage] = useState<CheckInStage>('questions')
   const [currentQ, setCurrentQ] = useState(0)
@@ -119,13 +128,40 @@ export function CheckIn({ onComplete }: CheckInProps) {
   const [checkIns, setCheckIns] = useKV<CheckInType[]>('lovespark-check-ins', [])
   const [newInsights, setNewInsights] = useState<Insight[]>([])
   const [updatedScore, setUpdatedScore] = useState<RISScore | null>(null)
+  const [allQuestions, setAllQuestions] = useState<QuestionItem[]>(checkInQuestions)
+  const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false)
+
+  useEffect(() => {
+    const loadFollowUpQuestions = async () => {
+      if ((checkIns || []).length >= 1 && currentQ === Math.floor(checkInQuestions.length / 2) && !isLoadingFollowUps) {
+        setIsLoadingFollowUps(true)
+        try {
+          const followUpQuestions = await generateFollowUpQuestions(
+            checkInQuestions,
+            (checkIns || []).slice(-3),
+            responses
+          )
+          
+          if (followUpQuestions.length > 0) {
+            setAllQuestions([...checkInQuestions, ...followUpQuestions])
+          }
+        } catch (error) {
+          console.error('Failed to load follow-up questions:', error)
+        } finally {
+          setIsLoadingFollowUps(false)
+        }
+      }
+    }
+
+    loadFollowUpQuestions()
+  }, [currentQ, checkIns, responses, isLoadingFollowUps])
 
   const handleResponse = (value: number) => {
-    setResponses({ ...responses, [checkInQuestions[currentQ].id]: value })
+    setResponses({ ...responses, [allQuestions[currentQ].id]: value })
   }
 
   const handleNext = async () => {
-    if (currentQ < checkInQuestions.length - 1) {
+    if (currentQ < allQuestions.length - 1) {
       setCurrentQ(currentQ + 1)
     } else {
       setStage('processing')
@@ -305,9 +341,9 @@ export function CheckIn({ onComplete }: CheckInProps) {
     )
   }
 
-  const question = checkInQuestions[currentQ]
+  const question = allQuestions[currentQ]
   const currentValue = responses[question.id] ?? 50
-  const progress = ((currentQ + 1) / checkInQuestions.length) * 100
+  const progress = ((currentQ + 1) / allQuestions.length) * 100
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
@@ -318,7 +354,7 @@ export function CheckIn({ onComplete }: CheckInProps) {
           </Button>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              Question {currentQ + 1} of {checkInQuestions.length}
+              Question {currentQ + 1} of {allQuestions.length}
             </span>
           </div>
         </div>
@@ -344,8 +380,16 @@ export function CheckIn({ onComplete }: CheckInProps) {
           >
             <Card>
               <CardContent className="p-8">
-                <div className="text-xs uppercase tracking-wide text-accent font-medium mb-3">
-                  {question.pillar}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-xs uppercase tracking-wide text-accent font-medium">
+                    {question.pillar}
+                  </div>
+                  {question.isFollowUp && (
+                    <div className="flex items-center gap-1 text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">
+                      <Lightbulb size={12} weight="fill" />
+                      <span>Personalized</span>
+                    </div>
+                  )}
                 </div>
                 <h2 className="text-2xl font-semibold mb-8" style={{ fontFamily: 'Sora, sans-serif' }}>
                   {question.question}
@@ -383,7 +427,7 @@ export function CheckIn({ onComplete }: CheckInProps) {
                       className="flex-1"
                       size="lg"
                     >
-                      {currentQ < checkInQuestions.length - 1 ? 'Next Question' : 'Complete Check-In'}
+                      {currentQ < allQuestions.length - 1 ? 'Next Question' : 'Complete Check-In'}
                       <CheckCircle className="ml-2" />
                     </Button>
                   </div>
