@@ -5,6 +5,8 @@ import { Dashboard } from './modules/Dashboard'
 import { Onboarding } from './modules/Onboarding'
 import { Login } from './modules/Login'
 import { Register } from './modules/Register'
+import { ForgotPassword } from './modules/ForgotPassword'
+import { ResetPassword } from './modules/ResetPassword'
 import { AICoach } from './modules/AICoach'
 import { CheckIn } from './modules/CheckIn'
 import { UnderstandModule } from './modules/UnderstandModule'
@@ -19,6 +21,8 @@ import type { RISScore, User, AuthUser } from './lib/types'
 export type AppView =
   | 'login'
   | 'register'
+  | 'forgot-password'
+  | 'reset-password'
   | 'onboarding'
   | 'dashboard'
   | 'ai-coach'
@@ -32,6 +36,7 @@ export type AppView =
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('login')
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [resetToken, setResetToken] = useState<string>('')
   const [user] = useKV<User | null>('lovespark-user', null)
   const [, setUser] = useKV<User | null>('lovespark-user', null)
   const [risScore] = useKV<RISScore>('lovespark-ris-score', {
@@ -90,15 +95,37 @@ function App() {
   const renderView = () => {
     const isAuthenticated = authService.isAuthenticated()
 
-    if (!isAuthenticated && currentView !== 'login' && currentView !== 'register') {
-      return <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setCurrentView('register')} />
+    if (!isAuthenticated && currentView !== 'login' && currentView !== 'register' && currentView !== 'forgot-password' && currentView !== 'reset-password') {
+      return <Login 
+        onLoginSuccess={handleLoginSuccess} 
+        onSwitchToRegister={() => setCurrentView('register')}
+        onForgotPassword={() => setCurrentView('forgot-password')}
+      />
     }
 
     switch (currentView) {
       case 'login':
-        return <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setCurrentView('register')} />
+        return <Login 
+          onLoginSuccess={handleLoginSuccess} 
+          onSwitchToRegister={() => setCurrentView('register')}
+          onForgotPassword={() => setCurrentView('forgot-password')}
+        />
       case 'register':
         return <Register onRegisterSuccess={handleRegisterSuccess} onSwitchToLogin={() => setCurrentView('login')} />
+      case 'forgot-password':
+        return <ForgotPassword 
+          onBackToLogin={() => setCurrentView('login')}
+          onResetRequested={(token) => {
+            setResetToken(token)
+            setCurrentView('reset-password')
+          }}
+        />
+      case 'reset-password':
+        return <ResetPassword 
+          token={resetToken}
+          onResetSuccess={() => setCurrentView('login')}
+          onBackToLogin={() => setCurrentView('login')}
+        />
       case 'onboarding':
         return <Onboarding onComplete={handleOnboardingComplete} />
       case 'dashboard':
@@ -124,12 +151,17 @@ function App() {
       case 'profile':
         return <ProfileSettings onNavigate={setCurrentView} onLogout={handleLogout} />
       default:
-        return <Login onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => setCurrentView('register')} />
+        return <Login 
+          onLoginSuccess={handleLoginSuccess} 
+          onSwitchToRegister={() => setCurrentView('register')}
+          onForgotPassword={() => setCurrentView('forgot-password')}
+        />
     }
   }
 
   const showBottomNav = authService.isAuthenticated() && user?.onboardingCompleted && 
-    currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding'
+    currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
+    currentView !== 'forgot-password' && currentView !== 'reset-password'
 
   return (
     <div className="min-h-screen bg-background">

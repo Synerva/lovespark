@@ -22,6 +22,7 @@ export interface SocialAuthData {
 class AuthService {
   private readonly STORAGE_KEY = 'lovespark-auth-users'
   private readonly SESSION_KEY = 'lovespark-auth-session'
+  private readonly RESET_TOKENS_KEY = 'lovespark-reset-tokens'
 
   private getUsers(): Record<string, { 
     email: string
@@ -44,6 +45,23 @@ class AuthService {
     avatarUrl?: string
   }>) {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users))
+  }
+
+  private getResetTokens(): Record<string, { 
+    email: string
+    token: string
+    expiresAt: string
+  }> {
+    const stored = localStorage.getItem(this.RESET_TOKENS_KEY)
+    return stored ? JSON.parse(stored) : {}
+  }
+
+  private saveResetTokens(tokens: Record<string, { 
+    email: string
+    token: string
+    expiresAt: string
+  }>) {
+    localStorage.setItem(this.RESET_TOKENS_KEY, JSON.stringify(tokens))
   }
 
   async register(data: RegisterData): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
@@ -175,6 +193,88 @@ class AuthService {
 
   isAuthenticated(): boolean {
     return this.getSession() !== null
+  }
+
+  async requestPasswordReset(email: string): Promise<{ success: boolean; error?: string; token?: string }> {
+    const users = this.getUsers()
+    
+    const userEntry = Object.entries(users).find(
+      ([_, u]) => u.email.toLowerCase() === email.toLowerCase() && u.provider === 'email'
+    )
+    
+    if (!userEntry) {
+      return { 
+        success: false, 
+        error: 'If an account exists with this email, you will receive a password reset link.' 
+      }
+    }
+    
+    const token = `reset-${Date.now()}-${Math.random().toString(36).substr(2, 16)}`
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+    
+    const resetTokens = this.getResetTokens()
+    resetTokens[token] = {
+      email: email.toLowerCase(),
+      token,
+      expiresAt,
+    }
+    this.saveResetTokens(resetTokens)
+    
+    return { 
+      success: true, 
+      token,
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
+    const resetTokens = this.getResetTokens()
+    const resetData = resetTokens[token]
+    
+    if (!resetData) {
+      return { success: false, error: 'Invalid or expired reset link' }
+    }
+    
+    if (new Date(resetData.expiresAt) < new Date()) {
+      delete resetTokens[token]
+      this.saveResetTokens(resetTokens)
+      return { success: false, error: 'This reset link has expired. Please request a new one.' }
+    }
+    
+    const users = this.getUsers()
+    const userEntry = Object.entries(users).find(
+      ([_, u]) => u.email.toLowerCase() === resetData.email.toLowerCase()
+    )
+    
+    if (!userEntry) {
+      return { success: false, error: 'User account not found' }
+    }
+    
+    const [userId, userData] = userEntry
+    users[userId] = {
+      ...userData,
+      password: newPassword,
+    }
+    this.saveUsers(users)
+    
+    delete resetTokens[token]
+    this.saveResetTokens(resetTokens)
+    
+    return { success: true }
+  }
+
+  verifyResetToken(token: string): { valid: boolean; expired?: boolean } {
+    const resetTokens = this.getResetTokens()
+    const resetData = resetTokens[token]
+    
+    if (!resetData) {
+      return { valid: false }
+    }
+    
+    if (new Date(resetData.expiresAt) < new Date()) {
+      return { valid: false, expired: true }
+    }
+    
+    return { valid: true }
   }
 }
 

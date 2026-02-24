@@ -14,9 +14,10 @@ import type { AuthUser } from '@/lib/types'
 interface LoginProps {
   onLoginSuccess: (user: AuthUser) => void
   onSwitchToRegister: () => void
+  onForgotPassword: () => void
 }
 
-export function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps) {
+export function Login({ onLoginSuccess, onSwitchToRegister, onForgotPassword }: LoginProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -123,7 +124,16 @@ export function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={onForgotPassword}
+                    className="text-xs text-accent hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"
