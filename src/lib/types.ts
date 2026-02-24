@@ -18,6 +18,8 @@ export interface AuthUser {
   email: string
   name: string
   createdAt: string
+  provider?: 'email' | 'google' | 'github'
+  avatarUrl?: string
 }
 
 export interface User {
