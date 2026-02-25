@@ -12,7 +12,7 @@ interface DesktopSidebarProps {
 }
 
 export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps) {
-  const { isCollapsed, sidebarWidth, isMobileOpen, setSidebarWidth, toggleSidebar, closeMobileSidebar, minWidth, maxWidth } = useSidebar()
+  const { isCollapsed, sidebarWidth, isMobileOpen, setSidebarWidth, toggleSidebar, closeMobileSidebar, minWidth, maxWidth, collapsedWidth } = useSidebar()
   const [isDragging, setIsDragging] = useState(false)
   const sidebarRef = useRef<HTMLElement>(null)
   const isMobile = useIsMobile()
@@ -75,11 +75,13 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
       <nav
         ref={sidebarRef}
         className={cn(
-          'fixed left-0 top-0 bottom-0 bg-card border-r border-border transition-all duration-300',
-          isMobile ? 'z-50' : 'z-40',
+          'fixed left-0 bg-card border-r border-border transition-all duration-300',
+          isMobile ? 'top-16 bottom-0 z-50' : 'top-16 bottom-0 z-40',
           isMobile && !isMobileOpen && '-translate-x-full'
         )}
-        style={{ width: isCollapsed ? undefined : `${sidebarWidth}px` }}
+        style={{ 
+          width: isCollapsed ? `${collapsedWidth}px` : `${sidebarWidth}px`,
+        }}
       >
         <div className="flex flex-col h-full">
           <div className={cn(
