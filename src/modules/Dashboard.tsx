@@ -1,12 +1,15 @@
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { PillarProgressBar } from '@/components/PillarProgressBar'
 import { InsightCard } from '@/components/InsightCard'
-import { Brain, UsersThree, TrendUp, ArrowRight, ChartLine } from '@phosphor-icons/react'
+import { Brain, UsersThree, TrendUp, ArrowRight, ChartLine, Sparkle, ChatCircleDots } from '@phosphor-icons/react'
 import type { AppView } from '../App'
-import type { RISScore, Insight, User } from '@/lib/types'
+import type { RISScore, Insight, User, Subscription } from '@/lib/types'
+import { FeatureGateService } from '@/lib/feature-gate-service'
+import { SubscriptionService } from '@/lib/subscription-service'
 
 interface DashboardProps {
   onNavigate: (view: AppView) => void
@@ -22,6 +25,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     lastUpdated: new Date().toISOString(),
   })
   const [insights] = useKV<Insight[]>('lovespark-insights', [])
+  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
+  const [weeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
+  
+  const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
+  const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
 
   const handleInsightRead = (id: string) => {
     // Mark insight as read
@@ -50,6 +58,35 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </p>
           </div>
         </header>
+
+        {!isPremium && (
+          <Card className="bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="bg-background/50">Free Plan</Badge>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1">You're on the Free Plan</h3>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <ChatCircleDots size={16} />
+                      <span>{remainingMessages === -1 ? 'Unlimited' : `${remainingMessages}/5`} AI messages this week</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Brain size={16} />
+                      <span>2 assessments max</span>
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={() => onNavigate('pricing')} className="gap-2">
+                  <Sparkle size={18} weight="fill" />
+                  Upgrade to Premium
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-1">

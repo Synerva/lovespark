@@ -20,6 +20,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Weekly check-ins',
       'RIS Score tracking',
       'Individual mode only',
+      'Limited assessments (2 max)',
     ],
     isActive: true,
   },
