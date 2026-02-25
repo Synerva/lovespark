@@ -4,6 +4,7 @@ import type { AppView } from '../App'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/hooks/use-sidebar'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface DesktopSidebarProps {
   currentView: AppView
@@ -14,6 +15,7 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
   const { isCollapsed, sidebarWidth, setSidebarWidth, toggleSidebar, minWidth, maxWidth } = useSidebar()
   const [isDragging, setIsDragging] = useState(false)
   const sidebarRef = useRef<HTMLElement>(null)
+  const isMobile = useIsMobile()
 
   const navItems: { view: AppView; icon: typeof House; label: string }[] = [
     { view: 'dashboard', icon: House, label: 'Home' },
@@ -58,7 +60,7 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
   return (
     <nav
       ref={sidebarRef}
-      className="hidden md:block fixed left-0 top-0 bottom-0 bg-card border-r border-border z-40 transition-all duration-300"
+      className="fixed left-0 top-0 bottom-0 bg-card border-r border-border z-40 transition-all duration-300"
       style={{ width: isCollapsed ? undefined : `${sidebarWidth}px` }}
     >
       <div className="flex flex-col h-full">
@@ -115,7 +117,7 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
         </div>
       </div>
       
-      {!isCollapsed && (
+      {!isCollapsed && !isMobile && (
         <div
           className={cn(
             'absolute top-0 right-0 bottom-0 w-1 cursor-col-resize hover:bg-accent transition-colors group',

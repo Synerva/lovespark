@@ -16,7 +16,6 @@ import { ProfileSettings } from './modules/ProfileSettings'
 import { CheckInHistory } from './modules/CheckInHistory'
 import { Pricing } from './modules/Pricing'
 import { UsageStats } from './modules/UsageStats'
-import { BottomNav } from './components/BottomNav'
 import { DesktopSidebar } from './components/DesktopSidebar'
 import { authService } from './lib/auth-service'
 import { useSidebar } from './hooks/use-sidebar'
@@ -173,23 +172,22 @@ function App() {
     }
   }
 
-  const showBottomNav = authService.isAuthenticated() && user?.onboardingCompleted && 
+  const showNavigation = authService.isAuthenticated() && user?.onboardingCompleted && 
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
     currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
     currentView !== 'retake-onboarding'
 
   return (
     <div className="min-h-screen bg-background">
-      {showBottomNav && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
+      {showNavigation && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
       <div 
-        className="pb-20 md:pb-0 transition-all duration-300"
+        className="transition-all duration-300"
         style={{
-          paddingLeft: showBottomNav ? `${isCollapsed ? 80 : sidebarWidth}px` : '0'
+          paddingLeft: showNavigation ? `${isCollapsed ? 80 : sidebarWidth}px` : '0'
         }}
       >
         {renderView()}
       </div>
-      {showBottomNav && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
       <Toaster />
     </div>
   )
