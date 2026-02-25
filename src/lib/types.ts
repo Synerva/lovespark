@@ -158,3 +158,39 @@ export interface PsychologistSession {
   notes?: string
   completed: boolean
 }
+
+export type SubscriptionPlanName = 'FREE' | 'PREMIUM' | 'PREMIUM_COACHING'
+
+export type BillingCycle = 'monthly' | 'yearly'
+
+export type SubscriptionStatus = 'active' | 'canceled' | 'trial' | 'expired'
+
+export interface SubscriptionPlan {
+  id: string
+  name: SubscriptionPlanName
+  displayName: string
+  priceMonthly: number
+  priceYearly: number
+  features: string[]
+  isPopular?: boolean
+  isActive: boolean
+}
+
+export interface Subscription {
+  id: string
+  userId: string
+  planId: string
+  planName: SubscriptionPlanName
+  status: SubscriptionStatus
+  billingCycle: BillingCycle
+  startDate: string
+  renewalDate: string
+  createdAt: string
+}
+
+export interface PaymentIntent {
+  id: string
+  amount: number
+  currency: string
+  status: 'pending' | 'succeeded' | 'failed'
+}

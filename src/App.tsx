@@ -14,9 +14,10 @@ import { AlignModule } from './modules/AlignModule'
 import { ElevateModule } from './modules/ElevateModule'
 import { ProfileSettings } from './modules/ProfileSettings'
 import { CheckInHistory } from './modules/CheckInHistory'
+import { Pricing } from './modules/Pricing'
 import { BottomNav } from './components/BottomNav'
 import { authService } from './lib/auth-service'
-import type { RISScore, User, AuthUser } from './lib/types'
+import type { RISScore, User, AuthUser, Subscription } from './lib/types'
 
 export type AppView =
   | 'login'
@@ -32,6 +33,7 @@ export type AppView =
   | 'align'
   | 'elevate'
   | 'profile'
+  | 'pricing'
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('login')
@@ -74,7 +76,7 @@ function App() {
   }
 
   const handleOnboardingComplete = () => {
-    setCurrentView('dashboard')
+    setCurrentView('pricing')
   }
 
   const handleLogout = () => {
@@ -150,6 +152,8 @@ function App() {
         return <ElevateModule onNavigate={setCurrentView} />
       case 'profile':
         return <ProfileSettings onNavigate={setCurrentView} onLogout={handleLogout} />
+      case 'pricing':
+        return <Pricing onNavigate={setCurrentView} />
       default:
         return <Login 
           onLoginSuccess={handleLoginSuccess} 
@@ -161,7 +165,7 @@ function App() {
 
   const showBottomNav = authService.isAuthenticated() && user?.onboardingCompleted && 
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
-    currentView !== 'forgot-password' && currentView !== 'reset-password'
+    currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing'
 
   return (
     <div className="min-h-screen bg-background">

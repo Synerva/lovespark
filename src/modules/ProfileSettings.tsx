@@ -1,12 +1,13 @@
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, SignOut, EnvelopeSimple, Calendar } from '@phosphor-icons/react'
+import { User, SignOut, EnvelopeSimple, Calendar, Crown } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { authService } from '@/lib/auth-service'
 import { toast } from 'sonner'
-import type { User as UserType, AuthUser } from '@/lib/types'
+import type { User as UserType, Subscription } from '@/lib/types'
+import { SubscriptionService } from '@/lib/subscription-service'
 
 interface ProfileSettingsProps {
   onNavigate: (view: AppView) => void
@@ -15,8 +16,10 @@ interface ProfileSettingsProps {
 
 export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) {
   const [user] = useKV<UserType | null>('lovespark-user', null)
+  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
   
   const authUser = authService.getSession()
+  const plan = subscription ? SubscriptionService.getPlanById(subscription.planId) : SubscriptionService.getPlanByName('FREE')
 
   const handleLogout = () => {
     authService.logout()
@@ -91,6 +94,50 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
                   <p className="font-medium capitalize">{user?.mode || 'Individual'}</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown weight="duotone" className="text-secondary" />
+                Subscription
+              </CardTitle>
+              <CardDescription>Manage your subscription plan</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Current Plan</p>
+                <p className="text-lg font-semibold">{plan?.displayName}</p>
+              </div>
+
+              {subscription && subscription.status === 'active' && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Billing Cycle</p>
+                  <p className="font-medium capitalize">{subscription.billingCycle}</p>
+                </div>
+              )}
+
+              {subscription && subscription.renewalDate && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Next Renewal</p>
+                  <p className="font-medium">
+                    {new Date(subscription.renewalDate).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              )}
+
+              <Button
+                onClick={() => onNavigate('pricing')}
+                variant="outline"
+                className="w-full"
+              >
+                {subscription?.planName === 'FREE' ? 'Upgrade Plan' : 'Change Plan'}
+              </Button>
             </CardContent>
           </Card>
 
