@@ -169,7 +169,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pb-20 md:pb-0">{renderView()}</div>
+      <div className="pb-20 md:pb-0 md:pl-64">{renderView()}</div>
       {showBottomNav && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
       <Toaster />
     </div>
