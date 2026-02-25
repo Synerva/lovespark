@@ -1,12 +1,13 @@
-import { List } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { motion } from 'framer-motion'
 
 interface MobileHeaderProps {
   onMenuClick: () => void
+  isMenuOpen: boolean
 }
 
-export function MobileHeader({ onMenuClick }: MobileHeaderProps) {
+export function MobileHeader({ onMenuClick, isMenuOpen }: MobileHeaderProps) {
   const isMobile = useIsMobile()
 
   if (!isMobile) return null
@@ -19,7 +20,51 @@ export function MobileHeader({ onMenuClick }: MobileHeaderProps) {
         onClick={onMenuClick}
         className="h-10 w-10"
       >
-        <List size={24} />
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <motion.line
+            x1="3"
+            y1="6"
+            x2="21"
+            y2="6"
+            animate={{
+              rotate: isMenuOpen ? 45 : 0,
+              y: isMenuOpen ? 6 : 0,
+            }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ originX: '12px', originY: '12px' }}
+          />
+          <motion.line
+            x1="3"
+            y1="12"
+            x2="21"
+            y2="12"
+            animate={{
+              opacity: isMenuOpen ? 0 : 1,
+            }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+          />
+          <motion.line
+            x1="3"
+            y1="18"
+            x2="21"
+            y2="18"
+            animate={{
+              rotate: isMenuOpen ? -45 : 0,
+              y: isMenuOpen ? -6 : 0,
+            }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ originX: '12px', originY: '12px' }}
+          />
+        </svg>
       </Button>
       <div className="flex-1 flex justify-center">
         <div className="text-center">

@@ -54,7 +54,7 @@ function App() {
     elevate: 0,
     lastUpdated: new Date().toISOString(),
   })
-  const { isCollapsed, sidebarWidth, toggleMobileSidebar } = useSidebar()
+  const { isCollapsed, sidebarWidth, isMobileOpen, toggleMobileSidebar } = useSidebar()
   const isMobile = useIsMobile()
 
   useEffect(() => {
@@ -182,7 +182,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      {showNavigation && isMobile && <MobileHeader onMenuClick={toggleMobileSidebar} />}
+      {showNavigation && isMobile && <MobileHeader onMenuClick={toggleMobileSidebar} isMenuOpen={isMobileOpen} />}
       {showNavigation && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
       <div 
         className="transition-all duration-300"
