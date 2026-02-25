@@ -18,6 +18,8 @@ import { Pricing } from './modules/Pricing'
 import { UsageStats } from './modules/UsageStats'
 import { DesktopSidebar } from './components/DesktopSidebar'
 import { MobileHeader } from './components/MobileHeader'
+import { DesktopHeader } from './components/DesktopHeader'
+import { BottomNav } from './components/BottomNav'
 import { authService } from './lib/auth-service'
 import { useSidebar } from './hooks/use-sidebar'
 import { useIsMobile } from './hooks/use-mobile'
@@ -54,7 +56,7 @@ function App() {
     elevate: 0,
     lastUpdated: new Date().toISOString(),
   })
-  const { isCollapsed, sidebarWidth, isMobileOpen, toggleMobileSidebar } = useSidebar()
+  const { isCollapsed, sidebarWidth, isMobileOpen, toggleMobileSidebar, toggleSidebar } = useSidebar()
   const isMobile = useIsMobile()
 
   useEffect(() => {
@@ -183,16 +185,19 @@ function App() {
   return (
     <div className="min-h-screen bg-background">
       {showNavigation && isMobile && <MobileHeader onMenuClick={toggleMobileSidebar} isMenuOpen={isMobileOpen} />}
+      {showNavigation && !isMobile && <DesktopHeader onMenuClick={toggleSidebar} />}
       {showNavigation && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
       <div 
         className="transition-all duration-300"
         style={{
           paddingLeft: showNavigation && !isMobile ? `${isCollapsed ? 80 : sidebarWidth}px` : '0',
-          paddingTop: showNavigation && isMobile ? '64px' : '0'
+          paddingTop: showNavigation ? '64px' : '0',
+          paddingBottom: showNavigation && isMobile ? '80px' : '0'
         }}
       >
         {renderView()}
       </div>
+      {showNavigation && isMobile && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
       <Toaster />
     </div>
   )
