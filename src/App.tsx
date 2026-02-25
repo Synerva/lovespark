@@ -16,7 +16,9 @@ import { ProfileSettings } from './modules/ProfileSettings'
 import { CheckInHistory } from './modules/CheckInHistory'
 import { Pricing } from './modules/Pricing'
 import { BottomNav } from './components/BottomNav'
+import { DesktopSidebar } from './components/DesktopSidebar'
 import { authService } from './lib/auth-service'
+import { useSidebar } from './hooks/use-sidebar'
 import type { RISScore, User, AuthUser, Subscription } from './lib/types'
 
 export type AppView =
@@ -48,6 +50,7 @@ function App() {
     elevate: 0,
     lastUpdated: new Date().toISOString(),
   })
+  const { isCollapsed } = useSidebar()
 
   useEffect(() => {
     const session = authService.getSession()
@@ -169,7 +172,15 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pb-20 md:pb-0 md:pl-64">{renderView()}</div>
+      {showBottomNav && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
+      <div 
+        className="pb-20 md:pb-0 transition-all duration-300"
+        style={{
+          paddingLeft: showBottomNav ? (isCollapsed ? '5rem' : '16rem') : '0'
+        }}
+      >
+        {renderView()}
+      </div>
       {showBottomNav && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
       <Toaster />
     </div>

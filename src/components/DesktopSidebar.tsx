@@ -1,0 +1,84 @@
+import { House, ChatCircle, CalendarCheck, User, List, X } from '@phosphor-icons/react'
+import type { AppView } from '../App'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { useSidebar } from '@/hooks/use-sidebar'
+
+interface DesktopSidebarProps {
+  currentView: AppView
+  onNavigate: (view: AppView) => void
+}
+
+export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps) {
+  const { isCollapsed, toggleSidebar } = useSidebar()
+
+  const navItems: { view: AppView; icon: typeof House; label: string }[] = [
+    { view: 'dashboard', icon: House, label: 'Home' },
+    { view: 'ai-coach', icon: ChatCircle, label: 'Coach' },
+    { view: 'check-in', icon: CalendarCheck, label: 'Check-In' },
+    { view: 'profile', icon: User, label: 'Profile' },
+  ]
+
+  return (
+    <nav
+      className={cn(
+        'hidden md:block fixed left-0 top-0 bottom-0 bg-card border-r border-border z-40 transition-all duration-300',
+        isCollapsed ? 'w-20' : 'w-64'
+      )}
+    >
+      <div className="flex flex-col h-full">
+        <div className={cn(
+          'p-6 border-b border-border flex items-center',
+          isCollapsed ? 'justify-center' : 'justify-between'
+        )}>
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-2xl font-bold text-primary">LoveSpark</h1>
+              <p className="text-xs text-muted-foreground mt-1">Relationship Intelligence</p>
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="text-2xl font-bold text-primary">LS</div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className={cn(
+              'h-8 w-8 flex-shrink-0',
+              isCollapsed && 'absolute top-6 left-1/2 -translate-x-1/2'
+            )}
+          >
+            {isCollapsed ? <List size={20} /> : <X size={20} />}
+          </Button>
+        </div>
+
+        <div className={cn(
+          'flex-1 py-6 space-y-1',
+          isCollapsed ? 'px-2' : 'px-3'
+        )}>
+          {navItems.map(({ view, icon: Icon, label }) => {
+            const isActive = currentView === view
+            return (
+              <button
+                key={view}
+                onClick={() => onNavigate(view)}
+                className={cn(
+                  'w-full flex items-center rounded-lg transition-all text-left',
+                  isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+                title={isCollapsed ? label : undefined}
+              >
+                <Icon size={22} weight={isActive ? 'fill' : 'regular'} />
+                {!isCollapsed && <span className="font-medium">{label}</span>}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </nav>
+  )
+}
