@@ -17,8 +17,10 @@ import { CheckInHistory } from './modules/CheckInHistory'
 import { Pricing } from './modules/Pricing'
 import { UsageStats } from './modules/UsageStats'
 import { DesktopSidebar } from './components/DesktopSidebar'
+import { MobileHeader } from './components/MobileHeader'
 import { authService } from './lib/auth-service'
 import { useSidebar } from './hooks/use-sidebar'
+import { useIsMobile } from './hooks/use-mobile'
 import type { RISScore, User, AuthUser, Subscription } from './lib/types'
 
 export type AppView =
@@ -52,7 +54,8 @@ function App() {
     elevate: 0,
     lastUpdated: new Date().toISOString(),
   })
-  const { isCollapsed, sidebarWidth } = useSidebar()
+  const { isCollapsed, sidebarWidth, toggleMobileSidebar } = useSidebar()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const session = authService.getSession()
@@ -179,11 +182,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
+      {showNavigation && isMobile && <MobileHeader onMenuClick={toggleMobileSidebar} />}
       {showNavigation && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
       <div 
         className="transition-all duration-300"
         style={{
-          paddingLeft: showNavigation ? `${isCollapsed ? 80 : sidebarWidth}px` : '0'
+          paddingLeft: showNavigation && !isMobile ? `${isCollapsed ? 80 : sidebarWidth}px` : '0',
+          paddingTop: showNavigation && isMobile ? '64px' : '0'
         }}
       >
         {renderView()}

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
 
 const MIN_WIDTH = 200
@@ -8,6 +9,7 @@ const COLLAPSED_WIDTH = 80
 export function useSidebar() {
   const [isCollapsed, setIsCollapsed] = useKV<boolean>('sidebar-collapsed', false)
   const [sidebarWidth, setSidebarWidth] = useKV<number>('sidebar-width', DEFAULT_WIDTH)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
   
   const currentWidth = sidebarWidth ?? DEFAULT_WIDTH
   const clampedWidth = Math.min(Math.max(currentWidth, MIN_WIDTH), MAX_WIDTH)
@@ -15,9 +17,13 @@ export function useSidebar() {
   return {
     isCollapsed,
     sidebarWidth: isCollapsed ? COLLAPSED_WIDTH : clampedWidth,
+    isMobileOpen,
     setIsCollapsed,
     setSidebarWidth,
+    setIsMobileOpen,
     toggleSidebar: () => setIsCollapsed((prev) => !prev),
+    toggleMobileSidebar: () => setIsMobileOpen((prev) => !prev),
+    closeMobileSidebar: () => setIsMobileOpen(false),
     minWidth: MIN_WIDTH,
     maxWidth: MAX_WIDTH,
     collapsedWidth: COLLAPSED_WIDTH,

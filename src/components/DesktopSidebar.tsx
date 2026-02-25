@@ -12,7 +12,7 @@ interface DesktopSidebarProps {
 }
 
 export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps) {
-  const { isCollapsed, sidebarWidth, setSidebarWidth, toggleSidebar, minWidth, maxWidth } = useSidebar()
+  const { isCollapsed, sidebarWidth, isMobileOpen, setSidebarWidth, toggleSidebar, closeMobileSidebar, minWidth, maxWidth } = useSidebar()
   const [isDragging, setIsDragging] = useState(false)
   const sidebarRef = useRef<HTMLElement>(null)
   const isMobile = useIsMobile()
@@ -57,77 +57,96 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
     setIsDragging(true)
   }
 
-  return (
-    <nav
-      ref={sidebarRef}
-      className="fixed left-0 top-0 bottom-0 bg-card border-r border-border z-40 transition-all duration-300"
-      style={{ width: isCollapsed ? undefined : `${sidebarWidth}px` }}
-    >
-      <div className="flex flex-col h-full">
-        <div className={cn(
-          'p-6 border-b border-border flex items-center',
-          isCollapsed ? 'justify-center' : 'justify-between'
-        )}>
-          {!isCollapsed && (
-            <div>
-              <h1 className="text-2xl font-bold text-primary">LoveSpark</h1>
-              <p className="text-xs text-muted-foreground mt-1">Relationship Intelligence</p>
-            </div>
-          )}
-          {isCollapsed && (
-            <div className="text-2xl font-bold text-primary">LS</div>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className={cn(
-              'h-8 w-8 flex-shrink-0',
-              isCollapsed && 'absolute top-6 left-1/2 -translate-x-1/2'
-            )}
-          >
-            {isCollapsed ? <List size={20} /> : <X size={20} />}
-          </Button>
-        </div>
+  const handleNavigation = (view: AppView) => {
+    onNavigate(view)
+    if (isMobile) {
+      closeMobileSidebar()
+    }
+  }
 
-        <div className={cn(
-          'flex-1 py-6 space-y-1',
-          isCollapsed ? 'px-2' : 'px-3'
-        )}>
-          {navItems.map(({ view, icon: Icon, label }) => {
-            const isActive = currentView === view
-            return (
-              <button
-                key={view}
-                onClick={() => onNavigate(view)}
-                className={cn(
-                  'w-full flex items-center rounded-lg transition-all text-left',
-                  isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-                title={isCollapsed ? label : undefined}
-              >
-                <Icon size={22} weight={isActive ? 'fill' : 'regular'} />
-                {!isCollapsed && <span className="font-medium">{label}</span>}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-      
-      {!isCollapsed && !isMobile && (
-        <div
-          className={cn(
-            'absolute top-0 right-0 bottom-0 w-1 cursor-col-resize hover:bg-accent transition-colors group',
-            isDragging && 'bg-accent'
-          )}
-          onMouseDown={handleResizeStart}
-        >
-          <div className="absolute inset-y-0 -right-1 w-3" />
-        </div>
+  return (
+    <>
+      {isMobile && isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={closeMobileSidebar}
+        />
       )}
-    </nav>
+      <nav
+        ref={sidebarRef}
+        className={cn(
+          'fixed left-0 top-0 bottom-0 bg-card border-r border-border transition-all duration-300',
+          isMobile ? 'z-50' : 'z-40',
+          isMobile && !isMobileOpen && '-translate-x-full'
+        )}
+        style={{ width: isCollapsed ? undefined : `${sidebarWidth}px` }}
+      >
+        <div className="flex flex-col h-full">
+          <div className={cn(
+            'p-6 border-b border-border flex items-center',
+            isCollapsed ? 'justify-center' : 'justify-between'
+          )}>
+            {!isCollapsed && (
+              <div>
+                <h1 className="text-2xl font-bold text-primary">LoveSpark</h1>
+                <p className="text-xs text-muted-foreground mt-1">Relationship Intelligence</p>
+              </div>
+            )}
+            {isCollapsed && (
+              <div className="text-2xl font-bold text-primary">LS</div>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={isMobile ? closeMobileSidebar : toggleSidebar}
+              className={cn(
+                'h-8 w-8 flex-shrink-0',
+                isCollapsed && !isMobile && 'absolute top-6 left-1/2 -translate-x-1/2'
+              )}
+            >
+              {isMobile ? <X size={20} /> : isCollapsed ? <List size={20} /> : <X size={20} />}
+            </Button>
+          </div>
+
+          <div className={cn(
+            'flex-1 py-6 space-y-1',
+            isCollapsed ? 'px-2' : 'px-3'
+          )}>
+            {navItems.map(({ view, icon: Icon, label }) => {
+              const isActive = currentView === view
+              return (
+                <button
+                  key={view}
+                  onClick={() => handleNavigation(view)}
+                  className={cn(
+                    'w-full flex items-center rounded-lg transition-all text-left',
+                    isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                  title={isCollapsed ? label : undefined}
+                >
+                  <Icon size={22} weight={isActive ? 'fill' : 'regular'} />
+                  {!isCollapsed && <span className="font-medium">{label}</span>}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        
+        {!isCollapsed && !isMobile && (
+          <div
+            className={cn(
+              'absolute top-0 right-0 bottom-0 w-1 cursor-col-resize hover:bg-accent transition-colors group',
+              isDragging && 'bg-accent'
+            )}
+            onMouseDown={handleResizeStart}
+          >
+            <div className="absolute inset-y-0 -right-1 w-3" />
+          </div>
+        )}
+      </nav>
+    </>
   )
 }
