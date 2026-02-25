@@ -33,6 +33,21 @@ export interface User {
   createdAt: string
 }
 
+export interface OnboardingProfile {
+  userId: string
+  relationshipStatus: string
+  relationshipGoal: string
+  mainChallenge: string
+  communicationStyle: string
+  conflictStyle: string
+  emotionalAwareness: string
+  intelligenceScore: number
+  primaryPattern: string
+  strengths: string[]
+  growthEdge: string
+  createdAt: string
+}
+
 export interface AttachmentStyle {
   primary: 'secure' | 'anxious' | 'avoidant' | 'fearful-avoidant'
   score: number

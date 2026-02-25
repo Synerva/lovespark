@@ -134,6 +134,33 @@ export async function generateAICoachResponse(
   activePillar?: PillarType,
   recentCheckIn?: boolean
 ): Promise<string> {
+  let onboardingContext = ''
+  
+  try {
+    const onboardingProfile = await window.spark.kv.get<{
+      primaryPattern: string
+      strengths: string[]
+      growthEdge: string
+      relationshipStatus: string
+      relationshipGoal: string
+      mainChallenge: string
+    }>('lovespark-onboarding-profile')
+    
+    if (onboardingProfile) {
+      onboardingContext = `
+Onboarding Profile:
+- Relationship Pattern: ${onboardingProfile.primaryPattern}
+- Key Strengths: ${onboardingProfile.strengths.join(', ')}
+- Growth Edge: ${onboardingProfile.growthEdge}
+- Relationship Status: ${onboardingProfile.relationshipStatus}
+- Primary Goal: ${onboardingProfile.relationshipGoal}
+- Main Challenge: ${onboardingProfile.mainChallenge}
+`
+    }
+  } catch (error) {
+    // Onboarding profile not available yet
+  }
+
   const contextInfo = `
 RIS Score: ${risScore.overall}/100
 Pillar Breakdown:
@@ -143,6 +170,7 @@ Pillar Breakdown:
 ${risScore.delta !== undefined ? `Recent Change: ${risScore.delta > 0 ? '+' : ''}${risScore.delta}` : ''}
 ${activePillar ? `Currently viewing: ${activePillar.toUpperCase()} module` : ''}
 ${recentCheckIn ? 'Just completed weekly check-in' : ''}
+${onboardingContext}
 `
 
   const promptText = `You are an AI Relationship Intelligence Coach for LoveSpark. You help users optimize their relationship patterns through data-driven insights.
@@ -152,6 +180,7 @@ Your tone is:
 - Precise and non-judgmental
 - Focus on behavioral patterns, not therapy
 - Use "relationship intelligence" language, not clinical terms
+${onboardingContext ? '- Reference their onboarding profile when relevant to provide personalized guidance' : ''}
 
 Current User Context:
 ${contextInfo}
@@ -422,5 +451,76 @@ function analyzeResponseTrends(
       ? previousCheckIns[previousCheckIns.length - 1].risScoreAfter.overall -
         previousCheckIns[0].risScoreAfter.overall
       : 0,
+  }
+}
+
+export async function generateOnboardingInsight(
+  answers: {
+    relationshipStatus: string
+    relationshipGoal: string
+    mainChallenge: string
+    communicationStyle: string
+    conflictStyle: string
+    emotionalAwareness: string
+  }
+): Promise<{
+  primaryPattern: string
+  strengths: string[]
+  growthEdge: string
+  firstInsight: string
+  intelligenceScore: number
+}> {
+  const promptText = `You are an AI relationship intelligence analyst for LoveSpark. A new user has completed their onboarding assessment. Based on their responses, generate a comprehensive psychological profile.
+
+Onboarding Responses:
+- Relationship Status: ${answers.relationshipStatus}
+- Relationship Goal: ${answers.relationshipGoal}
+- Main Challenge: ${answers.mainChallenge}
+- Communication Style: ${answers.communicationStyle}
+- Conflict Style: ${answers.conflictStyle}
+- Emotional Awareness: ${answers.emotionalAwareness}
+
+Generate a profile that:
+- Identifies a primary relationship pattern (e.g., "Analytical Protector", "Intuitive Connector", "Structured Builder", "Adaptive Navigator")
+- Lists 3 key strengths based on their responses
+- Identifies one specific growth edge (area for development)
+- Provides an encouraging first coaching insight
+- Assigns an initial Relationship Intelligence Score between 55-75 (never below 55 to maintain encouragement)
+
+Use analytical, warm, non-therapeutic language. Focus on patterns and potential, not deficits.
+
+Return as JSON:
+{
+  "primaryPattern": "Pattern name (2-3 words)",
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "growthEdge": "One specific area for development",
+  "firstInsight": "An encouraging 2-3 sentence insight about their journey ahead",
+  "intelligenceScore": 68
+}`
+
+  try {
+    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const parsed = JSON.parse(response)
+
+    return {
+      primaryPattern: parsed.primaryPattern,
+      strengths: parsed.strengths,
+      growthEdge: parsed.growthEdge,
+      firstInsight: parsed.firstInsight,
+      intelligenceScore: Math.max(55, Math.min(75, parsed.intelligenceScore)),
+    }
+  } catch (error) {
+    return {
+      primaryPattern: 'Intentional Builder',
+      strengths: [
+        'Strong commitment to growth',
+        'Reflective self-awareness',
+        'Willingness to engage deeply',
+      ],
+      growthEdge: 'Translating awareness into consistent action',
+      firstInsight:
+        'Your engagement with this assessment shows intentionality—a core predictor of relationship success. The path ahead involves building small, consistent habits that compound into meaningful change.',
+      intelligenceScore: 65,
+    }
   }
 }
