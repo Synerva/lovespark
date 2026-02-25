@@ -15,6 +15,7 @@ import { generateOnboardingInsight } from '@/lib/ai-service'
 
 interface OnboardingProps {
   onComplete: () => void
+  isRetake?: boolean
 }
 
 type OnboardingStep = 
@@ -41,7 +42,7 @@ interface OnboardingAnswers {
   emotionalAwareness?: string
 }
 
-export function Onboarding({ onComplete }: OnboardingProps) {
+export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
   const [step, setStep] = useState<OnboardingStep>('welcome')
   const [answers, setAnswers] = useState<OnboardingAnswers>({})
   const [aiInsight, setAiInsight] = useState<{
@@ -53,7 +54,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   } | null>(null)
   
   const [, setUser] = useKV<User>('lovespark-user', null as any)
+  const [existingRisScore] = useKV<RISScore>('lovespark-ris-score', null as any)
   const [, setRisScore] = useKV<RISScore>('lovespark-ris-score', null as any)
+  const [existingProfile] = useKV<OnboardingProfile>('lovespark-onboarding-profile', null as any)
   const [, setOnboardingProfile] = useKV<OnboardingProfile>('lovespark-onboarding-profile', null as any)
   const [, setAiMessages] = useKV<AIMessage[]>('lovespark-ai-messages', [])
 
@@ -102,10 +105,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         lastUpdated: new Date().toISOString(),
       }
       
+      const messageContent = isRetake 
+        ? `## Assessment Updated! 🔄\n\n**Your Updated Relationship Pattern:** ${insight.primaryPattern}\n\n**Key Strengths:**\n${insight.strengths.map(s => `- ${s}`).join('\n')}\n\n**Growth Edge:** ${insight.growthEdge}\n\n**Updated Insight:**\n${insight.firstInsight}\n\n${existingRisScore ? `**Previous Score:** ${existingRisScore.overall} → **New Score:** ${baseScore}\n**Change:** ${baseScore > existingRisScore.overall ? '📈' : baseScore < existingRisScore.overall ? '📉' : '➡️'} ${Math.abs(baseScore - existingRisScore.overall)} points\n\n` : ''}---\n\nYour profile has been refreshed. I'm here to support your continued growth!`
+        : `## Welcome to LoveSpark! 🎯\n\n**Your Relationship Pattern:** ${insight.primaryPattern}\n\n**Key Strengths:**\n${insight.strengths.map(s => `- ${s}`).join('\n')}\n\n**Growth Edge:** ${insight.growthEdge}\n\n**First Insight:**\n${insight.firstInsight}\n\n---\n\nI'm here to support your relationship intelligence journey. Feel free to ask me anything about your profile, the LoveSpark method, or how to get started!`
+      
       const onboardingMessage: AIMessage = {
-        id: `onboarding-insight-${Date.now()}`,
+        id: `${isRetake ? 'retake' : 'onboarding'}-insight-${Date.now()}`,
         role: 'assistant',
-        content: `## Welcome to LoveSpark! 🎯\n\n**Your Relationship Pattern:** ${insight.primaryPattern}\n\n**Key Strengths:**\n${insight.strengths.map(s => `- ${s}`).join('\n')}\n\n**Growth Edge:** ${insight.growthEdge}\n\n**First Insight:**\n${insight.firstInsight}\n\n---\n\nI'm here to support your relationship intelligence journey. Feel free to ask me anything about your profile, the LoveSpark method, or how to get started!`,
+        content: messageContent,
         timestamp: new Date().toISOString(),
         context: {
           risScore: baseScore,
@@ -185,16 +192,30 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             <Sparkle size={48} weight="duotone" className="text-secondary" />
           </div>
           <h1 className="text-5xl font-bold mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
-            Welcome to LoveSpark
+            {isRetake ? 'Update Your Profile' : 'Welcome to LoveSpark'}
           </h1>
           <p className="text-xl text-muted-foreground mb-4">
-            Your AI-first Relationship Intelligence Operating System
+            {isRetake 
+              ? 'Refresh your relationship intelligence profile' 
+              : 'Your AI-first Relationship Intelligence Operating System'}
           </p>
           <p className="text-base text-muted-foreground mb-8 max-w-lg mx-auto">
-            In the next few minutes, we'll build your relationship intelligence profile and generate your first AI-powered insights.
+            {isRetake
+              ? "Let's update your profile with your current relationship state and generate fresh insights based on where you are now."
+              : "In the next few minutes, we'll build your relationship intelligence profile and generate your first AI-powered insights."}
           </p>
+          {isRetake && existingProfile && (
+            <div className="bg-muted/50 rounded-lg p-4 mb-6 text-sm text-left max-w-md mx-auto">
+              <p className="font-medium mb-2">Current Profile:</p>
+              <p className="text-muted-foreground">Pattern: {existingProfile.primaryPattern}</p>
+              <p className="text-muted-foreground">Score: {existingProfile.intelligenceScore}</p>
+              <p className="text-muted-foreground text-xs mt-2">
+                Last updated: {new Date(existingProfile.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          )}
           <Button onClick={() => setStep('mode')} size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            Begin Assessment
+            {isRetake ? 'Update Assessment' : 'Begin Assessment'}
             <ArrowRight className="ml-2" size={20} />
           </Button>
         </motion.div>

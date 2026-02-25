@@ -28,6 +28,7 @@ export type AppView =
   | 'forgot-password'
   | 'reset-password'
   | 'onboarding'
+  | 'retake-onboarding'
   | 'dashboard'
   | 'ai-coach'
   | 'check-in'
@@ -135,6 +136,8 @@ function App() {
         />
       case 'onboarding':
         return <Onboarding onComplete={handleOnboardingComplete} />
+      case 'retake-onboarding':
+        return <Onboarding onComplete={() => setCurrentView('profile')} isRetake={true} />
       case 'dashboard':
         return <Dashboard onNavigate={setCurrentView} />
       case 'ai-coach':
@@ -172,7 +175,8 @@ function App() {
 
   const showBottomNav = authService.isAuthenticated() && user?.onboardingCompleted && 
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
-    currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing'
+    currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
+    currentView !== 'retake-onboarding'
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,7 +1,7 @@
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, SignOut, EnvelopeSimple, Calendar, Crown, CreditCard, ChartLine } from '@phosphor-icons/react'
+import { User, SignOut, EnvelopeSimple, Calendar, Crown, CreditCard, ChartLine, ArrowsClockwise } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { authService } from '@/lib/auth-service'
@@ -191,6 +191,23 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
               >
                 <ChartLine className="mr-2" size={20} />
                 View Usage Statistics
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Relationship Intelligence Profile</CardTitle>
+              <CardDescription>Update your assessment and refresh your insights</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => onNavigate('retake-onboarding')}
+                variant="outline"
+                className="w-full"
+              >
+                <ArrowsClockwise className="mr-2" size={20} />
+                Retake Assessment
               </Button>
             </CardContent>
           </Card>
