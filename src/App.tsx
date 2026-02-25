@@ -46,8 +46,7 @@ function App() {
   const [currentView, setCurrentView] = useState<AppView>('login')
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [resetToken, setResetToken] = useState<string>('')
-  const [user] = useKV<User | null>('lovespark-user', null)
-  const [, setUser] = useKV<User | null>('lovespark-user', null)
+  const [user, setUser] = useKV<User | null>('lovespark-user', null)
   const [risScore] = useKV<RISScore>('lovespark-ris-score', {
     overall: 0,
     understand: 0,
@@ -61,7 +60,19 @@ function App() {
   useEffect(() => {
     const session = authService.getSession()
     if (session) {
-      if (user?.onboardingCompleted) {
+      if (!user) {
+        const newUser: User = {
+          id: session.id,
+          name: session.name,
+          email: session.email,
+          avatarUrl: session.avatarUrl,
+          mode: 'individual',
+          onboardingCompleted: false,
+          createdAt: session.createdAt,
+        }
+        setUser(newUser)
+        setCurrentView('onboarding')
+      } else if (user.onboardingCompleted) {
         setCurrentView('dashboard')
       } else {
         setCurrentView('onboarding')
@@ -70,7 +81,7 @@ function App() {
       setCurrentView('login')
     }
     setIsCheckingAuth(false)
-  }, [user?.onboardingCompleted])
+  }, [user?.onboardingCompleted, user?.id])
 
   const handleLoginSuccess = (authUser: AuthUser) => {
     if (user?.onboardingCompleted) {
@@ -89,6 +100,7 @@ function App() {
   }
 
   const handleLogout = () => {
+    authService.logout()
     setUser(null)
     setCurrentView('login')
   }

@@ -14,16 +14,28 @@ export function useSidebar() {
   const currentWidth = sidebarWidth ?? DEFAULT_WIDTH
   const clampedWidth = Math.min(Math.max(currentWidth, MIN_WIDTH), MAX_WIDTH)
   
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => !prev)
+  }
+  
+  const toggleMobileSidebar = () => {
+    setIsMobileOpen((prev) => !prev)
+  }
+  
+  const closeMobileSidebar = () => {
+    setIsMobileOpen(false)
+  }
+  
   return {
-    isCollapsed,
+    isCollapsed: isCollapsed ?? false,
     sidebarWidth: isCollapsed ? COLLAPSED_WIDTH : clampedWidth,
     isMobileOpen,
     setIsCollapsed,
     setSidebarWidth,
     setIsMobileOpen,
-    toggleSidebar: () => setIsCollapsed((prev) => !prev),
-    toggleMobileSidebar: () => setIsMobileOpen((prev) => !prev),
-    closeMobileSidebar: () => setIsMobileOpen(false),
+    toggleSidebar,
+    toggleMobileSidebar,
+    closeMobileSidebar,
     minWidth: MIN_WIDTH,
     maxWidth: MAX_WIDTH,
     collapsedWidth: COLLAPSED_WIDTH,
