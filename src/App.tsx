@@ -50,7 +50,7 @@ function App() {
     elevate: 0,
     lastUpdated: new Date().toISOString(),
   })
-  const { isCollapsed } = useSidebar()
+  const { isCollapsed, sidebarWidth } = useSidebar()
 
   useEffect(() => {
     const session = authService.getSession()
@@ -176,7 +176,7 @@ function App() {
       <div 
         className="pb-20 md:pb-0 transition-all duration-300"
         style={{
-          paddingLeft: showBottomNav ? (isCollapsed ? '5rem' : '16rem') : '0'
+          paddingLeft: showBottomNav ? `${isCollapsed ? 80 : sidebarWidth}px` : '0'
         }}
       >
         {renderView()}

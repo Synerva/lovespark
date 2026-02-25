@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react'
 import { House, ChatCircle, CalendarCheck, User, List, X } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { cn } from '@/lib/utils'
@@ -10,7 +11,9 @@ interface DesktopSidebarProps {
 }
 
 export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps) {
-  const { isCollapsed, toggleSidebar } = useSidebar()
+  const { isCollapsed, sidebarWidth, setSidebarWidth, toggleSidebar, minWidth, maxWidth } = useSidebar()
+  const [isDragging, setIsDragging] = useState(false)
+  const sidebarRef = useRef<HTMLElement>(null)
 
   const navItems: { view: AppView; icon: typeof House; label: string }[] = [
     { view: 'dashboard', icon: House, label: 'Home' },
@@ -19,12 +22,44 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
     { view: 'profile', icon: User, label: 'Profile' },
   ]
 
+  useEffect(() => {
+    if (!isDragging) return
+
+    document.body.classList.add('no-select')
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!sidebarRef.current) return
+      const newWidth = e.clientX
+      if (newWidth >= minWidth && newWidth <= maxWidth) {
+        setSidebarWidth(newWidth)
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      document.body.classList.remove('no-select')
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.classList.remove('no-select')
+    }
+  }, [isDragging, minWidth, maxWidth, setSidebarWidth])
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
   return (
     <nav
-      className={cn(
-        'hidden md:block fixed left-0 top-0 bottom-0 bg-card border-r border-border z-40 transition-all duration-300',
-        isCollapsed ? 'w-20' : 'w-64'
-      )}
+      ref={sidebarRef}
+      className="hidden md:block fixed left-0 top-0 bottom-0 bg-card border-r border-border z-40 transition-all duration-300"
+      style={{ width: isCollapsed ? undefined : `${sidebarWidth}px` }}
     >
       <div className="flex flex-col h-full">
         <div className={cn(
@@ -79,6 +114,18 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
           })}
         </div>
       </div>
+      
+      {!isCollapsed && (
+        <div
+          className={cn(
+            'absolute top-0 right-0 bottom-0 w-1 cursor-col-resize hover:bg-accent transition-colors group',
+            isDragging && 'bg-accent'
+          )}
+          onMouseDown={handleResizeStart}
+        >
+          <div className="absolute inset-y-0 -right-1 w-3" />
+        </div>
+      )}
     </nav>
   )
 }

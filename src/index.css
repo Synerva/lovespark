@@ -99,3 +99,10 @@
 .animate-stream-in {
   animation: stream-in 0.4s ease-out;
 }
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
