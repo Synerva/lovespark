@@ -15,6 +15,7 @@ import { ElevateModule } from './modules/ElevateModule'
 import { ProfileSettings } from './modules/ProfileSettings'
 import { CheckInHistory } from './modules/CheckInHistory'
 import { Pricing } from './modules/Pricing'
+import { UsageStats } from './modules/UsageStats'
 import { BottomNav } from './components/BottomNav'
 import { DesktopSidebar } from './components/DesktopSidebar'
 import { authService } from './lib/auth-service'
@@ -36,6 +37,7 @@ export type AppView =
   | 'elevate'
   | 'profile'
   | 'pricing'
+  | 'usage-stats'
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('login')
@@ -157,6 +159,8 @@ function App() {
         return <ProfileSettings onNavigate={setCurrentView} onLogout={handleLogout} />
       case 'pricing':
         return <Pricing onNavigate={setCurrentView} />
+      case 'usage-stats':
+        return <UsageStats onNavigate={setCurrentView} />
       default:
         return <Login 
           onLoginSuccess={handleLoginSuccess} 

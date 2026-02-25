@@ -1,7 +1,7 @@
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, SignOut, EnvelopeSimple, Calendar, Crown, CreditCard } from '@phosphor-icons/react'
+import { User, SignOut, EnvelopeSimple, Calendar, Crown, CreditCard, ChartLine } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { authService } from '@/lib/auth-service'
@@ -175,6 +175,23 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
                   </Button>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Usage & Analytics</CardTitle>
+              <CardDescription>Track your AI Coach usage and conversation history</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => onNavigate('usage-stats')}
+                variant="outline"
+                className="w-full"
+              >
+                <ChartLine className="mr-2" size={20} />
+                View Usage Statistics
+              </Button>
             </CardContent>
           </Card>
 

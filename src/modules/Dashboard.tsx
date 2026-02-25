@@ -77,6 +77,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                       <Brain size={16} />
                       <span>2 assessments max</span>
                     </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onNavigate('usage-stats')
+                      }}
+                      className="flex items-center gap-1 text-accent hover:underline"
+                    >
+                      <ChartLine size={16} />
+                      <span>View Stats</span>
+                    </button>
                   </div>
                 </div>
                 <Button onClick={() => onNavigate('pricing')} className="gap-2">
