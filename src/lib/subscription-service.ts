@@ -5,6 +5,7 @@ import type {
   BillingCycle, 
   PaymentIntent 
 } from './types'
+import { StripeService } from './stripe-service'
 
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
@@ -103,7 +104,9 @@ export class SubscriptionService {
   static async createSubscription(
     userId: string,
     planId: string,
-    billingCycle: BillingCycle
+    billingCycle: BillingCycle,
+    userEmail?: string,
+    useStripe: boolean = true
   ): Promise<Subscription> {
     const plan = this.getPlanById(planId)
     if (!plan) {
@@ -112,7 +115,23 @@ export class SubscriptionService {
 
     const amount = this.calculatePrice(planId, billingCycle)
 
-    if (amount > 0) {
+    if (amount > 0 && useStripe && StripeService.isStripeConfigured() && userEmail) {
+      const priceId = StripeService.getPriceId(plan.name, billingCycle)
+      
+      if (priceId) {
+        const session = await StripeService.createCheckoutSession(
+          userId,
+          userEmail,
+          priceId,
+          plan.displayName
+        )
+        
+        if (session.url) {
+          await StripeService.redirectToCheckout(session.url)
+          throw new Error('REDIRECTING_TO_STRIPE')
+        }
+      }
+    } else if (amount > 0) {
       const paymentIntent = await this.createPaymentIntent(amount)
       if (paymentIntent.status !== 'succeeded') {
         throw new Error('Payment failed')

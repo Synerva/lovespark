@@ -186,6 +186,10 @@ export interface Subscription {
   startDate: string
   renewalDate: string
   createdAt: string
+  stripeCustomerId?: string
+  stripeSubscriptionId?: string
+  stripePriceId?: string
+  cancelAtPeriodEnd?: boolean
 }
 
 export interface PaymentIntent {

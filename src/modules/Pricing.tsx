@@ -53,7 +53,9 @@ export function Pricing({ onNavigate }: PricingProps) {
       const newSubscription = await SubscriptionService.createSubscription(
         user.id,
         planId,
-        billingCycle
+        billingCycle,
+        user.email,
+        true
       )
 
       setSubscription(newSubscription)
@@ -69,6 +71,9 @@ export function Pricing({ onNavigate }: PricingProps) {
         onNavigate('dashboard')
       }, 1000)
     } catch (error) {
+      if (error instanceof Error && error.message === 'REDIRECTING_TO_STRIPE') {
+        return
+      }
       toast.error('Failed to process subscription. Please try again.')
       console.error('Subscription error:', error)
     } finally {

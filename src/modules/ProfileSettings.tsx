@@ -1,13 +1,15 @@
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, SignOut, EnvelopeSimple, Calendar, Crown } from '@phosphor-icons/react'
+import { User, SignOut, EnvelopeSimple, Calendar, Crown, CreditCard } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { authService } from '@/lib/auth-service'
 import { toast } from 'sonner'
 import type { User as UserType, Subscription } from '@/lib/types'
 import { SubscriptionService } from '@/lib/subscription-service'
+import { StripeService } from '@/lib/stripe-service'
+import { useState } from 'react'
 
 interface ProfileSettingsProps {
   onNavigate: (view: AppView) => void
@@ -17,6 +19,7 @@ interface ProfileSettingsProps {
 export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) {
   const [user] = useKV<UserType | null>('lovespark-user', null)
   const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false)
   
   const authUser = authService.getSession()
   const plan = subscription ? SubscriptionService.getPlanById(subscription.planId) : SubscriptionService.getPlanByName('FREE')
@@ -25,6 +28,26 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
     authService.logout()
     toast.success('Logged out successfully')
     onLogout()
+  }
+
+  const handleManageBilling = async () => {
+    if (!subscription?.stripeCustomerId) {
+      toast.error('No payment information found')
+      return
+    }
+
+    setIsLoadingPortal(true)
+    try {
+      const portalSession = await StripeService.createCustomerPortalSession(
+        subscription.stripeCustomerId
+      )
+      window.location.href = portalSession.url
+    } catch (error) {
+      toast.error('Unable to open billing portal. Please try again.')
+      console.error('Portal error:', error)
+    } finally {
+      setIsLoadingPortal(false)
+    }
   }
 
   return (
@@ -131,13 +154,27 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
                 </div>
               )}
 
-              <Button
-                onClick={() => onNavigate('pricing')}
-                variant="outline"
-                className="w-full"
-              >
-                {subscription?.planName === 'FREE' ? 'Upgrade Plan' : 'Change Plan'}
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => onNavigate('pricing')}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {subscription?.planName === 'FREE' ? 'Upgrade Plan' : 'Change Plan'}
+                </Button>
+                
+                {subscription?.stripeCustomerId && StripeService.isStripeConfigured() && (
+                  <Button
+                    onClick={handleManageBilling}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isLoadingPortal}
+                  >
+                    <CreditCard className="mr-2" size={16} />
+                    {isLoadingPortal ? 'Loading...' : 'Manage Billing'}
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
