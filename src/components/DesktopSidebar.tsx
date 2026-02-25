@@ -76,7 +76,7 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
         ref={sidebarRef}
         className={cn(
           'fixed left-0 bg-card border-r border-border transition-all duration-300',
-          isMobile ? 'top-16 bottom-0 z-50' : 'top-16 bottom-0 z-40',
+          isMobile ? 'top-16 bottom-0 z-50' : 'top-0 bottom-0 z-40',
           isMobile && !isMobileOpen && '-translate-x-full'
         )}
         style={{ 
