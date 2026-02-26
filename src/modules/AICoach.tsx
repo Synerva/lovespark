@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneTilt, Robot, Lock, Sparkle } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { FeatureGateService } from '@/lib/feature-gate-service'
 import { toast } from 'sonner'
+import { formatAIMessage } from '@/lib/message-formatter'
 
 interface AICoachProps {
   risScore: RISScore
@@ -25,6 +26,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
   const [weeklyMessageCount, setWeeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
   const [weekStartDate, setWeekStartDate] = useKV<string>('lovespark-week-start-date', FeatureGateService.getWeekStartDate())
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (weekStartDate && FeatureGateService.isNewWeek(weekStartDate)) {
@@ -33,6 +35,15 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       setWeekStartDate(reset.weekStartDate)
     }
   }, [weekStartDate, setWeeklyMessageCount, setWeekStartDate])
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight
+      }
+    }
+  }, [messages, isLoading])
 
   const canSendMessage = FeatureGateService.canSendAIMessage(subscription ?? null, weeklyMessageCount ?? 0)
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
@@ -131,8 +142,8 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
         </div>
       </header>
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
           {!isPremium && !canSendMessage && (
             <Alert className="bg-accent/10 border-accent">
               <Lock className="h-5 w-5 text-accent" />
@@ -154,35 +165,74 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           )}
 
           {!messages || messages.length === 0 ? (
-            <Card className="bg-muted/30">
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  Start a conversation to get insights about your relationship intelligence
-                </p>
+            <Card className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 border-primary/10">
+              <CardContent className="p-10 text-center space-y-4">
+                <div className="flex justify-center">
+                  <div className="p-4 bg-accent/15 rounded-2xl">
+                    <Robot size={40} weight="duotone" className="text-accent" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+                    Welcome to AI Coach
+                  </h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Ask me anything about your relationship intelligence, communication patterns, or get personalized insights based on your RIS score of <span className="font-semibold text-primary">{risScore.overall}</span>
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : (
             messages.map((msg) => (
               <div
                 key={msg.id}
-                className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-stream-in`}
               >
+                {msg.role === 'assistant' && (
+                  <div className="flex-shrink-0 mt-1 mr-3">
+                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Robot size={18} weight="duotone" className="text-accent" />
+                    </div>
+                  </div>
+                )}
                 <div
-                  className={`max-w-[80%] p-4 rounded-lg ${
+                  className={`max-w-[85%] md:max-w-[75%] ${
                     msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-accent/10 text-foreground'
+                      ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-3xl rounded-tr-sm px-5 py-3.5 shadow-md'
+                      : 'bg-card border border-border rounded-3xl rounded-tl-sm px-5 py-4 shadow-sm'
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === 'user' ? (
+                    <p className="leading-relaxed">{msg.content}</p>
+                  ) : (
+                    <div className="prose prose-sm max-w-none">
+                      {formatAIMessage(msg.content)}
+                    </div>
+                  )}
                 </div>
+                {msg.role === 'user' && (
+                  <div className="flex-shrink-0 mt-1 ml-3">
+                    <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
+                      <User size={18} weight="duotone" className="text-secondary" />
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-accent/10 p-4 rounded-lg">
-                <span className="text-muted-foreground">Thinking...</span>
+            <div className="flex justify-start animate-stream-in">
+              <div className="flex-shrink-0 mt-1 mr-3">
+                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                  <Robot size={18} weight="duotone" className="text-accent" />
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-3xl rounded-tl-sm px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
               </div>
             </div>
           )}
