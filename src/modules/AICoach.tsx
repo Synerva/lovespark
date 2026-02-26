@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -14,6 +14,7 @@ import { FeatureGateService } from '@/lib/feature-gate-service'
 import { toast } from 'sonner'
 import { formatAIMessage } from '@/lib/message-formatter'
 import { useTextToSpeech } from '@/hooks/use-text-to-speech'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface AICoachProps {
   risScore: RISScore
@@ -35,7 +36,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
-  const { isSupported: ttsSupported, isSpeaking, isPaused, speak, pause, resume, stop } = useTextToSpeech()
+  const { isSupported: ttsSupported, isSpeaking, isPaused, voices, selectedVoice, setSelectedVoice, speak, pause, resume, stop } = useTextToSpeech()
 
   useEffect(() => {
     if (weekStartDate && FeatureGateService.isNewWeek(weekStartDate)) {
@@ -504,6 +505,30 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           </div>
           
           <div className="flex items-center gap-2">
+            {ttsSupported && voices.length > 0 && (
+              <Select
+                value={selectedVoice?.name || ''}
+                onValueChange={(value) => {
+                  const voice = voices.find((v) => v.name === value)
+                  if (voice) setSelectedVoice(voice)
+                }}
+              >
+                <SelectTrigger className="w-[180px] h-8 text-xs hidden lg:flex">
+                  <SelectValue placeholder="Select voice" />
+                </SelectTrigger>
+                <SelectContent>
+                  {voices
+                    .filter((voice) => voice.lang.startsWith('en'))
+                    .map((voice) => (
+                      <SelectItem key={voice.name} value={voice.name} className="text-xs">
+                        {voice.name.replace(/^(Google|Microsoft|Apple)[\s-]*/i, '')}
+                        {voice.lang !== 'en-US' && ` (${voice.lang})`}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            )}
+
             {ttsSupported && (
               <Button
                 variant="ghost"
