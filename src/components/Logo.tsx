@@ -61,10 +61,10 @@ export function Logo({ size = 40, showText = true, className = '' }: LogoProps) 
             rotate: [0, 180]
           }}
           transition={{
-            duration: 1.5,
+            duration: 0.8,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 0.2
+            delay: 0.1
           }}
         >
           <path
@@ -91,10 +91,10 @@ export function Logo({ size = 40, showText = true, className = '' }: LogoProps) 
             rotate: [0, -180]
           }}
           transition={{
-            duration: 1.8,
+            duration: 1,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 0.9
+            delay: 0.5
           }}
         >
           <path
