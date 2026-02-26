@@ -72,8 +72,8 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
         </Button>
         
         <div className="flex items-center gap-4 mb-8">
-          <div className="p-3 bg-secondary/20 rounded-lg">
-            <UsersThree size={32} weight="duotone" className="text-secondary" />
+          <div className="p-3 bg-align/20 rounded-lg">
+            <UsersThree size={32} weight="duotone" className="text-align" />
           </div>
           <div>
             <h1 className="text-3xl font-bold" style={{ fontFamily: 'Sora, sans-serif' }}>
@@ -84,10 +84,10 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
         </div>
 
         <div className="mb-8">
-          <Card className="p-6 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
+          <Card className="p-6 bg-gradient-to-br from-align/10 via-align/5 to-transparent border-align/30">
             <div className="flex items-start gap-4">
-              <div className="p-2 bg-secondary/20 rounded-lg">
-                <Lightbulb size={24} weight="duotone" className="text-secondary" />
+              <div className="p-2 bg-align/20 rounded-lg">
+                <Lightbulb size={24} weight="duotone" className="text-align" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
@@ -108,14 +108,14 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
             return (
               <Card 
                 key={index}
-                className="p-6 hover:shadow-lg transition-shadow relative overflow-hidden group"
+                className="p-6 hover:shadow-lg transition-all relative overflow-hidden group bg-gradient-to-br from-align/10 via-align/5 to-transparent border-align/20"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-align/10 to-align/20 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
                 
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 bg-secondary/10 rounded-lg">
-                      <Icon size={24} weight="duotone" className="text-secondary" />
+                    <div className="p-2 bg-align/10 rounded-lg">
+                      <Icon size={24} weight="duotone" className="text-align" />
                     </div>
                     <Badge variant="secondary" className="text-xs">
                       {feature.category}
@@ -132,7 +132,7 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
 
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                      <div className="w-2 h-2 rounded-full bg-align animate-pulse" />
                       <span>In Development</span>
                     </div>
                   </div>

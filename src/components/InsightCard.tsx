@@ -17,24 +17,28 @@ const insightConfig = {
     color: 'text-info',
     bgColor: 'bg-info/10',
     borderColor: 'ring-info/20',
+    gradientBg: 'bg-gradient-to-br from-info/15 via-info/5 to-transparent',
   },
   suggestion: {
     icon: Lightbulb,
     color: 'text-warning',
     bgColor: 'bg-warning/10',
     borderColor: 'ring-warning/20',
+    gradientBg: 'bg-gradient-to-br from-warning/15 via-warning/5 to-transparent',
   },
   warning: {
     icon: Warning,
     color: 'text-destructive',
     bgColor: 'bg-destructive/10',
     borderColor: 'ring-destructive/20',
+    gradientBg: 'bg-gradient-to-br from-destructive/15 via-destructive/5 to-transparent',
   },
   celebration: {
     icon: TrendUp,
     color: 'text-success',
     bgColor: 'bg-success/10',
     borderColor: 'ring-success/20',
+    gradientBg: 'bg-gradient-to-br from-success/15 via-success/5 to-transparent',
   },
 }
 
@@ -56,12 +60,17 @@ export function InsightCard({ insight, onRead, index = 0 }: InsightCardProps) {
     >
       <Card
         className={cn(
-          'cursor-pointer transition-all hover:shadow-lg',
+          'cursor-pointer transition-all hover:shadow-lg relative overflow-hidden group',
+          config.gradientBg,
           !insight.read && `ring-2 ${config.borderColor}`
         )}
         onClick={handleClick}
       >
-        <CardHeader className="pb-3">
+        <div className={cn(
+          'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity',
+          config.gradientBg.replace('from-', 'from-').replace('/15', '/20')
+        )} />
+        <CardHeader className="pb-3 relative">
           <div className="flex items-start gap-3">
             <div className={cn('p-2 rounded-lg', config.bgColor)}>
               <Icon size={20} weight="duotone" className={config.color} />
@@ -83,7 +92,7 @@ export function InsightCard({ insight, onRead, index = 0 }: InsightCardProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
           <p className="text-sm text-foreground/90 leading-relaxed mb-3">
             {insight.content}
           </p>

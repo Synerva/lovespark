@@ -20,8 +20,8 @@ export function FeatureLockCard({
   onUpgrade 
 }: FeatureLockCardProps) {
   return (
-    <Card className="relative overflow-hidden border-2 border-muted">
-      <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-background/50 backdrop-blur-sm z-10" />
+    <Card className="relative overflow-hidden border-2 border-muted bg-gradient-to-br from-muted/30 via-muted/10 to-transparent">
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 backdrop-blur-sm z-10" />
       <CardContent className="p-6 relative z-20">
         <div className="flex items-start gap-4 mb-4">
           {icon && <div className="opacity-50">{icon}</div>}

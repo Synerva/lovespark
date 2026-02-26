@@ -125,16 +125,17 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('understand')}>
-            <CardHeader>
+          <Card className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-understand/15 via-understand/5 to-transparent border-understand/30 relative overflow-hidden group" onClick={() => onNavigate('understand')}>
+            <div className="absolute inset-0 bg-gradient-to-br from-understand/0 to-understand/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader className="relative">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-understand/10 rounded-lg">
+                <div className="p-2 bg-understand/20 rounded-lg">
                   <Brain size={24} weight="duotone" className="text-understand" />
                 </div>
                 <CardTitle>UNDERSTAND</CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative">
               <p className="text-sm text-muted-foreground mb-4">
                 Build self-awareness through pattern recognition and emotional intelligence
               </p>
@@ -144,16 +145,17 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('align')}>
-            <CardHeader>
+          <Card className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-align/15 via-align/5 to-transparent border-align/30 relative overflow-hidden group" onClick={() => onNavigate('align')}>
+            <div className="absolute inset-0 bg-gradient-to-br from-align/0 to-align/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader className="relative">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-align/10 rounded-lg">
+                <div className="p-2 bg-align/20 rounded-lg">
                   <UsersThree size={24} weight="duotone" className="text-align" />
                 </div>
                 <CardTitle>ALIGN</CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative">
               <p className="text-sm text-muted-foreground mb-4">
                 Optimize communication and identify alignment gaps
               </p>
@@ -163,16 +165,17 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('elevate')}>
-            <CardHeader>
+          <Card className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-elevate/15 via-elevate/5 to-transparent border-elevate/30 relative overflow-hidden group" onClick={() => onNavigate('elevate')}>
+            <div className="absolute inset-0 bg-gradient-to-br from-elevate/0 to-elevate/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader className="relative">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-elevate/10 rounded-lg">
+                <div className="p-2 bg-elevate/20 rounded-lg">
                   <TrendUp size={24} weight="duotone" className="text-elevate" />
                 </div>
                 <CardTitle>ELEVATE</CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative">
               <p className="text-sm text-muted-foreground mb-4">
                 Apply insights through protocols and track progress
               </p>

@@ -71,8 +71,8 @@ export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
         </Button>
         
         <div className="flex items-center gap-4 mb-8">
-          <div className="p-3 bg-accent/20 rounded-lg">
-            <Brain size={32} weight="duotone" className="text-accent" />
+          <div className="p-3 bg-understand/20 rounded-lg">
+            <Brain size={32} weight="duotone" className="text-understand" />
           </div>
           <div>
             <h1 className="text-3xl font-bold" style={{ fontFamily: 'Sora, sans-serif' }}>
@@ -83,10 +83,10 @@ export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
         </div>
 
         <div className="mb-8">
-          <Card className="p-6 bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
+          <Card className="p-6 bg-gradient-to-br from-understand/10 via-understand/5 to-transparent border-understand/30">
             <div className="flex items-start gap-4">
-              <div className="p-2 bg-accent/20 rounded-lg">
-                <Lightbulb size={24} weight="duotone" className="text-accent" />
+              <div className="p-2 bg-understand/20 rounded-lg">
+                <Lightbulb size={24} weight="duotone" className="text-understand" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
@@ -107,14 +107,14 @@ export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
             return (
               <Card 
                 key={index}
-                className="p-6 hover:shadow-lg transition-shadow relative overflow-hidden group"
+                className="p-6 hover:shadow-lg transition-all relative overflow-hidden group bg-gradient-to-br from-understand/10 via-understand/5 to-transparent border-understand/20"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-understand/10 to-understand/20 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
                 
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 bg-accent/10 rounded-lg">
-                      <Icon size={24} weight="duotone" className="text-accent" />
+                    <div className="p-2 bg-understand/10 rounded-lg">
+                      <Icon size={24} weight="duotone" className="text-understand" />
                     </div>
                     <Badge variant="secondary" className="text-xs">
                       {feature.category}
@@ -131,7 +131,7 @@ export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
 
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                      <div className="w-2 h-2 rounded-full bg-understand animate-pulse" />
                       <span>In Development</span>
                     </div>
                   </div>
