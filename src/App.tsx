@@ -67,34 +67,30 @@ function App() {
           email: session.email,
           avatarUrl: session.avatarUrl,
           mode: 'individual',
-          onboardingCompleted: false,
+          onboardingCompleted: true,
           createdAt: session.createdAt,
         }
         setUser(newUser)
-        setCurrentView('onboarding')
+        setCurrentView('dashboard')
       } else {
-        if (user.onboardingCompleted) {
-          setCurrentView('dashboard')
-        } else {
-          setCurrentView('onboarding')
-        }
+        setCurrentView('dashboard')
       }
     } else {
       setCurrentView('login')
     }
     setIsCheckingAuth(false)
-  }, [user?.onboardingCompleted, user?.id])
+  }, [user?.id])
 
   const handleLoginSuccess = (authUser: AuthUser) => {
-    
+    setCurrentView('dashboard')
   }
 
   const handleRegisterSuccess = (authUser: AuthUser) => {
-    setCurrentView('onboarding')
+    setCurrentView('dashboard')
   }
 
   const handleOnboardingComplete = () => {
-    setCurrentView('pricing')
+    setCurrentView('dashboard')
   }
 
   const handleLogout = () => {
@@ -186,7 +182,7 @@ function App() {
     }
   }
 
-  const showNavigation = authService.isAuthenticated() && user?.onboardingCompleted && 
+  const showNavigation = authService.isAuthenticated() && 
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
     currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
     currentView !== 'retake-onboarding'
