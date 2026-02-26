@@ -28,8 +28,10 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [weekStartDate, setWeekStartDate] = useKV<string>('lovespark-week-start-date', FeatureGateService.getWeekStartDate())
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
+  const [interimTranscript, setInterimTranscript] = useState('')
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
+  const finalTranscriptRef = useRef('')
 
   useEffect(() => {
     if (weekStartDate && FeatureGateService.isNewWeek(weekStartDate)) {
@@ -44,31 +46,56 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     if (SpeechRecognition) {
       setSpeechSupported(true)
       const recognition = new SpeechRecognition()
-      recognition.continuous = false
-      recognition.interimResults = false
+      recognition.continuous = true
+      recognition.interimResults = true
       recognition.lang = 'en-US'
+      recognition.maxAlternatives = 1
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript
-        setInput(transcript)
-        setIsRecording(false)
-        toast.success('Voice captured successfully')
+        let interim = ''
+        let final = ''
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript
+          if (event.results[i].isFinal) {
+            final += transcript + ' '
+          } else {
+            interim += transcript
+          }
+        }
+
+        if (final) {
+          finalTranscriptRef.current += final
+          setInput(finalTranscriptRef.current)
+        }
+        
+        setInterimTranscript(interim)
       }
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error)
-        setIsRecording(false)
         if (event.error === 'not-allowed') {
+          setIsRecording(false)
           toast.error('Microphone access denied. Please enable microphone permissions.')
+        } else if (event.error === 'aborted') {
+          setIsRecording(false)
         } else if (event.error === 'no-speech') {
-          toast.error('No speech detected. Please try again.')
-        } else {
-          toast.error('Voice recognition error. Please try again.')
+          toast('No speech detected. Keep speaking or stop recording.', {
+            duration: 2000,
+          })
+        } else if (event.error !== 'aborted') {
+          console.error('Speech recognition error:', event.error)
         }
       }
 
       recognition.onend = () => {
-        setIsRecording(false)
+        if (isRecording && recognitionRef.current) {
+          try {
+            recognitionRef.current.start()
+          } catch (error) {
+            console.log('Recognition restart prevented:', error)
+          }
+        }
       }
 
       recognitionRef.current = recognition
@@ -76,10 +103,14 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.abort()
+        try {
+          recognitionRef.current.abort()
+        } catch (error) {
+          console.log('Recognition cleanup error:', error)
+        }
       }
     }
-  }, [])
+  }, [isRecording])
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -335,13 +366,24 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     }
 
     if (isRecording) {
-      recognitionRef.current?.stop()
-      setIsRecording(false)
+      try {
+        recognitionRef.current?.stop()
+        setIsRecording(false)
+        setInterimTranscript('')
+        toast.success('Recording stopped')
+      } catch (error) {
+        console.error('Failed to stop voice recognition:', error)
+      }
     } else {
       try {
+        finalTranscriptRef.current = ''
+        setInput('')
+        setInterimTranscript('')
         recognitionRef.current?.start()
         setIsRecording(true)
-        toast.info('Listening... Speak now')
+        toast.success('Continuous recording started - speak freely!', {
+          description: 'Click the stop button when finished'
+        })
       } catch (error) {
         console.error('Failed to start voice recognition:', error)
         toast.error('Failed to start voice recognition. Please try again.')
@@ -574,21 +616,53 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               {remainingMessages} {remainingMessages === 1 ? 'message' : 'messages'} remaining this week
             </div>
           )}
+          {isRecording && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-destructive/10 border border-destructive/30 rounded-xl animate-pulse">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-destructive rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-destructive">Recording</span>
+              </div>
+              {interimTranscript && (
+                <span className="text-sm text-muted-foreground italic flex-1 truncate">
+                  {interimTranscript}
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder={canSendMessage ? "Ask about your relationship patterns..." : "Upgrade to continue chatting..."}
-              disabled={isLoading || !canSendMessage}
-            />
+            <div className="relative flex-1">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !isRecording && handleSend()}
+                placeholder={
+                  isRecording 
+                    ? "Speaking... (click stop when done)" 
+                    : canSendMessage 
+                    ? "Ask about your relationship patterns..." 
+                    : "Upgrade to continue chatting..."
+                }
+                disabled={isLoading || !canSendMessage || isRecording}
+                className={isRecording ? "pr-24" : ""}
+              />
+              {isRecording && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <div className="w-1 h-3 bg-destructive rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '0.6s' }}></div>
+                  <div className="w-1 h-4 bg-destructive rounded-full animate-bounce" style={{ animationDelay: '100ms', animationDuration: '0.6s' }}></div>
+                  <div className="w-1 h-5 bg-destructive rounded-full animate-bounce" style={{ animationDelay: '200ms', animationDuration: '0.6s' }}></div>
+                  <div className="w-1 h-4 bg-destructive rounded-full animate-bounce" style={{ animationDelay: '300ms', animationDuration: '0.6s' }}></div>
+                  <div className="w-1 h-3 bg-destructive rounded-full animate-bounce" style={{ animationDelay: '400ms', animationDuration: '0.6s' }}></div>
+                </div>
+              )}
+            </div>
             {speechSupported && (
               <Button
                 onClick={handleVoiceToggle}
                 disabled={isLoading || !canSendMessage}
                 variant={isRecording ? "destructive" : "outline"}
                 size="icon"
-                className={isRecording ? "animate-pulse" : ""}
+                className={isRecording ? "animate-pulse ring-2 ring-destructive/50" : "hover:bg-accent"}
+                title={isRecording ? "Stop recording" : "Start continuous voice recording"}
               >
                 {isRecording ? (
                   <Stop size={20} weight="fill" />
@@ -597,7 +671,11 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                 )}
               </Button>
             )}
-            <Button onClick={handleSend} disabled={isLoading || !input.trim() || !canSendMessage}>
+            <Button 
+              onClick={handleSend} 
+              disabled={isLoading || !input.trim() || !canSendMessage || isRecording}
+              title="Send message"
+            >
               <PaperPlaneTilt size={20} weight="fill" />
             </Button>
           </div>
