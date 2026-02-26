@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star, ShareNetwork, Copy, Check, Envelope, Link as LinkIcon, Trash, Warning } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star, ShareNetwork, Copy, Check, Envelope, Link as LinkIcon, Trash, Warning, MagnifyingGlass, X } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -45,6 +45,8 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [emailBody, setEmailBody] = useState('')
   const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false)
   const [clearedMessagesBackup, setClearedMessagesBackup] = useState<AIMessage[] | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchActive, setSearchActive] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -156,6 +158,15 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const canSendMessage = FeatureGateService.canSendAIMessage(subscription ?? null, weeklyMessageCount ?? 0)
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
   const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
+
+  const filteredMessages = searchQuery.trim() 
+    ? (messages || []).filter(msg => 
+        msg.content.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : messages || []
+
+  const hasSearchResults = searchQuery.trim() && filteredMessages.length > 0
+  const hasNoSearchResults = searchQuery.trim() && filteredMessages.length === 0
 
   const getLowestPillar = () => {
     const scores = {
@@ -619,37 +630,50 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b border-border p-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => onNavigate('dashboard')}>
-              <ArrowLeft size={24} />
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-accent/20 rounded-full">
-                <Robot size={24} weight="duotone" className="text-accent" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>
-                  AI Coach
-                </h1>
-                <p className="text-xs text-muted-foreground">Your relationship intelligence assistant</p>
+        <div className="max-w-4xl mx-auto space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => onNavigate('dashboard')}>
+                <ArrowLeft size={24} />
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-accent/20 rounded-full">
+                  <Robot size={24} weight="duotone" className="text-accent" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>
+                    AI Coach
+                  </h1>
+                  <p className="text-xs text-muted-foreground">Your relationship intelligence assistant</p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {messages && messages.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setClearHistoryDialogOpen(true)}
-                className="flex items-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                title="Clear chat history"
-              >
-                <Trash size={18} weight="bold" />
-                <span className="text-xs hidden sm:inline">Clear history</span>
-              </Button>
-            )}
+            
+            <div className="flex items-center gap-2">
+              {messages && messages.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchActive((prev) => !prev)}
+                  className={searchActive ? "bg-accent/20 text-accent" : ""}
+                  title={searchActive ? "Close search" : "Search messages"}
+                >
+                  {searchActive ? <X size={20} weight="bold" /> : <MagnifyingGlass size={20} weight="bold" />}
+                </Button>
+              )}
+              
+              {messages && messages.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setClearHistoryDialogOpen(true)}
+                  className="flex items-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  title="Clear chat history"
+                >
+                  <Trash size={18} weight="bold" />
+                  <span className="text-xs hidden sm:inline">Clear history</span>
+                </Button>
+              )}
             
             {bookmarkedQuestions && bookmarkedQuestions.length > 0 && (
               <>
@@ -738,11 +762,57 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               </div>
             )}
           </div>
+          </div>
+          
+          {searchActive && messages && messages.length > 0 && (
+            <div className="relative">
+              <MagnifyingGlass size={18} weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search messages..."
+                className="pl-10 pr-10"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Clear search"
+                >
+                  <X size={18} weight="bold" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
       <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         <div className="max-w-4xl mx-auto space-y-6">
+          {searchActive && hasNoSearchResults && (
+            <Card className="bg-muted/30 border-dashed">
+              <CardContent className="p-8 text-center">
+                <MagnifyingGlass size={32} weight="duotone" className="text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground mb-1">No messages found</p>
+                <p className="text-xs text-muted-foreground">
+                  Try different keywords or clear the search to see all messages
+                </p>
+              </CardContent>
+            </Card>
+          )}
+          
+          {searchActive && hasSearchResults && (
+            <Alert className="bg-accent/10 border-accent/30">
+              <MagnifyingGlass className="h-5 w-5 text-accent" weight="bold" />
+              <AlertDescription className="ml-2">
+                <p className="text-sm font-medium text-foreground">
+                  Found {filteredMessages.length} {filteredMessages.length === 1 ? 'message' : 'messages'} matching "{searchQuery}"
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {!isPremium && !canSendMessage && (
             <Alert className="bg-accent/10 border-accent">
               <Lock className="h-5 w-5 text-accent" />
@@ -763,7 +833,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
             </Alert>
           )}
 
-          {!messages || messages.length === 0 ? (
+          {!searchActive && (!messages || messages.length === 0) ? (
             <>
               <Card className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 border-primary/10">
                 <CardContent className="p-10 text-center space-y-4">
@@ -860,7 +930,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
             </>
           ) : (
             <>
-              {messages.map((msg) => (
+              {filteredMessages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-stream-in group`}
