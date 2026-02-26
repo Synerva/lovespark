@@ -637,96 +637,126 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               </div>
             </>
           ) : (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-stream-in`}
-              >
-                {msg.role === 'assistant' && (
-                  <div className="flex-shrink-0 mt-1 mr-3">
-                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                      <Robot size={18} weight="duotone" className="text-accent" />
-                    </div>
-                  </div>
-                )}
-                <div className="flex flex-col gap-2">
-                  <div
-                    className={`${
-                      msg.role === 'user'
-                        ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-3xl rounded-tr-sm px-5 py-3.5 shadow-md'
-                        : 'bg-card border border-border rounded-3xl rounded-tl-sm px-5 py-4 shadow-sm'
-                    }`}
-                  >
-                    {msg.role === 'user' ? (
-                      <p className="leading-relaxed">{msg.content}</p>
-                    ) : (
-                      <div className="prose prose-sm max-w-none">
-                        {formatAIMessage(msg.content)}
+            <>
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-stream-in`}
+                >
+                  {msg.role === 'assistant' && (
+                    <div className="flex-shrink-0 mt-1 mr-3">
+                      <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                        <Robot size={18} weight="duotone" className="text-accent" />
                       </div>
-                    )}
-                  </div>
-                  {msg.role === 'assistant' && ttsSupported && (
-                    <div className="flex items-center gap-2 px-2">
-                      {speakingMessageId === msg.id && isSpeaking ? (
-                        <>
-                          {isPaused ? (
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <div
+                      className={`${
+                        msg.role === 'user'
+                          ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-3xl rounded-tr-sm px-5 py-3.5 shadow-md'
+                          : 'bg-card border border-border rounded-3xl rounded-tl-sm px-5 py-4 shadow-sm'
+                      }`}
+                    >
+                      {msg.role === 'user' ? (
+                        <p className="leading-relaxed">{msg.content}</p>
+                      ) : (
+                        <div className="prose prose-sm max-w-none">
+                          {formatAIMessage(msg.content)}
+                        </div>
+                      )}
+                    </div>
+                    {msg.role === 'assistant' && ttsSupported && (
+                      <div className="flex items-center gap-2 px-2">
+                        {speakingMessageId === msg.id && isSpeaking ? (
+                          <>
+                            {isPaused ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handlePauseResume}
+                                className="h-7 px-2 text-xs"
+                                title="Resume"
+                              >
+                                <Play size={14} weight="fill" className="mr-1" />
+                                Resume
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handlePauseResume}
+                                className="h-7 px-2 text-xs"
+                                title="Pause"
+                              >
+                                <Pause size={14} weight="fill" className="mr-1" />
+                                Pause
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={handlePauseResume}
-                              className="h-7 px-2 text-xs"
-                              title="Resume"
+                              onClick={() => handleSpeakMessage(msg.id, msg.content)}
+                              className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                              title="Stop"
                             >
-                              <Play size={14} weight="fill" className="mr-1" />
-                              Resume
+                              <Stop size={14} weight="fill" className="mr-1" />
+                              Stop
                             </Button>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={handlePauseResume}
-                              className="h-7 px-2 text-xs"
-                              title="Pause"
-                            >
-                              <Pause size={14} weight="fill" className="mr-1" />
-                              Pause
-                            </Button>
-                          )}
+                          </>
+                        ) : (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleSpeakMessage(msg.id, msg.content)}
-                            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
-                            title="Stop"
+                            className="h-7 px-2 text-xs"
+                            title="Listen to response"
                           >
-                            <Stop size={14} weight="fill" className="mr-1" />
-                            Stop
+                            <SpeakerHigh size={14} weight="fill" className="mr-1" />
+                            Listen
                           </Button>
-                        </>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSpeakMessage(msg.id, msg.content)}
-                          className="h-7 px-2 text-xs"
-                          title="Listen to response"
-                        >
-                          <SpeakerHigh size={14} weight="fill" className="mr-1" />
-                          Listen
-                        </Button>
-                      )}
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {msg.role === 'user' && (
+                    <div className="flex-shrink-0 mt-1 ml-3">
+                      <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
+                        <User size={18} weight="duotone" className="text-secondary" />
+                      </div>
                     </div>
                   )}
                 </div>
-                {msg.role === 'user' && (
-                  <div className="flex-shrink-0 mt-1 ml-3">
-                    <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
-                      <User size={18} weight="duotone" className="text-secondary" />
-                    </div>
+              ))}
+              
+              {!isLoading && (
+                <div className="space-y-3 pt-4 border-t border-border/50">
+                  <h4 className="text-sm font-medium text-muted-foreground text-center">
+                    Continue the conversation
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {suggestedQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleQuestionClick(question.text)}
+                        disabled={!canSendMessage}
+                        className={`group relative overflow-hidden rounded-2xl border-2 ${question.borderColor} ${question.hoverColor} bg-gradient-to-br ${question.gradient} p-4 text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+                            {question.icon}
+                          </span>
+                          <p className="text-sm font-medium text-foreground leading-relaxed">
+                            {question.text}
+                          </p>
+                        </div>
+                        <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </button>
+                    ))}
                   </div>
-                )}
-              </div>
-            ))
+                </div>
+              )}
+            </>
           )}
           {isLoading && (
             <div className="flex justify-start animate-stream-in">
