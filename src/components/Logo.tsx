@@ -28,7 +28,7 @@ export function Logo({ size = 40, showText = true, className = '' }: LogoProps) 
             scale: [1, 1.05, 1, 1.05, 1]
           }}
           transition={{
-            duration: 3,
+            duration: 4,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -57,14 +57,14 @@ export function Logo({ size = 40, showText = true, className = '' }: LogoProps) 
           initial={{ opacity: 0.8, scale: 1 }}
           animate={{ 
             opacity: [0.8, 1, 0.8],
-            scale: [1, 1.2, 1],
+            scale: [1, 1.3, 1],
             rotate: [0, 180]
           }}
           transition={{
-            duration: 2,
+            duration: 1.5,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 0.3
+            delay: 0.2
           }}
         >
           <path
@@ -87,14 +87,14 @@ export function Logo({ size = 40, showText = true, className = '' }: LogoProps) 
           initial={{ opacity: 0.6, scale: 1 }}
           animate={{ 
             opacity: [0.6, 1, 0.6],
-            scale: [1, 1.3, 1],
+            scale: [1, 1.4, 1],
             rotate: [0, -180]
           }}
           transition={{
-            duration: 2.5,
+            duration: 1.8,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 0.6
+            delay: 0.9
           }}
         >
           <path
