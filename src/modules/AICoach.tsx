@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -34,6 +34,8 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null)
   const [autoSpeak, setAutoSpeak] = useKV<boolean>('lovespark-auto-speak', false)
   const [questionSet, setQuestionSet] = useState(0)
+  const [bookmarkedQuestions, setBookmarkedQuestions] = useKV<string[]>('lovespark-bookmarked-questions', [])
+  const [showBookmarks, setShowBookmarks] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -374,6 +376,23 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     toast.success('New question suggestions loaded!')
   }
 
+  const handleToggleBookmark = (question: string) => {
+    setBookmarkedQuestions((current) => {
+      const bookmarks = current || []
+      if (bookmarks.includes(question)) {
+        toast.success('Bookmark removed')
+        return bookmarks.filter((q) => q !== question)
+      } else {
+        toast.success('Question bookmarked!')
+        return [...bookmarks, question]
+      }
+    })
+  }
+
+  const isBookmarked = (question: string) => {
+    return (bookmarkedQuestions || []).includes(question)
+  }
+
   const handleSpeakMessage = (messageId: string, content: string) => {
     if (!ttsSupported) {
       toast.error('Text-to-speech is not supported in your browser.')
@@ -514,6 +533,21 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           </div>
           
           <div className="flex items-center gap-2">
+            {bookmarkedQuestions && bookmarkedQuestions.length > 0 && (
+              <Button
+                variant={showBookmarks ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setShowBookmarks((prev) => !prev)}
+                className="flex items-center gap-2"
+                title={showBookmarks ? "Show all questions" : `View ${bookmarkedQuestions.length} bookmarked questions`}
+              >
+                <BookmarkSimple size={18} weight={showBookmarks ? "fill" : "bold"} />
+                <span className="text-xs hidden sm:inline">
+                  {showBookmarks ? 'All questions' : `${bookmarkedQuestions.length} saved`}
+                </span>
+              </Button>
+            )}
+            
             {ttsSupported && voices.length > 0 && (
               <Select
                 value={selectedVoice?.name || ''}
@@ -622,39 +656,76 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium text-muted-foreground">
-                    Get started with these questions
+                    {showBookmarks ? 'Your bookmarked questions' : 'Get started with these questions'}
                   </h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRefreshQuestions}
-                    className="h-8 px-3 gap-2 text-xs hover:bg-accent/20"
-                    title="Refresh questions"
-                  >
-                    <ArrowsClockwise size={16} weight="bold" className="text-accent" />
-                    <span className="hidden sm:inline">New questions</span>
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3" key={`questions-${questionSet}`}>
-                  {suggestedQuestions.map((question, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleQuestionClick(question.text)}
-                      disabled={!canSendMessage}
-                      className={`group relative overflow-hidden rounded-2xl border-2 ${question.borderColor} ${question.hoverColor} bg-gradient-to-br ${question.gradient} p-4 text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                  {!showBookmarks && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRefreshQuestions}
+                      className="h-8 px-3 gap-2 text-xs hover:bg-accent/20"
+                      title="Refresh questions"
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
-                          {question.icon}
-                        </span>
-                        <p className="text-sm font-medium text-foreground leading-relaxed">
-                          {question.text}
-                        </p>
-                      </div>
-                      <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </button>
-                  ))}
+                      <ArrowsClockwise size={16} weight="bold" className="text-accent" />
+                      <span className="hidden sm:inline">New questions</span>
+                    </Button>
+                  )}
                 </div>
+                {showBookmarks && (!bookmarkedQuestions || bookmarkedQuestions.length === 0) ? (
+                  <Card className="bg-muted/30 border-dashed">
+                    <CardContent className="p-8 text-center">
+                      <BookmarkSimple size={32} weight="duotone" className="text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        No bookmarked questions yet. Bookmark your favorite questions for quick access!
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3" key={`questions-${showBookmarks ? 'bookmarks' : questionSet}`}>
+                    {(showBookmarks ? (bookmarkedQuestions || []) : suggestedQuestions.map(q => q.text)).map((questionText, index) => {
+                      const question = showBookmarks 
+                        ? { text: questionText, icon: "⭐", gradient: "from-accent/15 to-accent/5", borderColor: "border-accent/30", hoverColor: "hover:border-accent/50" }
+                        : suggestedQuestions[index]
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`group relative overflow-hidden rounded-2xl border-2 ${question.borderColor} ${question.hoverColor} bg-gradient-to-br ${question.gradient} transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${!canSendMessage ? 'opacity-50' : ''}`}
+                        >
+                          <button
+                            onClick={() => handleQuestionClick(question.text)}
+                            disabled={!canSendMessage}
+                            className="w-full p-4 text-left disabled:cursor-not-allowed"
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+                                {question.icon}
+                              </span>
+                              <p className="text-sm font-medium text-foreground leading-relaxed pr-8">
+                                {question.text}
+                              </p>
+                            </div>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleToggleBookmark(question.text)
+                            }}
+                            className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-background/50 transition-colors duration-200"
+                            title={isBookmarked(question.text) ? "Remove bookmark" : "Bookmark question"}
+                          >
+                            <BookmarkSimple 
+                              size={18} 
+                              weight={isBookmarked(question.text) ? "fill" : "bold"}
+                              className={isBookmarked(question.text) ? "text-accent" : "text-muted-foreground hover:text-accent"}
+                            />
+                          </button>
+                          <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -754,39 +825,76 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                 <div className="space-y-3 pt-4 border-t border-border/50">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium text-muted-foreground">
-                      Continue the conversation
+                      {showBookmarks ? 'Your bookmarked questions' : 'Continue the conversation'}
                     </h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRefreshQuestions}
-                      className="h-8 px-3 gap-2 text-xs hover:bg-accent/20"
-                      title="Refresh questions"
-                    >
-                      <ArrowsClockwise size={16} weight="bold" className="text-accent" />
-                      <span className="hidden sm:inline">New questions</span>
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3" key={`questions-conversation-${questionSet}`}>
-                    {suggestedQuestions.map((question, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleQuestionClick(question.text)}
-                        disabled={!canSendMessage}
-                        className={`group relative overflow-hidden rounded-2xl border-2 ${question.borderColor} ${question.hoverColor} bg-gradient-to-br ${question.gradient} p-4 text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                    {!showBookmarks && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRefreshQuestions}
+                        className="h-8 px-3 gap-2 text-xs hover:bg-accent/20"
+                        title="Refresh questions"
                       >
-                        <div className="flex items-start gap-3">
-                          <span className="text-2xl flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
-                            {question.icon}
-                          </span>
-                          <p className="text-sm font-medium text-foreground leading-relaxed">
-                            {question.text}
-                          </p>
-                        </div>
-                        <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </button>
-                    ))}
+                        <ArrowsClockwise size={16} weight="bold" className="text-accent" />
+                        <span className="hidden sm:inline">New questions</span>
+                      </Button>
+                    )}
                   </div>
+                  {showBookmarks && (!bookmarkedQuestions || bookmarkedQuestions.length === 0) ? (
+                    <Card className="bg-muted/30 border-dashed">
+                      <CardContent className="p-8 text-center">
+                        <BookmarkSimple size={32} weight="duotone" className="text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          No bookmarked questions yet. Bookmark your favorite questions for quick access!
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3" key={`questions-conversation-${showBookmarks ? 'bookmarks' : questionSet}`}>
+                      {(showBookmarks ? (bookmarkedQuestions || []) : suggestedQuestions.map(q => q.text)).map((questionText, index) => {
+                        const question = showBookmarks 
+                          ? { text: questionText, icon: "⭐", gradient: "from-accent/15 to-accent/5", borderColor: "border-accent/30", hoverColor: "hover:border-accent/50" }
+                          : suggestedQuestions[index]
+                        
+                        return (
+                          <div
+                            key={index}
+                            className={`group relative overflow-hidden rounded-2xl border-2 ${question.borderColor} ${question.hoverColor} bg-gradient-to-br ${question.gradient} transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${!canSendMessage ? 'opacity-50' : ''}`}
+                          >
+                            <button
+                              onClick={() => handleQuestionClick(question.text)}
+                              disabled={!canSendMessage}
+                              className="w-full p-4 text-left disabled:cursor-not-allowed"
+                            >
+                              <div className="flex items-start gap-3">
+                                <span className="text-2xl flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+                                  {question.icon}
+                                </span>
+                                <p className="text-sm font-medium text-foreground leading-relaxed pr-8">
+                                  {question.text}
+                                </p>
+                              </div>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleToggleBookmark(question.text)
+                              }}
+                              className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-background/50 transition-colors duration-200"
+                              title={isBookmarked(question.text) ? "Remove bookmark" : "Bookmark question"}
+                            >
+                              <BookmarkSimple 
+                                size={18} 
+                                weight={isBookmarked(question.text) ? "fill" : "bold"}
+                                className={isBookmarked(question.text) ? "text-accent" : "text-muted-foreground hover:text-accent"}
+                              />
+                            </button>
+                            <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </>
