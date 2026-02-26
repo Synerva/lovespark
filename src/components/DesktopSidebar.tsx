@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/hooks/use-sidebar'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { Logo } from './Logo'
 
 interface DesktopSidebarProps {
   currentView: AppView
@@ -70,28 +71,34 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
       <div className="flex flex-col h-full">
         <div className={cn(
           'p-6 border-b border-border flex items-center',
-          isCollapsed ? 'justify-center' : 'justify-between'
+          isCollapsed ? 'justify-center flex-col' : 'justify-between'
         )}>
           {!isCollapsed && (
-            <div>
-              <h1 className="text-2xl font-bold text-primary">LoveSpark</h1>
-              <p className="text-xs text-muted-foreground mt-1">Relationship Intelligence</p>
-            </div>
+            <>
+              <Logo size={48} showText={true} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8 flex-shrink-0"
+              >
+                <X size={20} />
+              </Button>
+            </>
           )}
           {isCollapsed && (
-            <div className="text-2xl font-bold text-primary">LS</div>
+            <>
+              <Logo size={40} showText={false} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8 flex-shrink-0 mt-2"
+              >
+                <List size={20} />
+              </Button>
+            </>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className={cn(
-              'h-8 w-8 flex-shrink-0',
-              isCollapsed && 'absolute top-6 left-1/2 -translate-x-1/2'
-            )}
-          >
-            {isCollapsed ? <List size={20} /> : <X size={20} />}
-          </Button>
         </div>
 
         <div className={cn(
