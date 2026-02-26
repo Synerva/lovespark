@@ -44,9 +44,11 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [copied, setCopied] = useState(false)
   const [emailBody, setEmailBody] = useState('')
   const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false)
+  const [clearedMessagesBackup, setClearedMessagesBackup] = useState<AIMessage[] | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
+  const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { isSupported: ttsSupported, isSpeaking, isPaused, voices, selectedVoice, setSelectedVoice, speak, pause, resume, stop } = useTextToSpeech()
 
   useEffect(() => {
@@ -56,6 +58,14 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       setWeekStartDate(reset.weekStartDate)
     }
   }, [weekStartDate, setWeeklyMessageCount, setWeekStartDate])
+
+  useEffect(() => {
+    return () => {
+      if (undoTimeoutRef.current) {
+        clearTimeout(undoTimeoutRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -448,9 +458,39 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   }
 
   const handleClearHistory = () => {
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current)
+    }
+
+    const backup = messages || []
+    setClearedMessagesBackup(backup)
     setMessages([])
     setClearHistoryDialogOpen(false)
-    toast.success('Chat history cleared successfully')
+
+    toast.success(`Chat history cleared (${backup.length} messages)`, {
+      description: 'You can undo this action',
+      action: {
+        label: 'Undo',
+        onClick: handleUndoClear,
+      },
+      duration: 10000,
+    })
+
+    undoTimeoutRef.current = setTimeout(() => {
+      setClearedMessagesBackup(null)
+    }, 10000)
+  }
+
+  const handleUndoClear = () => {
+    if (clearedMessagesBackup) {
+      setMessages(clearedMessagesBackup)
+      setClearedMessagesBackup(null)
+      if (undoTimeoutRef.current) {
+        clearTimeout(undoTimeoutRef.current)
+        undoTimeoutRef.current = null
+      }
+      toast.success('Chat history restored!')
+    }
   }
 
   const handleDeleteMessage = (messageId: string) => {
