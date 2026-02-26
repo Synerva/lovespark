@@ -72,10 +72,10 @@ function App() {
         }
         setUser(newUser)
         setCurrentView('onboarding')
-      } else if (user.onboardingCompleted) {
-        setCurrentView('dashboard')
       } else {
-        setCurrentView('onboarding')
+        if (user.onboardingCompleted) {
+          setCurrentView('dashboard')
+        }
       }
     } else {
       setCurrentView('login')
@@ -86,8 +86,6 @@ function App() {
   const handleLoginSuccess = (authUser: AuthUser) => {
     if (user?.onboardingCompleted) {
       setCurrentView('dashboard')
-    } else {
-      setCurrentView('onboarding')
     }
   }
 
