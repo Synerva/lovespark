@@ -54,7 +54,7 @@ export function RISScoreRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="oklch(0.90 0 0)"
+          stroke="oklch(0.92 0.01 30)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -76,8 +76,9 @@ export function RISScoreRing({
 
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="oklch(0.72 0.12 75)" />
-            <stop offset="100%" stopColor="oklch(0.65 0.09 195)" />
+            <stop offset="0%" stopColor="oklch(0.55 0.22 25)" />
+            <stop offset="50%" stopColor="oklch(0.60 0.18 15)" />
+            <stop offset="100%" stopColor="oklch(0.65 0.20 30)" />
           </linearGradient>
         </defs>
       </svg>

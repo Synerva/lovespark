@@ -14,20 +14,20 @@ const pillarConfig = {
   understand: {
     label: 'UNDERSTAND',
     icon: Brain,
-    color: 'oklch(0.65 0.09 195)',
-    bgColor: 'bg-accent/10',
+    color: 'oklch(0.55 0.22 25)',
+    bgColor: 'bg-primary/10',
   },
   align: {
     label: 'ALIGN',
     icon: UsersThree,
-    color: 'oklch(0.72 0.12 75)',
-    bgColor: 'bg-secondary/10',
+    color: 'oklch(0.60 0.18 15)',
+    bgColor: 'bg-accent/10',
   },
   elevate: {
     label: 'ELEVATE',
     icon: TrendUp,
-    color: 'oklch(0.22 0.04 250)',
-    bgColor: 'bg-primary/10',
+    color: 'oklch(0.88 0.08 15)',
+    bgColor: 'bg-secondary/20',
   },
 }
 

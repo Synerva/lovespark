@@ -93,7 +93,7 @@ export function Register({ onRegisterSuccess, onSwitchToLogin }: RegisterProps) 
   return (
     <div className="min-h-screen flex items-center justify-center p-6"
       style={{
-        background: 'radial-gradient(circle at 50% 0%, oklch(0.65 0.09 195 / 0.1), transparent 70%)'
+        background: 'radial-gradient(circle at 50% 0%, oklch(0.88 0.08 15 / 0.3), transparent 70%), linear-gradient(135deg, oklch(0.99 0.005 30 / 1), oklch(0.96 0.01 30 / 1))'
       }}
     >
       <motion.div
@@ -103,8 +103,8 @@ export function Register({ onRegisterSuccess, onSwitchToLogin }: RegisterProps) 
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 bg-secondary/20 rounded-full mb-4">
-            <Sparkle size={40} weight="duotone" className="text-secondary" />
+          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
+            <Sparkle size={40} weight="duotone" className="text-primary" />
           </div>
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
             Create Account

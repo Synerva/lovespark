@@ -60,12 +60,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </header>
 
         {!isPremium && (
-          <Card className="bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30">
+          <Card className="bg-gradient-to-r from-primary/5 to-accent/10 border-primary/20">
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="bg-background/50">Free Plan</Badge>
+                    <Badge variant="outline" className="bg-background/50 border-primary/30">Free Plan</Badge>
                   </div>
                   <h3 className="text-lg font-semibold mb-1">You're on the Free Plan</h3>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm text-muted-foreground">
@@ -82,7 +82,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         e.stopPropagation()
                         onNavigate('usage-stats')
                       }}
-                      className="flex items-center gap-1 text-accent hover:underline"
+                      className="flex items-center gap-1 text-primary hover:underline"
                     >
                       <ChartLine size={16} />
                       <span>View Stats</span>
@@ -128,8 +128,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('understand')}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-accent/10 rounded-lg">
-                  <Brain size={24} weight="duotone" className="text-accent" />
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Brain size={24} weight="duotone" className="text-primary" />
                 </div>
                 <CardTitle>UNDERSTAND</CardTitle>
               </div>
@@ -147,8 +147,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('align')}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-secondary/10 rounded-lg">
-                  <UsersThree size={24} weight="duotone" className="text-secondary" />
+                <div className="p-2 bg-accent/10 rounded-lg">
+                  <UsersThree size={24} weight="duotone" className="text-accent" />
                 </div>
                 <CardTitle>ALIGN</CardTitle>
               </div>
@@ -166,8 +166,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('elevate')}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <TrendUp size={24} weight="duotone" className="text-primary" />
+                <div className="p-2 bg-secondary/20 rounded-lg">
+                  <TrendUp size={24} weight="duotone" className="text-secondary-foreground" />
                 </div>
                 <CardTitle>ELEVATE</CardTitle>
               </div>

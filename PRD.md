@@ -86,23 +86,24 @@ This is a multi-module platform with AI integration, real-time score calculation
 
 ## Design Direction
 
-The design should evoke intelligence, precision, and empowerment - like a personal analytics dashboard for your relationship. Users should feel they're accessing a sophisticated system that reveals hidden patterns, not entering a therapy office. The aesthetic balances data-rich interfaces with warm, approachable interactions through subtle animations and confident typography.
+The design should evoke warmth, connection, and emotional intelligence - like a sophisticated companion that understands the heart of relationships. Users should feel they're accessing an empathetic yet analytical system that reveals patterns with care and sophistication. The aesthetic balances emotional warmth through rose-red tones with clean, data-rich interfaces, creating an experience that feels both heartfelt and intelligent.
 
 ## Color Selection
 
-A refined palette that avoids romantic clichés, emphasizing intelligence and sophistication.
+A warm, emotionally intelligent palette centered on sophisticated red tones that evoke passion, connection, and vitality while maintaining premium sophistication.
 
-- **Primary Color (Deep Navy)**: `oklch(0.22 0.04 250)` - Projects authority, depth, and analytical precision; used for headers, key CTAs, and data visualizations
-- **Secondary Color (Warm Gold)**: `oklch(0.72 0.12 75)` - Communicates premium quality and achievement; used for score rings, milestones, and success states
-- **Accent Color (Soft Teal)**: `oklch(0.65 0.09 195)` - Provides calm, trust, and clarity; used for active states, highlights, and AI coach interface
-- **Background (Clean White/Soft Gray)**: `oklch(0.98 0 0)` / `oklch(0.95 0 0)` - Ensures readability and premium feel
-- **Muted (Slate Gray)**: `oklch(0.55 0.02 250)` - For secondary text and borders
+- **Primary Color (Warm Crimson)**: `oklch(0.55 0.22 25)` - Projects passion, energy, and emotional depth; used for primary CTAs, score highlights, and key interactive elements
+- **Secondary Color (Soft Blush)**: `oklch(0.88 0.08 15)` - Communicates warmth and approachability; used for backgrounds, secondary buttons, and subtle accents
+- **Accent Color (Deep Rose)**: `oklch(0.60 0.18 15)` - Provides richness and sophistication; used for active states, focus indicators, and progress elements
+- **Background (Warm White)**: `oklch(0.99 0.005 30)` - Subtle warmth ensures readability and premium feel
+- **Muted (Warm Gray)**: `oklch(0.50 0.02 20)` - For secondary text maintaining warmth throughout
+- **Foreground (Deep Charcoal)**: `oklch(0.20 0.02 20)` - Strong readable text with slight warmth
 
 **Foreground/Background Pairings**:
-- Deep Navy (`oklch(0.22 0.04 250)`): White text `oklch(1 0 0)` - Ratio 11.2:1 ✓
-- Warm Gold (`oklch(0.72 0.12 75)`): Deep Navy text `oklch(0.22 0.04 250)` - Ratio 7.8:1 ✓
-- Soft Teal (`oklch(0.65 0.09 195)`): White text `oklch(1 0 0)` - Ratio 4.9:1 ✓
-- White Background (`oklch(0.98 0 0)`): Deep Navy text `oklch(0.22 0.04 250)` - Ratio 12.1:1 ✓
+- Warm Crimson (`oklch(0.55 0.22 25)`): White text `oklch(1 0 0)` - Ratio 4.8:1 ✓
+- Soft Blush (`oklch(0.88 0.08 15)`): Deep Charcoal text `oklch(0.20 0.02 20)` - Ratio 10.5:1 ✓
+- Deep Rose (`oklch(0.60 0.18 15)`): White text `oklch(1 0 0)` - Ratio 5.2:1 ✓
+- Warm White Background (`oklch(0.99 0.005 30)`): Deep Charcoal text `oklch(0.20 0.02 20)` - Ratio 13.8:1 ✓
 
 ## Font Selection
 
