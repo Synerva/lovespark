@@ -49,36 +49,226 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
   const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
 
-  const suggestedQuestions = [
-    {
-      text: "How can I improve communication with my partner?",
-      icon: "💬",
-      gradient: "from-primary/10 to-primary/5",
-      borderColor: "border-primary/20",
-      hoverColor: "hover:border-primary/40"
-    },
-    {
-      text: "What does my RIS score tell me about our relationship?",
-      icon: "📊",
-      gradient: "from-accent/10 to-accent/5",
-      borderColor: "border-accent/20",
-      hoverColor: "hover:border-accent/40"
-    },
-    {
-      text: "Give me tips for handling conflicts constructively",
-      icon: "🤝",
-      gradient: "from-secondary/10 to-secondary/5",
-      borderColor: "border-secondary/20",
-      hoverColor: "hover:border-secondary/40"
-    },
-    {
-      text: "How do I build more emotional intimacy?",
-      icon: "💖",
-      gradient: "from-elevate/10 to-elevate/5",
-      borderColor: "border-elevate/20",
-      hoverColor: "hover:border-elevate/40"
+  const getLowestPillar = () => {
+    const scores = {
+      understand: risScore.understand,
+      align: risScore.align,
+      elevate: risScore.elevate
     }
-  ]
+    return Object.entries(scores).reduce((lowest, [key, value]) => 
+      value < scores[lowest as keyof typeof scores] ? key : lowest
+    , 'understand')
+  }
+
+  const getPersonalizedQuestions = () => {
+    const lowestPillar = getLowestPillar()
+    const overallScore = risScore.overall
+
+    const allQuestions = {
+      understand_low: [
+        {
+          text: `My Understand score is ${risScore.understand}. How can I better recognize my partner's emotional needs?`,
+          icon: "🧠",
+          gradient: "from-understand/15 to-understand/5",
+          borderColor: "border-understand/30",
+          hoverColor: "hover:border-understand/50"
+        },
+        {
+          text: "What are effective techniques for active listening in relationships?",
+          icon: "👂",
+          gradient: "from-understand/15 to-understand/5",
+          borderColor: "border-understand/30",
+          hoverColor: "hover:border-understand/50"
+        },
+        {
+          text: "How can I develop more empathy for my partner's perspective?",
+          icon: "💙",
+          gradient: "from-understand/15 to-understand/5",
+          borderColor: "border-understand/30",
+          hoverColor: "hover:border-understand/50"
+        },
+        {
+          text: "What questions should I ask to understand my partner better?",
+          icon: "❓",
+          gradient: "from-understand/15 to-understand/5",
+          borderColor: "border-understand/30",
+          hoverColor: "hover:border-understand/50"
+        }
+      ],
+      understand_high: [
+        {
+          text: "How can I maintain my strong understanding of my partner?",
+          icon: "🧠",
+          gradient: "from-understand/15 to-understand/5",
+          borderColor: "border-understand/30",
+          hoverColor: "hover:border-understand/50"
+        },
+        {
+          text: "What are advanced communication techniques I can explore?",
+          icon: "💬",
+          gradient: "from-understand/15 to-understand/5",
+          borderColor: "border-understand/30",
+          hoverColor: "hover:border-understand/50"
+        }
+      ],
+      align_low: [
+        {
+          text: `My Align score is ${risScore.align}. How can we find common ground on our goals?`,
+          icon: "🎯",
+          gradient: "from-align/15 to-align/5",
+          borderColor: "border-align/30",
+          hoverColor: "hover:border-align/50"
+        },
+        {
+          text: "What exercises help couples align their values and priorities?",
+          icon: "🤝",
+          gradient: "from-align/15 to-align/5",
+          borderColor: "border-align/30",
+          hoverColor: "hover:border-align/50"
+        },
+        {
+          text: "How do we handle differing life goals constructively?",
+          icon: "🛤️",
+          gradient: "from-align/15 to-align/5",
+          borderColor: "border-align/30",
+          hoverColor: "hover:border-align/50"
+        },
+        {
+          text: "What's the best way to negotiate compromises together?",
+          icon: "⚖️",
+          gradient: "from-align/15 to-align/5",
+          borderColor: "border-align/30",
+          hoverColor: "hover:border-align/50"
+        }
+      ],
+      align_high: [
+        {
+          text: "How can we build on our strong alignment to achieve shared dreams?",
+          icon: "🎯",
+          gradient: "from-align/15 to-align/5",
+          borderColor: "border-align/30",
+          hoverColor: "hover:border-align/50"
+        },
+        {
+          text: "What planning strategies work best for aligned couples?",
+          icon: "📋",
+          gradient: "from-align/15 to-align/5",
+          borderColor: "border-align/30",
+          hoverColor: "hover:border-align/50"
+        }
+      ],
+      elevate_low: [
+        {
+          text: `My Elevate score is ${risScore.elevate}. How can we add more excitement to our relationship?`,
+          icon: "✨",
+          gradient: "from-elevate/15 to-elevate/5",
+          borderColor: "border-elevate/30",
+          hoverColor: "hover:border-elevate/50"
+        },
+        {
+          text: "What activities can help us reconnect emotionally?",
+          icon: "💖",
+          gradient: "from-elevate/15 to-elevate/5",
+          borderColor: "border-elevate/30",
+          hoverColor: "hover:border-elevate/50"
+        },
+        {
+          text: "How do we break out of relationship routines and reignite passion?",
+          icon: "🔥",
+          gradient: "from-elevate/15 to-elevate/5",
+          borderColor: "border-elevate/30",
+          hoverColor: "hover:border-elevate/50"
+        },
+        {
+          text: "What are effective ways to increase appreciation and gratitude?",
+          icon: "🙏",
+          gradient: "from-elevate/15 to-elevate/5",
+          borderColor: "border-elevate/30",
+          hoverColor: "hover:border-elevate/50"
+        }
+      ],
+      elevate_high: [
+        {
+          text: "How can we keep our relationship dynamic and exciting long-term?",
+          icon: "✨",
+          gradient: "from-elevate/15 to-elevate/5",
+          borderColor: "border-elevate/30",
+          hoverColor: "hover:border-elevate/50"
+        },
+        {
+          text: "What advanced intimacy practices can deepen our connection?",
+          icon: "💖",
+          gradient: "from-elevate/15 to-elevate/5",
+          borderColor: "border-elevate/30",
+          hoverColor: "hover:border-elevate/50"
+        }
+      ],
+      general: [
+        {
+          text: `With a RIS score of ${overallScore}, what should I focus on first?`,
+          icon: "📊",
+          gradient: "from-primary/10 to-primary/5",
+          borderColor: "border-primary/20",
+          hoverColor: "hover:border-primary/40"
+        },
+        {
+          text: "What does my overall relationship score tell me?",
+          icon: "💡",
+          gradient: "from-accent/10 to-accent/5",
+          borderColor: "border-accent/20",
+          hoverColor: "hover:border-accent/40"
+        },
+        {
+          text: "How can I have more effective conversations with my partner?",
+          icon: "💬",
+          gradient: "from-secondary/10 to-secondary/5",
+          borderColor: "border-secondary/20",
+          hoverColor: "hover:border-secondary/40"
+        },
+        {
+          text: "Give me tips for handling conflicts constructively",
+          icon: "🛡️",
+          gradient: "from-muted/20 to-muted/5",
+          borderColor: "border-muted-foreground/20",
+          hoverColor: "hover:border-muted-foreground/40"
+        }
+      ]
+    }
+
+    let primaryQuestions: typeof allQuestions.general = []
+    
+    if (lowestPillar === 'understand') {
+      primaryQuestions = risScore.understand < 50 ? allQuestions.understand_low : allQuestions.understand_high
+    } else if (lowestPillar === 'align') {
+      primaryQuestions = risScore.align < 50 ? allQuestions.align_low : allQuestions.align_high
+    } else {
+      primaryQuestions = risScore.elevate < 50 ? allQuestions.elevate_low : allQuestions.elevate_high
+    }
+
+    const secondaryPillars = ['understand', 'align', 'elevate'].filter(p => p !== lowestPillar)
+    const secondaryQuestions: typeof allQuestions.general = []
+    
+    secondaryPillars.forEach(pillar => {
+      const score = risScore[pillar as keyof Pick<RISScore, 'understand' | 'align' | 'elevate'>]
+      if (pillar === 'understand') {
+        secondaryQuestions.push(...(score < 50 ? allQuestions.understand_low.slice(0, 1) : allQuestions.understand_high.slice(0, 1)))
+      } else if (pillar === 'align') {
+        secondaryQuestions.push(...(score < 50 ? allQuestions.align_low.slice(0, 1) : allQuestions.align_high.slice(0, 1)))
+      } else {
+        secondaryQuestions.push(...(score < 50 ? allQuestions.elevate_low.slice(0, 1) : allQuestions.elevate_high.slice(0, 1)))
+      }
+    })
+
+    const selectedQuestions = [
+      ...primaryQuestions.slice(0, 2),
+      ...secondaryQuestions,
+      ...allQuestions.general.slice(0, 1)
+    ].slice(0, 4)
+
+    return selectedQuestions
+  }
+
+  const suggestedQuestions = getPersonalizedQuestions()
 
   const handleQuestionClick = (question: string) => {
     if (!canSendMessage) {
