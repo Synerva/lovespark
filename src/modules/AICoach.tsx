@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -13,6 +13,7 @@ import { ArrowLeft } from '@phosphor-icons/react'
 import { FeatureGateService } from '@/lib/feature-gate-service'
 import { toast } from 'sonner'
 import { formatAIMessage } from '@/lib/message-formatter'
+import { useTextToSpeech } from '@/hooks/use-text-to-speech'
 
 interface AICoachProps {
   risScore: RISScore
@@ -29,9 +30,12 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
   const [interimTranscript, setInterimTranscript] = useState('')
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null)
+  const [autoSpeak, setAutoSpeak] = useKV<boolean>('lovespark-auto-speak', false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
+  const { isSupported: ttsSupported, isSpeaking, isPaused, speak, pause, resume, stop } = useTextToSpeech()
 
   useEffect(() => {
     if (weekStartDate && FeatureGateService.isNewWeek(weekStartDate)) {
@@ -120,6 +124,12 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       }
     }
   }, [messages, isLoading])
+
+  useEffect(() => {
+    if (!isSpeaking) {
+      setSpeakingMessageId(null)
+    }
+  }, [isSpeaking])
 
   const canSendMessage = FeatureGateService.canSendAIMessage(subscription ?? null, weeklyMessageCount ?? 0)
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
@@ -354,6 +364,30 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     setInput(question)
   }
 
+  const handleSpeakMessage = (messageId: string, content: string) => {
+    if (!ttsSupported) {
+      toast.error('Text-to-speech is not supported in your browser.')
+      return
+    }
+
+    if (speakingMessageId === messageId && isSpeaking) {
+      stop()
+      setSpeakingMessageId(null)
+    } else {
+      const cleanText = content.replace(/[#*_~`]/g, '').replace(/\n+/g, ' ')
+      speak(cleanText)
+      setSpeakingMessageId(messageId)
+    }
+  }
+
+  const handlePauseResume = () => {
+    if (isPaused) {
+      resume()
+    } else {
+      pause()
+    }
+  }
+
   const handleVoiceToggle = () => {
     if (!speechSupported) {
       toast.error('Voice input is not supported in your browser.')
@@ -426,6 +460,12 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       }
 
       setMessages((prev) => [...(prev || []), aiMessage])
+
+      if (autoSpeak && ttsSupported) {
+        const cleanText = response.replace(/[#*_~`]/g, '').replace(/\n+/g, ' ')
+        speak(cleanText)
+        setSpeakingMessageId(aiMessage.id)
+      }
     } catch (error) {
       const errorMessage: AIMessage = {
         id: `msg-${Date.now()}-error`,
@@ -463,24 +503,43 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
             </div>
           </div>
           
-          {!isPremium && (
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
-              <span className="text-sm text-muted-foreground">
-                {remainingMessages === -1 ? 'Unlimited' : `${remainingMessages}/5 messages this week`}
-              </span>
-              {remainingMessages <= 2 && remainingMessages > 0 && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => onNavigate('pricing')}
-                  className="h-7 text-xs"
-                >
-                  <Sparkle size={14} className="mr-1" weight="fill" />
-                  Upgrade
-                </Button>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {ttsSupported && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAutoSpeak((prev) => !prev)}
+                className="hidden sm:flex items-center gap-2"
+                title={autoSpeak ? "Auto-speak enabled" : "Auto-speak disabled"}
+              >
+                {autoSpeak ? (
+                  <SpeakerHigh size={18} weight="fill" className="text-accent" />
+                ) : (
+                  <SpeakerSlash size={18} weight="fill" className="text-muted-foreground" />
+                )}
+                <span className="text-xs">{autoSpeak ? 'Auto-speak on' : 'Auto-speak off'}</span>
+              </Button>
+            )}
+            
+            {!isPremium && (
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
+                <span className="text-sm text-muted-foreground">
+                  {remainingMessages === -1 ? 'Unlimited' : `${remainingMessages}/5 messages this week`}
+                </span>
+                {remainingMessages <= 2 && remainingMessages > 0 && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => onNavigate('pricing')}
+                    className="h-7 text-xs"
+                  >
+                    <Sparkle size={14} className="mr-1" weight="fill" />
+                    Upgrade
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -565,18 +624,72 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                     </div>
                   </div>
                 )}
-                <div
-                  className={`max-w-[85%] md:max-w-[75%] ${
-                    msg.role === 'user'
-                      ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-3xl rounded-tr-sm px-5 py-3.5 shadow-md'
-                      : 'bg-card border border-border rounded-3xl rounded-tl-sm px-5 py-4 shadow-sm'
-                  }`}
-                >
-                  {msg.role === 'user' ? (
-                    <p className="leading-relaxed">{msg.content}</p>
-                  ) : (
-                    <div className="prose prose-sm max-w-none">
-                      {formatAIMessage(msg.content)}
+                <div className="flex flex-col gap-2">
+                  <div
+                    className={`${
+                      msg.role === 'user'
+                        ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-3xl rounded-tr-sm px-5 py-3.5 shadow-md'
+                        : 'bg-card border border-border rounded-3xl rounded-tl-sm px-5 py-4 shadow-sm'
+                    }`}
+                  >
+                    {msg.role === 'user' ? (
+                      <p className="leading-relaxed">{msg.content}</p>
+                    ) : (
+                      <div className="prose prose-sm max-w-none">
+                        {formatAIMessage(msg.content)}
+                      </div>
+                    )}
+                  </div>
+                  {msg.role === 'assistant' && ttsSupported && (
+                    <div className="flex items-center gap-2 px-2">
+                      {speakingMessageId === msg.id && isSpeaking ? (
+                        <>
+                          {isPaused ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handlePauseResume}
+                              className="h-7 px-2 text-xs"
+                              title="Resume"
+                            >
+                              <Play size={14} weight="fill" className="mr-1" />
+                              Resume
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handlePauseResume}
+                              className="h-7 px-2 text-xs"
+                              title="Pause"
+                            >
+                              <Pause size={14} weight="fill" className="mr-1" />
+                              Pause
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSpeakMessage(msg.id, msg.content)}
+                            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                            title="Stop"
+                          >
+                            <Stop size={14} weight="fill" className="mr-1" />
+                            Stop
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSpeakMessage(msg.id, msg.content)}
+                          className="h-7 px-2 text-xs"
+                          title="Listen to response"
+                        >
+                          <SpeakerHigh size={14} weight="fill" className="mr-1" />
+                          Listen
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
