@@ -128,8 +128,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('understand')}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Brain size={24} weight="duotone" className="text-primary" />
+                <div className="p-2 bg-understand/10 rounded-lg">
+                  <Brain size={24} weight="duotone" className="text-understand" />
                 </div>
                 <CardTitle>UNDERSTAND</CardTitle>
               </div>
@@ -147,8 +147,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('align')}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-accent/10 rounded-lg">
-                  <UsersThree size={24} weight="duotone" className="text-accent" />
+                <div className="p-2 bg-align/10 rounded-lg">
+                  <UsersThree size={24} weight="duotone" className="text-align" />
                 </div>
                 <CardTitle>ALIGN</CardTitle>
               </div>
@@ -166,8 +166,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => onNavigate('elevate')}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-secondary/20 rounded-lg">
-                  <TrendUp size={24} weight="duotone" className="text-secondary-foreground" />
+                <div className="p-2 bg-elevate/10 rounded-lg">
+                  <TrendUp size={24} weight="duotone" className="text-elevate" />
                 </div>
                 <CardTitle>ELEVATE</CardTitle>
               </div>

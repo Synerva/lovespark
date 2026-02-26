@@ -14,23 +14,27 @@ interface InsightCardProps {
 const insightConfig = {
   pattern: {
     icon: Sparkle,
-    color: 'text-accent',
-    bgColor: 'bg-accent/10',
+    color: 'text-info',
+    bgColor: 'bg-info/10',
+    borderColor: 'ring-info/20',
   },
   suggestion: {
     icon: Lightbulb,
-    color: 'text-secondary',
-    bgColor: 'bg-secondary/10',
+    color: 'text-warning',
+    bgColor: 'bg-warning/10',
+    borderColor: 'ring-warning/20',
   },
   warning: {
     icon: Warning,
     color: 'text-destructive',
     bgColor: 'bg-destructive/10',
+    borderColor: 'ring-destructive/20',
   },
   celebration: {
     icon: TrendUp,
-    color: 'text-secondary',
-    bgColor: 'bg-secondary/10',
+    color: 'text-success',
+    bgColor: 'bg-success/10',
+    borderColor: 'ring-success/20',
   },
 }
 
@@ -53,7 +57,7 @@ export function InsightCard({ insight, onRead, index = 0 }: InsightCardProps) {
       <Card
         className={cn(
           'cursor-pointer transition-all hover:shadow-lg',
-          !insight.read && 'ring-2 ring-accent/20'
+          !insight.read && `ring-2 ${config.borderColor}`
         )}
         onClick={handleClick}
       >

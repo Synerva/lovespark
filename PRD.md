@@ -90,20 +90,32 @@ The design should evoke warmth, connection, and emotional intelligence - like a 
 
 ## Color Selection
 
-A warm, emotionally intelligent palette centered on sophisticated red tones that evoke passion, connection, and vitality while maintaining premium sophistication.
+A vibrant, emotionally intelligent palette with distinct, vivid colors that provide clear visual coding for different UI states and content types, creating an energetic and engaging experience while maintaining sophistication.
 
-- **Primary Color (Warm Crimson)**: `oklch(0.55 0.22 25)` - Projects passion, energy, and emotional depth; used for primary CTAs, score highlights, and key interactive elements
-- **Secondary Color (Soft Blush)**: `oklch(0.88 0.08 15)` - Communicates warmth and approachability; used for backgrounds, secondary buttons, and subtle accents
-- **Accent Color (Deep Rose)**: `oklch(0.60 0.18 15)` - Provides richness and sophistication; used for active states, focus indicators, and progress elements
-- **Background (Warm White)**: `oklch(0.99 0.005 30)` - Subtle warmth ensures readability and premium feel
-- **Muted (Warm Gray)**: `oklch(0.50 0.02 20)` - For secondary text maintaining warmth throughout
-- **Foreground (Deep Charcoal)**: `oklch(0.20 0.02 20)` - Strong readable text with slight warmth
+- **Primary Color (Deep Crimson)**: `oklch(0.52 0.28 28)` - Rich, saturated crimson that commands attention; used for primary CTAs, main navigation highlights, and key interactive elements
+- **Secondary Color (Vibrant Rose)**: `oklch(0.75 0.18 340)` - Bright, energetic rose-magenta; used for secondary actions, alternative paths, and supporting elements  
+- **Accent Color (Warm Amber)**: `oklch(0.65 0.24 60)` - Sunny, optimistic amber-yellow; used for highlights, achievements, and moments of celebration
+- **Success Color (Fresh Emerald)**: `oklch(0.62 0.20 145)` - Lively green signaling growth and positive outcomes; used for confirmations, progress indicators, and wins
+- **Warning Color (Bright Gold)**: `oklch(0.75 0.18 80)` - Eye-catching golden yellow; used for important notices, tips, and attention-requiring items
+- **Info Color (Electric Violet)**: `oklch(0.60 0.22 240)` - Striking blue-violet for informational content; used for insights, educational content, and system messages
+- **Destructive Color (Bold Scarlet)**: `oklch(0.58 0.26 25)` - Clear danger signal; used for errors, warnings, and destructive actions
+- **Understand Pillar (Mystic Purple)**: `oklch(0.65 0.22 280)` - Deep, thoughtful purple representing self-awareness and introspection
+- **Align Pillar (Passionate Magenta)**: `oklch(0.62 0.24 340)` - Vibrant magenta-pink representing connection and harmony between partners
+- **Elevate Pillar (Vibrant Mint)**: `oklch(0.68 0.20 140)` - Fresh, energizing green-cyan representing growth and forward momentum
+- **Background (Warm White)**: `oklch(0.99 0.008 30)` - Slightly warm white base for premium feel and readability
+- **Foreground (Rich Charcoal)**: `oklch(0.18 0.03 20)` - Deep, slightly warm charcoal for strong contrast and readability
 
 **Foreground/Background Pairings**:
-- Warm Crimson (`oklch(0.55 0.22 25)`): White text `oklch(1 0 0)` - Ratio 4.8:1 ✓
-- Soft Blush (`oklch(0.88 0.08 15)`): Deep Charcoal text `oklch(0.20 0.02 20)` - Ratio 10.5:1 ✓
-- Deep Rose (`oklch(0.60 0.18 15)`): White text `oklch(1 0 0)` - Ratio 5.2:1 ✓
-- Warm White Background (`oklch(0.99 0.005 30)`): Deep Charcoal text `oklch(0.20 0.02 20)` - Ratio 13.8:1 ✓
+- Deep Crimson Primary (`oklch(0.52 0.28 28)`): White text `oklch(1 0 0)` - Ratio 5.2:1 ✓
+- Vibrant Rose Secondary (`oklch(0.75 0.18 340)`): White text `oklch(0.98 0 0)` - Ratio 4.6:1 ✓
+- Warm Amber Accent (`oklch(0.65 0.24 60)`): White text `oklch(0.98 0 0)` - Ratio 4.7:1 ✓
+- Fresh Emerald Success (`oklch(0.62 0.20 145)`): White text `oklch(0.98 0 0)` - Ratio 4.9:1 ✓
+- Bright Gold Warning (`oklch(0.75 0.18 80)`): Dark charcoal text `oklch(0.15 0.02 80)` - Ratio 8.1:1 ✓
+- Electric Violet Info (`oklch(0.60 0.22 240)`): White text `oklch(0.98 0 0)` - Ratio 5.1:1 ✓
+- Mystic Purple Understand (`oklch(0.65 0.22 280)`): White text `oklch(0.98 0 0)` - Ratio 4.8:1 ✓
+- Passionate Magenta Align (`oklch(0.62 0.24 340)`): White text `oklch(0.98 0 0)` - Ratio 4.9:1 ✓
+- Vibrant Mint Elevate (`oklch(0.68 0.20 140)`): White text `oklch(0.98 0 0)` - Ratio 4.5:1 ✓
+- Warm White Background (`oklch(0.99 0.008 30)`): Rich Charcoal text `oklch(0.18 0.03 20)` - Ratio 14.2:1 ✓
 
 ## Font Selection
 

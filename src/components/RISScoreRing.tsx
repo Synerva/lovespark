@@ -76,9 +76,9 @@ export function RISScoreRing({
 
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="oklch(0.55 0.22 25)" />
-            <stop offset="50%" stopColor="oklch(0.60 0.18 15)" />
-            <stop offset="100%" stopColor="oklch(0.65 0.20 30)" />
+            <stop offset="0%" stopColor="oklch(0.65 0.22 280)" />
+            <stop offset="50%" stopColor="oklch(0.62 0.24 340)" />
+            <stop offset="100%" stopColor="oklch(0.68 0.20 140)" />
           </linearGradient>
         </defs>
       </svg>
@@ -101,7 +101,7 @@ export function RISScoreRing({
                 className={cn(
                   'text-xs font-medium mt-1 px-2 py-0.5 rounded-full animate-score-pulse',
                   delta > 0
-                    ? 'bg-accent/20 text-accent-foreground'
+                    ? 'bg-success/20 text-success-foreground'
                     : 'bg-destructive/20 text-destructive'
                 )}
                 initial={{ opacity: 0, y: 5 }}
