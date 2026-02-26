@@ -75,6 +75,8 @@ function App() {
       } else {
         if (user.onboardingCompleted) {
           setCurrentView('dashboard')
+        } else {
+          setCurrentView('onboarding')
         }
       }
     } else {
@@ -84,9 +86,7 @@ function App() {
   }, [user?.onboardingCompleted, user?.id])
 
   const handleLoginSuccess = (authUser: AuthUser) => {
-    if (user?.onboardingCompleted) {
-      setCurrentView('dashboard')
-    }
+    
   }
 
   const handleRegisterSuccess = (authUser: AuthUser) => {
