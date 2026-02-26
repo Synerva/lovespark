@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -33,6 +33,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [interimTranscript, setInterimTranscript] = useState('')
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null)
   const [autoSpeak, setAutoSpeak] = useKV<boolean>('lovespark-auto-speak', false)
+  const [questionSet, setQuestionSet] = useState(0)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -147,7 +148,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     , 'understand')
   }
 
-  const getPersonalizedQuestions = () => {
+  const getPersonalizedQuestions = (setIndex: number = 0) => {
     const lowestPillar = getLowestPillar()
     const overallScore = risScore.overall
 
@@ -346,16 +347,19 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       }
     })
 
-    const selectedQuestions = [
-      ...primaryQuestions.slice(0, 2),
-      ...secondaryQuestions,
-      ...allQuestions.general.slice(0, 1)
-    ].slice(0, 4)
+    const allAvailableQuestions = [...primaryQuestions, ...secondaryQuestions, ...allQuestions.general]
+    const startIndex = (setIndex * 4) % allAvailableQuestions.length
+    const selectedQuestions = []
+    
+    for (let i = 0; i < 4; i++) {
+      const index = (startIndex + i) % allAvailableQuestions.length
+      selectedQuestions.push(allAvailableQuestions[index])
+    }
 
     return selectedQuestions
   }
 
-  const suggestedQuestions = getPersonalizedQuestions()
+  const suggestedQuestions = getPersonalizedQuestions(questionSet)
 
   const handleQuestionClick = (question: string) => {
     if (!canSendMessage) {
@@ -363,6 +367,11 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       return
     }
     setInput(question)
+  }
+
+  const handleRefreshQuestions = () => {
+    setQuestionSet((prev) => prev + 1)
+    toast.success('New question suggestions loaded!')
   }
 
   const handleSpeakMessage = (messageId: string, content: string) => {
@@ -611,10 +620,22 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               </Card>
 
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground text-center">
-                  Get started with these questions
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Get started with these questions
+                  </h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRefreshQuestions}
+                    className="h-8 px-3 gap-2 text-xs hover:bg-accent/20"
+                    title="Refresh questions"
+                  >
+                    <ArrowsClockwise size={16} weight="bold" className="text-accent" />
+                    <span className="hidden sm:inline">New questions</span>
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3" key={`questions-${questionSet}`}>
                   {suggestedQuestions.map((question, index) => (
                     <button
                       key={index}
@@ -731,10 +752,22 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               
               {!isLoading && (
                 <div className="space-y-3 pt-4 border-t border-border/50">
-                  <h4 className="text-sm font-medium text-muted-foreground text-center">
-                    Continue the conversation
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-muted-foreground">
+                      Continue the conversation
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRefreshQuestions}
+                      className="h-8 px-3 gap-2 text-xs hover:bg-accent/20"
+                      title="Refresh questions"
+                    >
+                      <ArrowsClockwise size={16} weight="bold" className="text-accent" />
+                      <span className="hidden sm:inline">New questions</span>
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3" key={`questions-conversation-${questionSet}`}>
                     {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
