@@ -282,7 +282,7 @@ export function UsageStats({ onNavigate }: UsageStatsProps) {
             {!isPremium && (
               <Card className="bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold mb-2">Upgrade for Unlimited Insights</h3>
                       <p className="text-sm text-muted-foreground mb-3">
@@ -303,7 +303,7 @@ export function UsageStats({ onNavigate }: UsageStatsProps) {
                         </li>
                       </ul>
                     </div>
-                    <Button onClick={() => onNavigate('pricing')} size="lg" className="gap-2">
+                    <Button onClick={() => onNavigate('pricing')} size="lg" className="gap-2 w-full lg:w-auto whitespace-nowrap">
                       <Sparkle size={18} weight="fill" />
                       Upgrade Now
                     </Button>

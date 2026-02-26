@@ -36,11 +36,11 @@ export function FeatureLockCard({
             <p className="text-sm text-muted-foreground/70 mb-4">{description}</p>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <p className="text-sm text-muted-foreground italic">
             Upgrade to access {featureName}
           </p>
-          <Button onClick={onUpgrade} size="sm" className="gap-2">
+          <Button onClick={onUpgrade} size="sm" className="gap-2 whitespace-nowrap w-full sm:w-auto">
             <Sparkle size={16} weight="fill" />
             Upgrade Now
           </Button>

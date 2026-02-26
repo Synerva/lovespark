@@ -111,7 +111,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           </div>
           
           {!isPremium && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
               <span className="text-sm text-muted-foreground">
                 {remainingMessages === -1 ? 'Unlimited' : `${remainingMessages}/5 messages this week`}
               </span>
@@ -137,14 +137,14 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
             <Alert className="bg-accent/10 border-accent">
               <Lock className="h-5 w-5 text-accent" />
               <AlertDescription className="ml-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                   <div>
                     <p className="font-semibold text-foreground mb-1">Weekly message limit reached</p>
                     <p className="text-sm text-muted-foreground">
                       Upgrade to Premium for unlimited AI coaching conversations
                     </p>
                   </div>
-                  <Button onClick={() => onNavigate('pricing')} size="sm" className="ml-4">
+                  <Button onClick={() => onNavigate('pricing')} size="sm" className="w-full sm:w-auto whitespace-nowrap">
                     <Sparkle size={16} className="mr-2" weight="fill" />
                     View Plans
                   </Button>
