@@ -130,10 +130,16 @@ export function CheckIn({ onComplete }: CheckInProps) {
   const [updatedScore, setUpdatedScore] = useState<RISScore | null>(null)
   const [allQuestions, setAllQuestions] = useState<QuestionItem[]>(checkInQuestions)
   const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false)
+  const [hasLoadedFollowUps, setHasLoadedFollowUps] = useState(false)
 
   useEffect(() => {
     const loadFollowUpQuestions = async () => {
-      if ((checkIns || []).length >= 1 && currentQ === Math.floor(checkInQuestions.length / 2) && !isLoadingFollowUps) {
+      const shouldLoad = (checkIns || []).length >= 1 && 
+                         currentQ === Math.floor(checkInQuestions.length / 2) && 
+                         !isLoadingFollowUps && 
+                         !hasLoadedFollowUps
+      
+      if (shouldLoad) {
         setIsLoadingFollowUps(true)
         try {
           const followUpQuestions = await generateFollowUpQuestions(
@@ -145,6 +151,7 @@ export function CheckIn({ onComplete }: CheckInProps) {
           if (followUpQuestions.length > 0) {
             setAllQuestions([...checkInQuestions, ...followUpQuestions])
           }
+          setHasLoadedFollowUps(true)
         } catch (error) {
           console.error('Failed to load follow-up questions:', error)
         } finally {
@@ -154,7 +161,7 @@ export function CheckIn({ onComplete }: CheckInProps) {
     }
 
     loadFollowUpQuestions()
-  }, [currentQ, checkIns, responses, isLoadingFollowUps])
+  }, [currentQ, checkIns, responses, isLoadingFollowUps, hasLoadedFollowUps])
 
   const handleResponse = (value: number) => {
     setResponses({ ...responses, [allQuestions[currentQ].id]: value })
