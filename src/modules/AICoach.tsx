@@ -49,6 +49,45 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
   const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
 
+  const suggestedQuestions = [
+    {
+      text: "How can I improve communication with my partner?",
+      icon: "💬",
+      gradient: "from-primary/10 to-primary/5",
+      borderColor: "border-primary/20",
+      hoverColor: "hover:border-primary/40"
+    },
+    {
+      text: "What does my RIS score tell me about our relationship?",
+      icon: "📊",
+      gradient: "from-accent/10 to-accent/5",
+      borderColor: "border-accent/20",
+      hoverColor: "hover:border-accent/40"
+    },
+    {
+      text: "Give me tips for handling conflicts constructively",
+      icon: "🤝",
+      gradient: "from-secondary/10 to-secondary/5",
+      borderColor: "border-secondary/20",
+      hoverColor: "hover:border-secondary/40"
+    },
+    {
+      text: "How do I build more emotional intimacy?",
+      icon: "💖",
+      gradient: "from-elevate/10 to-elevate/5",
+      borderColor: "border-elevate/20",
+      hoverColor: "hover:border-elevate/40"
+    }
+  ]
+
+  const handleQuestionClick = (question: string) => {
+    if (!canSendMessage) {
+      toast.error('Weekly message limit reached. Upgrade to Premium for unlimited messages!')
+      return
+    }
+    setInput(question)
+  }
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
 
@@ -165,23 +204,51 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           )}
 
           {!messages || messages.length === 0 ? (
-            <Card className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 border-primary/10">
-              <CardContent className="p-10 text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="p-4 bg-accent/15 rounded-2xl">
-                    <Robot size={40} weight="duotone" className="text-accent" />
+            <>
+              <Card className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 border-primary/10">
+                <CardContent className="p-10 text-center space-y-4">
+                  <div className="flex justify-center">
+                    <div className="p-4 bg-accent/15 rounded-2xl">
+                      <Robot size={40} weight="duotone" className="text-accent" />
+                    </div>
                   </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+                      Welcome to AI Coach
+                    </h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Ask me anything about your relationship intelligence, communication patterns, or get personalized insights based on your RIS score of <span className="font-semibold text-primary">{risScore.overall}</span>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground text-center">
+                  Get started with these questions
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {suggestedQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleQuestionClick(question.text)}
+                      disabled={!canSendMessage}
+                      className={`group relative overflow-hidden rounded-2xl border-2 ${question.borderColor} ${question.hoverColor} bg-gradient-to-br ${question.gradient} p-4 text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+                          {question.icon}
+                        </span>
+                        <p className="text-sm font-medium text-foreground leading-relaxed">
+                          {question.text}
+                        </p>
+                      </div>
+                      <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-white/10 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-                    Welcome to AI Coach
-                  </h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Ask me anything about your relationship intelligence, communication patterns, or get personalized insights based on your RIS score of <span className="font-semibold text-primary">{risScore.overall}</span>
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </>
           ) : (
             messages.map((msg) => (
               <div
