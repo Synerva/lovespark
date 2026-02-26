@@ -20,7 +20,7 @@ export function FeatureLockCard({
   onUpgrade 
 }: FeatureLockCardProps) {
   return (
-    <Card className="relative overflow-hidden border-2 border-muted bg-gradient-to-br from-muted/30 via-muted/10 to-transparent group">
+    <Card className="relative overflow-hidden border-2 border-muted bg-gradient-to-br from-muted/30 via-muted/10 to-transparent group transition-all duration-300 hover:scale-105">
       <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 backdrop-blur-sm z-10" />
       <div className="absolute inset-0 bg-gradient-to-br from-accent/15 via-primary/10 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse z-10" />
       <CardContent className="p-6 relative z-20">

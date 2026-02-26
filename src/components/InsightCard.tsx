@@ -60,7 +60,7 @@ export function InsightCard({ insight, onRead, index = 0 }: InsightCardProps) {
     >
       <Card
         className={cn(
-          'cursor-pointer transition-all hover:shadow-lg hover:shadow-current/10 relative overflow-hidden group',
+          'cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-current/10 hover:scale-105 relative overflow-hidden group',
           config.gradientBg,
           !insight.read && `ring-2 ${config.borderColor}`
         )}

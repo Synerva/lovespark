@@ -28,7 +28,7 @@ export function PricingCard({
   return (
     <Card
       className={cn(
-        'relative overflow-hidden transition-all duration-300 group',
+        'relative overflow-hidden transition-all duration-300 group hover:scale-105',
         plan.isPopular
           ? 'border-accent shadow-lg scale-105 bg-gradient-to-b from-card to-accent/5'
           : 'border-border hover:border-accent/50 hover:shadow-md'
