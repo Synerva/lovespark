@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star } from '@phosphor-icons/react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star, ShareNetwork, Copy, Check, Envelope, Link as LinkIcon } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -15,6 +16,8 @@ import { toast } from 'sonner'
 import { formatAIMessage } from '@/lib/message-formatter'
 import { useTextToSpeech } from '@/hooks/use-text-to-speech'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 
 interface AICoachProps {
   risScore: RISScore
@@ -36,6 +39,10 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [questionSet, setQuestionSet] = useState(0)
   const [bookmarkedQuestions, setBookmarkedQuestions] = useKV<string[]>('lovespark-bookmarked-questions', [])
   const [showBookmarks, setShowBookmarks] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [shareLink, setShareLink] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [emailBody, setEmailBody] = useState('')
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -393,6 +400,52 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     return (bookmarkedQuestions || []).includes(question)
   }
 
+  const handleOpenShareDialog = () => {
+    if (!bookmarkedQuestions || bookmarkedQuestions.length === 0) {
+      toast.error('No bookmarked questions to share')
+      return
+    }
+
+    const questions = bookmarkedQuestions.join('\n\n')
+    const encodedQuestions = encodeURIComponent(questions)
+    const baseUrl = window.location.origin
+    const link = `${baseUrl}?shared-questions=${encodedQuestions}`
+    setShareLink(link)
+    
+    const emailTemplate = `Hi,\n\nI'd like to share some relationship coaching questions with you:\n\n${bookmarkedQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n\n')}\n\nThese questions have been helpful for me in exploring my relationship patterns and growth areas. I thought they might be useful for us to discuss together.\n\nBest,\n[Your name]`
+    setEmailBody(emailTemplate)
+    
+    setShareDialogOpen(true)
+    setCopied(false)
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink)
+      setCopied(true)
+      toast.success('Link copied to clipboard!')
+      setTimeout(() => setCopied(false), 3000)
+    } catch (error) {
+      toast.error('Failed to copy link')
+    }
+  }
+
+  const handleCopyQuestions = async () => {
+    try {
+      const questions = (bookmarkedQuestions || []).map((q, i) => `${i + 1}. ${q}`).join('\n\n')
+      await navigator.clipboard.writeText(questions)
+      toast.success('Questions copied to clipboard!')
+    } catch (error) {
+      toast.error('Failed to copy questions')
+    }
+  }
+
+  const handleEmailShare = () => {
+    const subject = encodeURIComponent('Relationship Coaching Questions to Explore Together')
+    const body = encodeURIComponent(emailBody)
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')
+  }
+
   const handleSpeakMessage = (messageId: string, content: string) => {
     if (!ttsSupported) {
       toast.error('Text-to-speech is not supported in your browser.')
@@ -534,18 +587,30 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           
           <div className="flex items-center gap-2">
             {bookmarkedQuestions && bookmarkedQuestions.length > 0 && (
-              <Button
-                variant={showBookmarks ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setShowBookmarks((prev) => !prev)}
-                className="flex items-center gap-2"
-                title={showBookmarks ? "Show all questions" : `View ${bookmarkedQuestions.length} bookmarked questions`}
-              >
-                <BookmarkSimple size={18} weight={showBookmarks ? "fill" : "bold"} />
-                <span className="text-xs hidden sm:inline">
-                  {showBookmarks ? 'All questions' : `${bookmarkedQuestions.length} saved`}
-                </span>
-              </Button>
+              <>
+                <Button
+                  variant={showBookmarks ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setShowBookmarks((prev) => !prev)}
+                  className="flex items-center gap-2"
+                  title={showBookmarks ? "Show all questions" : `View ${bookmarkedQuestions.length} bookmarked questions`}
+                >
+                  <BookmarkSimple size={18} weight={showBookmarks ? "fill" : "bold"} />
+                  <span className="text-xs hidden sm:inline">
+                    {showBookmarks ? 'All questions' : `${bookmarkedQuestions.length} saved`}
+                  </span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenShareDialog}
+                  className="flex items-center gap-2"
+                  title="Share bookmarked questions"
+                >
+                  <ShareNetwork size={18} weight="bold" />
+                  <span className="text-xs hidden md:inline">Share</span>
+                </Button>
+              </>
             )}
             
             {ttsSupported && voices.length > 0 && (
@@ -990,6 +1055,139 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           </div>
         </div>
       </div>
+
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+              <ShareNetwork size={24} weight="duotone" className="text-accent" />
+              Share Bookmarked Questions
+            </DialogTitle>
+            <DialogDescription>
+              Share your bookmarked coaching questions with your partner or coach to facilitate meaningful conversations.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="link" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="link">
+                <LinkIcon size={16} className="mr-2" weight="bold" />
+                Link
+              </TabsTrigger>
+              <TabsTrigger value="email">
+                <Envelope size={16} className="mr-2" weight="bold" />
+                Email
+              </TabsTrigger>
+              <TabsTrigger value="copy">
+                <Copy size={16} className="mr-2" weight="bold" />
+                Copy Text
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="link" className="space-y-4 mt-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Share this link with your partner or coach. They'll be able to view all your bookmarked questions.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    value={shareLink}
+                    readOnly
+                    className="flex-1 font-mono text-xs bg-muted"
+                    onClick={(e) => e.currentTarget.select()}
+                  />
+                  <Button onClick={handleCopyLink} variant="outline" className="gap-2">
+                    {copied ? (
+                      <>
+                        <Check size={18} weight="bold" className="text-success" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={18} weight="bold" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-semibold mb-3">Preview Questions ({bookmarkedQuestions?.length || 0})</h4>
+                <ScrollArea className="h-[200px] w-full border rounded-lg p-4">
+                  <div className="space-y-3">
+                    {(bookmarkedQuestions || []).map((question, index) => (
+                      <div key={index} className="flex gap-3 items-start">
+                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-accent/20 text-accent text-xs font-semibold">
+                          {index + 1}
+                        </span>
+                        <p className="text-sm text-foreground leading-relaxed">{question}</p>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="email" className="space-y-4 mt-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Customize the email message and send it to your partner or coach.
+                </p>
+                <Textarea
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  className="min-h-[280px] font-sans text-sm"
+                  placeholder="Compose your email message..."
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button onClick={handleEmailShare} className="gap-2">
+                  <Envelope size={18} weight="fill" />
+                  Open in Email App
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="copy" className="space-y-4 mt-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Copy the questions as plain text to paste anywhere (messages, notes, documents).
+                </p>
+                <Card className="bg-muted">
+                  <CardContent className="p-4">
+                    <ScrollArea className="h-[280px] w-full">
+                      <div className="space-y-3 text-sm">
+                        {(bookmarkedQuestions || []).map((question, index) => (
+                          <div key={index}>
+                            <span className="font-semibold">{index + 1}.</span> {question}
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button onClick={handleCopyQuestions} variant="outline" className="gap-2">
+                  <Copy size={18} weight="bold" />
+                  Copy All Questions
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="border-t pt-4 mt-4">
+            <div className="flex items-start gap-3 p-3 bg-accent/5 rounded-lg border border-accent/20">
+              <Sparkle size={20} weight="duotone" className="text-accent flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Why share questions?</p>
+                <p>Sharing your bookmarked questions helps create transparency and opens up meaningful conversations with your partner or coach about areas you're exploring in your relationship journey.</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
