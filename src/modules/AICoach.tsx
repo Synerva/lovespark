@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -26,7 +26,10 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
   const [weeklyMessageCount, setWeeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
   const [weekStartDate, setWeekStartDate] = useKV<string>('lovespark-week-start-date', FeatureGateService.getWeekStartDate())
+  const [isRecording, setIsRecording] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<any>(null)
 
   useEffect(() => {
     if (weekStartDate && FeatureGateService.isNewWeek(weekStartDate)) {
@@ -35,6 +38,48 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       setWeekStartDate(reset.weekStartDate)
     }
   }, [weekStartDate, setWeeklyMessageCount, setWeekStartDate])
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      setSpeechSupported(true)
+      const recognition = new SpeechRecognition()
+      recognition.continuous = false
+      recognition.interimResults = false
+      recognition.lang = 'en-US'
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript
+        setInput(transcript)
+        setIsRecording(false)
+        toast.success('Voice captured successfully')
+      }
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
+        setIsRecording(false)
+        if (event.error === 'not-allowed') {
+          toast.error('Microphone access denied. Please enable microphone permissions.')
+        } else if (event.error === 'no-speech') {
+          toast.error('No speech detected. Please try again.')
+        } else {
+          toast.error('Voice recognition error. Please try again.')
+        }
+      }
+
+      recognition.onend = () => {
+        setIsRecording(false)
+      }
+
+      recognitionRef.current = recognition
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort()
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -278,6 +323,32 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     setInput(question)
   }
 
+  const handleVoiceToggle = () => {
+    if (!speechSupported) {
+      toast.error('Voice input is not supported in your browser.')
+      return
+    }
+
+    if (!canSendMessage) {
+      toast.error('Weekly message limit reached. Upgrade to Premium for unlimited messages!')
+      return
+    }
+
+    if (isRecording) {
+      recognitionRef.current?.stop()
+      setIsRecording(false)
+    } else {
+      try {
+        recognitionRef.current?.start()
+        setIsRecording(true)
+        toast.info('Listening... Speak now')
+      } catch (error) {
+        console.error('Failed to start voice recognition:', error)
+        toast.error('Failed to start voice recognition. Please try again.')
+      }
+    }
+  }
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
 
@@ -511,6 +582,21 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               placeholder={canSendMessage ? "Ask about your relationship patterns..." : "Upgrade to continue chatting..."}
               disabled={isLoading || !canSendMessage}
             />
+            {speechSupported && (
+              <Button
+                onClick={handleVoiceToggle}
+                disabled={isLoading || !canSendMessage}
+                variant={isRecording ? "destructive" : "outline"}
+                size="icon"
+                className={isRecording ? "animate-pulse" : ""}
+              >
+                {isRecording ? (
+                  <Stop size={20} weight="fill" />
+                ) : (
+                  <Microphone size={20} weight="fill" />
+                )}
+              </Button>
+            )}
             <Button onClick={handleSend} disabled={isLoading || !input.trim() || !canSendMessage}>
               <PaperPlaneTilt size={20} weight="fill" />
             </Button>
