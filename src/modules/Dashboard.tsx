@@ -62,13 +62,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         {!isPremium && (
           <Card className="bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <Badge variant="outline" className="bg-background/50">Free Plan</Badge>
                   </div>
                   <h3 className="text-lg font-semibold mb-1">You're on the Free Plan</h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <ChatCircleDots size={16} />
                       <span>{remainingMessages === -1 ? 'Unlimited' : `${remainingMessages}/5`} AI messages this week</span>
@@ -89,7 +89,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                     </button>
                   </div>
                 </div>
-                <Button onClick={() => onNavigate('pricing')} className="gap-2">
+                <Button onClick={() => onNavigate('pricing')} className="gap-2 w-full md:w-auto">
                   <Sparkle size={18} weight="fill" />
                   Upgrade to Premium
                 </Button>
