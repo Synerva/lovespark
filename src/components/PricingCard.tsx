@@ -28,16 +28,23 @@ export function PricingCard({
   return (
     <Card
       className={cn(
-        'relative overflow-hidden transition-all duration-300',
+        'relative overflow-hidden transition-all duration-300 group',
         plan.isPopular
           ? 'border-accent shadow-lg scale-105 bg-gradient-to-b from-card to-accent/5'
           : 'border-border hover:border-accent/50 hover:shadow-md'
       )}
     >
       {plan.isPopular && (
-        <div className="absolute top-0 right-0 bg-secondary text-secondary-foreground text-xs font-semibold px-4 py-1.5 rounded-bl-lg">
-          MOST POPULAR
-        </div>
+        <>
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-secondary/15 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-shift" />
+          <div className="absolute top-0 right-0 bg-secondary text-secondary-foreground text-xs font-semibold px-4 py-1.5 rounded-bl-lg z-10">
+            MOST POPULAR
+          </div>
+        </>
+      )}
+      
+      {!plan.isPopular && (
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-primary/5 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
       )}
 
       <div className="p-8">

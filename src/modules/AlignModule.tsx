@@ -108,13 +108,13 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
             return (
               <Card 
                 key={index}
-                className="p-6 hover:shadow-lg transition-all relative overflow-hidden group bg-gradient-to-br from-align/10 via-align/5 to-transparent border-align/20"
+                className="p-6 hover:shadow-lg hover:shadow-align/20 transition-all relative overflow-hidden group bg-gradient-to-br from-align/10 via-align/5 to-transparent border-align/20"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-align/10 to-align/20 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-br from-align/25 via-align/10 to-align/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
                 
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 bg-align/10 rounded-lg">
+                    <div className="p-2 bg-align/10 rounded-lg group-hover:bg-align/20 transition-colors">
                       <Icon size={24} weight="duotone" className="text-align" />
                     </div>
                     <Badge variant="secondary" className="text-xs">

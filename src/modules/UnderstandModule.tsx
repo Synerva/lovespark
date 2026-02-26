@@ -107,13 +107,13 @@ export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
             return (
               <Card 
                 key={index}
-                className="p-6 hover:shadow-lg transition-all relative overflow-hidden group bg-gradient-to-br from-understand/10 via-understand/5 to-transparent border-understand/20"
+                className="p-6 hover:shadow-lg hover:shadow-understand/20 transition-all relative overflow-hidden group bg-gradient-to-br from-understand/10 via-understand/5 to-transparent border-understand/20"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-understand/10 to-understand/20 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-br from-understand/25 via-understand/10 to-understand/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
                 
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 bg-understand/10 rounded-lg">
+                    <div className="p-2 bg-understand/10 rounded-lg group-hover:bg-understand/20 transition-colors">
                       <Icon size={24} weight="duotone" className="text-understand" />
                     </div>
                     <Badge variant="secondary" className="text-xs">

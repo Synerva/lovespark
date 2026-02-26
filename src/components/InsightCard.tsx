@@ -60,15 +60,16 @@ export function InsightCard({ insight, onRead, index = 0 }: InsightCardProps) {
     >
       <Card
         className={cn(
-          'cursor-pointer transition-all hover:shadow-lg relative overflow-hidden group',
+          'cursor-pointer transition-all hover:shadow-lg hover:shadow-current/10 relative overflow-hidden group',
           config.gradientBg,
           !insight.read && `ring-2 ${config.borderColor}`
         )}
         onClick={handleClick}
       >
         <div className={cn(
-          'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity',
-          config.gradientBg.replace('from-', 'from-').replace('/15', '/20')
+          'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500',
+          config.gradientBg.replace('from-', 'from-').replace('/15', '/25').replace('to-transparent', 'to-card'),
+          'group-hover:animate-gradient-pulse'
         )} />
         <CardHeader className="pb-3 relative">
           <div className="flex items-start gap-3">

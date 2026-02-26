@@ -108,13 +108,13 @@ export function ElevateModule({ onNavigate }: ElevateModuleProps) {
             return (
               <Card 
                 key={index}
-                className="p-6 hover:shadow-lg transition-all relative overflow-hidden group bg-gradient-to-br from-elevate/10 via-elevate/5 to-transparent border-elevate/20"
+                className="p-6 hover:shadow-lg hover:shadow-elevate/20 transition-all relative overflow-hidden group bg-gradient-to-br from-elevate/10 via-elevate/5 to-transparent border-elevate/20"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-elevate/10 to-elevate/20 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-br from-elevate/25 via-elevate/10 to-elevate/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
                 
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 bg-elevate/10 rounded-lg">
+                    <div className="p-2 bg-elevate/10 rounded-lg group-hover:bg-elevate/20 transition-colors">
                       <Icon size={24} weight="duotone" className="text-elevate" />
                     </div>
                     <Badge variant="secondary" className="text-xs">

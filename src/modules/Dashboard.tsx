@@ -125,11 +125,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-understand/15 via-understand/5 to-transparent border-understand/30 relative overflow-hidden group" onClick={() => onNavigate('understand')}>
-            <div className="absolute inset-0 bg-gradient-to-br from-understand/0 to-understand/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Card className="cursor-pointer hover:shadow-lg hover:shadow-understand/20 transition-all bg-gradient-to-br from-understand/15 via-understand/5 to-transparent border-understand/30 relative overflow-hidden group" onClick={() => onNavigate('understand')}>
+            <div className="absolute inset-0 bg-gradient-to-br from-understand/30 via-understand/15 to-understand/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
             <CardHeader className="relative">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-understand/20 rounded-lg">
+                <div className="p-2 bg-understand/20 rounded-lg group-hover:bg-understand/30 transition-colors">
                   <Brain size={24} weight="duotone" className="text-understand" />
                 </div>
                 <CardTitle>UNDERSTAND</CardTitle>
@@ -145,11 +145,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-align/15 via-align/5 to-transparent border-align/30 relative overflow-hidden group" onClick={() => onNavigate('align')}>
-            <div className="absolute inset-0 bg-gradient-to-br from-align/0 to-align/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Card className="cursor-pointer hover:shadow-lg hover:shadow-align/20 transition-all bg-gradient-to-br from-align/15 via-align/5 to-transparent border-align/30 relative overflow-hidden group" onClick={() => onNavigate('align')}>
+            <div className="absolute inset-0 bg-gradient-to-br from-align/30 via-align/15 to-align/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
             <CardHeader className="relative">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-align/20 rounded-lg">
+                <div className="p-2 bg-align/20 rounded-lg group-hover:bg-align/30 transition-colors">
                   <UsersThree size={24} weight="duotone" className="text-align" />
                 </div>
                 <CardTitle>ALIGN</CardTitle>
@@ -165,11 +165,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-elevate/15 via-elevate/5 to-transparent border-elevate/30 relative overflow-hidden group" onClick={() => onNavigate('elevate')}>
-            <div className="absolute inset-0 bg-gradient-to-br from-elevate/0 to-elevate/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Card className="cursor-pointer hover:shadow-lg hover:shadow-elevate/20 transition-all bg-gradient-to-br from-elevate/15 via-elevate/5 to-transparent border-elevate/30 relative overflow-hidden group" onClick={() => onNavigate('elevate')}>
+            <div className="absolute inset-0 bg-gradient-to-br from-elevate/30 via-elevate/15 to-elevate/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
             <CardHeader className="relative">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-elevate/20 rounded-lg">
+                <div className="p-2 bg-elevate/20 rounded-lg group-hover:bg-elevate/30 transition-colors">
                   <TrendUp size={24} weight="duotone" className="text-elevate" />
                 </div>
                 <CardTitle>ELEVATE</CardTitle>
