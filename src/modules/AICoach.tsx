@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star, ShareNetwork, Copy, Check, Envelope, Link as LinkIcon } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star, ShareNetwork, Copy, Check, Envelope, Link as LinkIcon, Trash, Warning } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
@@ -43,6 +43,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [shareLink, setShareLink] = useState('')
   const [copied, setCopied] = useState(false)
   const [emailBody, setEmailBody] = useState('')
+  const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -446,6 +447,17 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')
   }
 
+  const handleClearHistory = () => {
+    setMessages([])
+    setClearHistoryDialogOpen(false)
+    toast.success('Chat history cleared successfully')
+  }
+
+  const handleDeleteMessage = (messageId: string) => {
+    setMessages((current) => (current || []).filter((msg) => msg.id !== messageId))
+    toast.success('Message deleted')
+  }
+
   const handleSpeakMessage = (messageId: string, content: string) => {
     if (!ttsSupported) {
       toast.error('Text-to-speech is not supported in your browser.')
@@ -586,6 +598,19 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
           </div>
           
           <div className="flex items-center gap-2">
+            {messages && messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setClearHistoryDialogOpen(true)}
+                className="flex items-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                title="Clear chat history"
+              >
+                <Trash size={18} weight="bold" />
+                <span className="text-xs hidden sm:inline">Clear history</span>
+              </Button>
+            )}
+            
             {bookmarkedQuestions && bookmarkedQuestions.length > 0 && (
               <>
                 <Button
@@ -798,7 +823,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-stream-in`}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-stream-in group`}
                 >
                   {msg.role === 'assistant' && (
                     <div className="flex-shrink-0 mt-1 mr-3">
@@ -807,7 +832,14 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                       </div>
                     </div>
                   )}
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 relative">
+                    <button
+                      onClick={() => handleDeleteMessage(msg.id)}
+                      className="absolute -top-2 -right-2 p-1.5 rounded-full bg-background border border-border shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive hover:border-destructive hover:text-destructive-foreground z-10"
+                      title="Delete message"
+                    >
+                      <Trash size={14} weight="bold" />
+                    </button>
                     <div
                       className={`${
                         msg.role === 'user'
@@ -1185,6 +1217,51 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                 <p>Sharing your bookmarked questions helps create transparency and opens up meaningful conversations with your partner or coach about areas you're exploring in your relationship journey.</p>
               </div>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={clearHistoryDialogOpen} onOpenChange={setClearHistoryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+              <Warning size={24} weight="duotone" className="text-destructive" />
+              Clear Chat History
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete all chat messages? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="border-t pt-4 mt-4">
+            <div className="flex items-start gap-3 p-3 bg-destructive/5 rounded-lg border border-destructive/20">
+              <Warning size={20} weight="duotone" className="text-destructive flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">This will permanently delete:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>{messages?.length || 0} message{(messages?.length || 0) !== 1 ? 's' : ''} from your conversation history</li>
+                  <li>All AI coach responses and your questions</li>
+                </ul>
+                <p className="mt-2">Your bookmarked questions will be preserved.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setClearHistoryDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleClearHistory}
+              className="gap-2"
+            >
+              <Trash size={18} weight="bold" />
+              Clear History
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
