@@ -1,4 +1,5 @@
 import { useKV } from '@github/spark/hooks'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -99,91 +100,221 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         )}
 
         <div className="grid lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-center">Your RIS Score</CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center">
-              <RISScoreRing
-                score={currentRisScore.overall}
-                delta={currentRisScore.delta}
-                animate
-              />
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ 
+              type: 'spring',
+              stiffness: 280,
+              damping: 20,
+              mass: 0.8,
+              delay: 0.1
+            }}
+            whileHover={{ 
+              scale: 1.05,
+              y: -6,
+              transition: { 
+                type: 'spring', 
+                stiffness: 400, 
+                damping: 15 
+              }
+            }}
+          >
+            <Card className="lg:col-span-1 shadow-md">
+              <CardHeader>
+                <CardTitle className="text-center">Your RIS Score</CardTitle>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                <RISScoreRing
+                  score={currentRisScore.overall}
+                  delta={currentRisScore.delta}
+                  animate
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="lg:col-span-2 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle>Pillar Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <PillarProgressBar pillar="understand" score={currentRisScore.understand} />
-              <PillarProgressBar pillar="align" score={currentRisScore.align} />
-              <PillarProgressBar pillar="elevate" score={currentRisScore.elevate} />
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ 
+              type: 'spring',
+              stiffness: 280,
+              damping: 20,
+              mass: 0.8,
+              delay: 0.2
+            }}
+            whileHover={{ 
+              scale: 1.03,
+              y: -6,
+              transition: { 
+                type: 'spring', 
+                stiffness: 400, 
+                damping: 15 
+              }
+            }}
+            className="lg:col-span-2"
+          >
+            <Card className="shadow-md h-full">
+              <CardHeader>
+                <CardTitle>Pillar Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <PillarProgressBar pillar="understand" score={currentRisScore.understand} />
+                <PillarProgressBar pillar="align" score={currentRisScore.align} />
+                <PillarProgressBar pillar="elevate" score={currentRisScore.elevate} />
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="cursor-pointer hover:shadow-lg hover:shadow-understand/20 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-understand/15 via-understand/5 to-transparent border-understand/30 relative overflow-hidden group" onClick={() => onNavigate('understand')}>
-            <div className="absolute inset-0 bg-gradient-to-br from-understand/30 via-understand/15 to-understand/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
-            <CardHeader className="relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-understand/20 rounded-lg group-hover:bg-understand/30 transition-colors">
-                  <Brain size={24} weight="duotone" className="text-understand" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ 
+              type: 'spring',
+              stiffness: 260,
+              damping: 20,
+              mass: 0.9,
+              delay: 0.3
+            }}
+            whileHover={{ 
+              scale: 1.05,
+              y: -8,
+              transition: { 
+                type: 'spring', 
+                stiffness: 350, 
+                damping: 12 
+              }
+            }}
+            whileTap={{ 
+              scale: 0.98,
+              transition: { 
+                type: 'spring', 
+                stiffness: 500, 
+                damping: 20 
+              }
+            }}
+          >
+            <Card className="cursor-pointer shadow-md border-understand/30 relative overflow-hidden group bg-gradient-to-br from-understand/15 via-understand/5 to-transparent" onClick={() => onNavigate('understand')}>
+              <div className="absolute inset-0 bg-gradient-to-br from-understand/30 via-understand/15 to-understand/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
+              <CardHeader className="relative">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-understand/20 rounded-lg group-hover:bg-understand/30 transition-colors">
+                    <Brain size={24} weight="duotone" className="text-understand" />
+                  </div>
+                  <CardTitle>UNDERSTAND</CardTitle>
                 </div>
-                <CardTitle>UNDERSTAND</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <p className="text-sm text-muted-foreground mb-4">
-                Build self-awareness through pattern recognition and emotional intelligence
-              </p>
-              <Button variant="ghost" className="w-full">
-                Explore <ArrowRight className="ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="relative">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Build self-awareness through pattern recognition and emotional intelligence
+                </p>
+                <Button variant="ghost" className="w-full">
+                  Explore <ArrowRight className="ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="cursor-pointer hover:shadow-lg hover:shadow-align/20 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-align/15 via-align/5 to-transparent border-align/30 relative overflow-hidden group" onClick={() => onNavigate('align')}>
-            <div className="absolute inset-0 bg-gradient-to-br from-align/30 via-align/15 to-align/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
-            <CardHeader className="relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-align/20 rounded-lg group-hover:bg-align/30 transition-colors">
-                  <UsersThree size={24} weight="duotone" className="text-align" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ 
+              type: 'spring',
+              stiffness: 260,
+              damping: 20,
+              mass: 0.9,
+              delay: 0.4
+            }}
+            whileHover={{ 
+              scale: 1.05,
+              y: -8,
+              transition: { 
+                type: 'spring', 
+                stiffness: 350, 
+                damping: 12 
+              }
+            }}
+            whileTap={{ 
+              scale: 0.98,
+              transition: { 
+                type: 'spring', 
+                stiffness: 500, 
+                damping: 20 
+              }
+            }}
+          >
+            <Card className="cursor-pointer shadow-md border-align/30 relative overflow-hidden group bg-gradient-to-br from-align/15 via-align/5 to-transparent" onClick={() => onNavigate('align')}>
+              <div className="absolute inset-0 bg-gradient-to-br from-align/30 via-align/15 to-align/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
+              <CardHeader className="relative">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-align/20 rounded-lg group-hover:bg-align/30 transition-colors">
+                    <UsersThree size={24} weight="duotone" className="text-align" />
+                  </div>
+                  <CardTitle>ALIGN</CardTitle>
                 </div>
-                <CardTitle>ALIGN</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <p className="text-sm text-muted-foreground mb-4">
-                Optimize communication and identify alignment gaps
-              </p>
-              <Button variant="ghost" className="w-full">
-                Explore <ArrowRight className="ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="relative">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Optimize communication and identify alignment gaps
+                </p>
+                <Button variant="ghost" className="w-full">
+                  Explore <ArrowRight className="ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="cursor-pointer hover:shadow-lg hover:shadow-elevate/20 transition-all duration-300 hover:scale-105 bg-gradient-to-br from-elevate/15 via-elevate/5 to-transparent border-elevate/30 relative overflow-hidden group" onClick={() => onNavigate('elevate')}>
-            <div className="absolute inset-0 bg-gradient-to-br from-elevate/30 via-elevate/15 to-elevate/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
-            <CardHeader className="relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-elevate/20 rounded-lg group-hover:bg-elevate/30 transition-colors">
-                  <TrendUp size={24} weight="duotone" className="text-elevate" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ 
+              type: 'spring',
+              stiffness: 260,
+              damping: 20,
+              mass: 0.9,
+              delay: 0.5
+            }}
+            whileHover={{ 
+              scale: 1.05,
+              y: -8,
+              transition: { 
+                type: 'spring', 
+                stiffness: 350, 
+                damping: 12 
+              }
+            }}
+            whileTap={{ 
+              scale: 0.98,
+              transition: { 
+                type: 'spring', 
+                stiffness: 500, 
+                damping: 20 
+              }
+            }}
+          >
+            <Card className="cursor-pointer shadow-md border-elevate/30 relative overflow-hidden group bg-gradient-to-br from-elevate/15 via-elevate/5 to-transparent" onClick={() => onNavigate('elevate')}>
+              <div className="absolute inset-0 bg-gradient-to-br from-elevate/30 via-elevate/15 to-elevate/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
+              <CardHeader className="relative">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-elevate/20 rounded-lg group-hover:bg-elevate/30 transition-colors">
+                    <TrendUp size={24} weight="duotone" className="text-elevate" />
+                  </div>
+                  <CardTitle>ELEVATE</CardTitle>
                 </div>
-                <CardTitle>ELEVATE</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <p className="text-sm text-muted-foreground mb-4">
-                Apply insights through protocols and track progress
-              </p>
-              <Button variant="ghost" className="w-full">
-                Explore <ArrowRight className="ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="relative">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Apply insights through protocols and track progress
+                </p>
+                <Button variant="ghost" className="w-full">
+                  Explore <ArrowRight className="ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {currentInsights.length > 0 && (
@@ -204,25 +335,46 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </div>
         )}
 
-        <Card className="bg-gradient-to-br from-accent/10 to-secondary/10 border-accent/20 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-          <CardContent className="p-8 text-center">
-            <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-              Complete Your Weekly Check-In
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Regular reflection drives progress. Update your RIS and unlock new insights.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button onClick={() => onNavigate('check-in')} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                Start Check-In
-              </Button>
-              <Button onClick={() => onNavigate('check-in-history')} size="lg" variant="outline">
-                <ChartLine className="mr-2" />
-                View History
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ 
+            type: 'spring',
+            stiffness: 260,
+            damping: 20,
+            mass: 1,
+            delay: 0.6
+          }}
+          whileHover={{ 
+            scale: 1.02,
+            y: -4,
+            transition: { 
+              type: 'spring', 
+              stiffness: 400, 
+              damping: 15 
+            }
+          }}
+        >
+          <Card className="bg-gradient-to-br from-accent/10 to-secondary/10 border-accent/20 shadow-md">
+            <CardContent className="p-8 text-center">
+              <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+                Complete Your Weekly Check-In
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Regular reflection drives progress. Update your RIS and unlock new insights.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Button onClick={() => onNavigate('check-in')} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  Start Check-In
+                </Button>
+                <Button onClick={() => onNavigate('check-in-history')} size="lg" variant="outline">
+                  <ChartLine className="mr-2" />
+                  View History
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   )

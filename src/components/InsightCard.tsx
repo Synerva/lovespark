@@ -54,13 +54,35 @@ export function InsightCard({ insight, onRead, index = 0 }: InsightCardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        delay: index * 0.1,
+        type: 'spring',
+        stiffness: 300,
+        damping: 20,
+        mass: 0.8
+      }}
+      whileHover={{ 
+        scale: 1.05,
+        transition: { 
+          type: 'spring', 
+          stiffness: 400, 
+          damping: 15 
+        }
+      }}
+      whileTap={{ 
+        scale: 0.98,
+        transition: { 
+          type: 'spring', 
+          stiffness: 500, 
+          damping: 20 
+        }
+      }}
     >
       <Card
         className={cn(
-          'cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-current/10 hover:scale-105 relative overflow-hidden group',
+          'cursor-pointer relative overflow-hidden group shadow-md',
           config.gradientBg,
           !insight.read && `ring-2 ${config.borderColor}`
         )}

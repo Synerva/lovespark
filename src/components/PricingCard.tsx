@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Check } from '@phosphor-icons/react'
@@ -26,14 +27,45 @@ export function PricingCard({
   const isFree = price === 0
 
   return (
-    <Card
-      className={cn(
-        'relative overflow-hidden transition-all duration-300 group hover:scale-105',
-        plan.isPopular
-          ? 'border-accent shadow-lg scale-105 bg-gradient-to-b from-card to-accent/5'
-          : 'border-border hover:border-accent/50 hover:shadow-md'
-      )}
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0, 
+        scale: plan.isPopular ? 1.05 : 1 
+      }}
+      transition={{ 
+        type: 'spring',
+        stiffness: 280,
+        damping: 22,
+        mass: 0.9
+      }}
+      whileHover={{ 
+        scale: plan.isPopular ? 1.08 : 1.05,
+        y: -8,
+        transition: { 
+          type: 'spring', 
+          stiffness: 350, 
+          damping: 15 
+        }
+      }}
+      whileTap={{ 
+        scale: plan.isPopular ? 1.03 : 1,
+        transition: { 
+          type: 'spring', 
+          stiffness: 500, 
+          damping: 20 
+        }
+      }}
     >
+      <Card
+        className={cn(
+          'relative overflow-hidden group',
+          plan.isPopular
+            ? 'border-accent shadow-lg bg-gradient-to-b from-card to-accent/5'
+            : 'border-border'
+        )}
+      >
       {plan.isPopular && (
         <>
           <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-secondary/15 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-shift" />
@@ -105,5 +137,6 @@ export function PricingCard({
         </div>
       </div>
     </Card>
+    </motion.div>
   )
 }
