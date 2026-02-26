@@ -17,8 +17,6 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
   const sidebarRef = useRef<HTMLElement>(null)
   const isMobile = useIsMobile()
 
-  if (isMobile) return null
-
   const navItems: { view: AppView; icon: typeof House; label: string }[] = [
     { view: 'dashboard', icon: House, label: 'Home' },
     { view: 'ai-coach', icon: ChatCircle, label: 'Coach' },
@@ -58,6 +56,8 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
     e.preventDefault()
     setIsDragging(true)
   }
+
+  if (isMobile) return null
 
   return (
     <nav
