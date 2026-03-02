@@ -213,3 +213,64 @@ export interface PaymentIntent {
   currency: string
   status: 'pending' | 'succeeded' | 'failed'
 }
+
+export interface ScoreHistory {
+  id: string
+  userId: string
+  score: number
+  understand: number
+  align: number
+  elevate: number
+  recordedAt: string
+  source: 'check-in' | 'assessment' | 'manual'
+}
+
+export interface WeeklyInsight {
+  id: string
+  userId: string
+  weekNumber: number
+  generatedAt: string
+  patternObservation: string
+  microAction: string
+  reflectionQuestion: string
+  read: boolean
+  pillarFocus: PillarType
+}
+
+export interface MicroAction {
+  id: string
+  label: string
+  description: string
+  pillar: PillarType
+  order: number
+}
+
+export interface MicroActionCompletion {
+  id: string
+  userId: string
+  microActionId: string
+  weekNumber: number
+  completedAt: string
+}
+
+export interface RecurringPattern {
+  id: string
+  userId: string
+  pattern: string
+  frequency: number
+  firstDetected: string
+  lastDetected: string
+  pillar: PillarType
+  relatedMessageIds: string[]
+  acknowledged: boolean
+}
+
+export type UserStage = 'understand' | 'align' | 'elevate'
+
+export interface ProgressSnapshot {
+  scoreEvolution: ScoreHistory[]
+  currentStage: UserStage
+  weeklyInsight: WeeklyInsight | null
+  microActionsThisWeek: MicroActionCompletion[]
+  recurringPatterns: RecurringPattern[]
+}

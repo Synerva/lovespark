@@ -1,4 +1,5 @@
 import { useKV } from '@github/spark/hooks'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,11 +7,17 @@ import { Badge } from '@/components/ui/badge'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { PillarProgressBar } from '@/components/PillarProgressBar'
 import { InsightCard } from '@/components/InsightCard'
+import { ScoreEvolution } from '@/components/ScoreEvolution'
+import { StageIndicator } from '@/components/StageIndicator'
+import { WeeklyInsightCard } from '@/components/WeeklyInsightCard'
+import { MicroActionTracker } from '@/components/MicroActionTracker'
+import { PatternAlert } from '@/components/PatternAlert'
 import { Brain, UsersThree, TrendUp, ArrowRight, ChartLine, Sparkle, ChatCircleDots } from '@phosphor-icons/react'
 import type { AppView } from '../App'
-import type { RISScore, Insight, User, Subscription } from '@/lib/types'
+import type { RISScore, Insight, User, Subscription, ScoreHistory, WeeklyInsight, RecurringPattern, AIMessage } from '@/lib/types'
 import { FeatureGateService } from '@/lib/feature-gate-service'
 import { SubscriptionService } from '@/lib/subscription-service'
+import { ProgressService } from '@/lib/progress-service'
 
 interface DashboardProps {
   onNavigate: (view: AppView) => void
@@ -28,12 +35,15 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [insights] = useKV<Insight[]>('lovespark-insights', [])
   const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
   const [weeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
+  const [scoreHistory, setScoreHistory] = useKV<ScoreHistory[]>('lovespark-score-history', [])
+  const [weeklyInsights, setWeeklyInsights] = useKV<WeeklyInsight[]>('lovespark-weekly-insights', [])
+  const [recurringPatterns, setRecurringPatterns] = useKV<RecurringPattern[]>('lovespark-recurring-patterns', [])
+  const [aiMessages] = useKV<AIMessage[]>('lovespark-ai-messages', [])
   
   const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
 
   const handleInsightRead = (id: string) => {
-    // Mark insight as read
   }
 
   const currentRisScore = risScore || {
@@ -45,6 +55,80 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   }
 
   const currentInsights = insights || []
+
+  const weekNumber = ProgressService.getCurrentWeekNumber()
+  const currentStage = ProgressService.determineUserStage(currentRisScore)
+  const stageDescription = ProgressService.getStageDescription(currentStage)
+  const growthMessage = ProgressService.getGrowthOpportunityMessage(currentRisScore, currentStage)
+
+  const currentWeekInsight = (weeklyInsights || []).find(i => i.weekNumber === weekNumber)
+  const unacknowledgedPatterns = (recurringPatterns || []).filter(p => !p.acknowledged)
+
+  const coachingSuggestion = ProgressService.shouldShowCoachingSuggestion(
+    scoreHistory || [],
+    unacknowledgedPatterns,
+    0
+  )
+
+  useEffect(() => {
+    if (!user?.id) return
+
+    if ((scoreHistory || []).length === 0 || (scoreHistory || []).every((s: ScoreHistory) => s.score !== currentRisScore.overall)) {
+      const newHistory: ScoreHistory = {
+        id: `score-${Date.now()}`,
+        userId: user.id,
+        score: currentRisScore.overall,
+        understand: currentRisScore.understand,
+        align: currentRisScore.align,
+        elevate: currentRisScore.elevate,
+        recordedAt: new Date().toISOString(),
+        source: 'manual'
+      }
+      setScoreHistory((current) => [...(current || []), newHistory])
+    }
+
+    if (!(weeklyInsights || []).some((i: WeeklyInsight) => i.weekNumber === weekNumber)) {
+      ProgressService.generateInsight(user.id, currentRisScore, aiMessages || []).then(insight => {
+        const fullInsight: WeeklyInsight = {
+          id: `insight-${weekNumber}-${Date.now()}`,
+          ...insight as WeeklyInsight
+        }
+        setWeeklyInsights((current) => [...(current || []), fullInsight])
+      })
+    }
+
+    const detectedPatterns = ProgressService.detectRecurringPatterns(aiMessages || [])
+    for (const detected of detectedPatterns) {
+      if (!(recurringPatterns || []).some((p: RecurringPattern) => p.pattern === detected.pattern)) {
+        const newPattern: RecurringPattern = {
+          id: `pattern-${Date.now()}-${detected.pattern}`,
+          userId: user.id,
+          pattern: detected.pattern,
+          frequency: detected.frequency,
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+          pillar: currentStage,
+          relatedMessageIds: detected.relatedIds,
+          acknowledged: false
+        }
+        setRecurringPatterns((current) => [...(current || []), newPattern])
+      }
+    }
+  }, [user?.id, weekNumber])
+
+  const handleMarkInsightRead = () => {
+    if (currentWeekInsight) {
+      setWeeklyInsights((current) =>
+        (current || []).map((i: WeeklyInsight) => i.id === currentWeekInsight.id ? { ...i, read: true } : i)
+      )
+    }
+  }
+
+  const handleAcknowledgePattern = (patternId: string) => {
+    setRecurringPatterns((current) =>
+      (current || []).map((p: RecurringPattern) => p.id === patternId ? { ...p, acknowledged: true } : p)
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
