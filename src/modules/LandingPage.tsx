@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
-import { Heart, Sparkle, TrendUp, ChatCircle, Brain, Medal } from '@phosphor-icons/react'
+import { Heart, Sparkle, TrendUp, ChatCircle, Brain, Medal, Target } from '@phosphor-icons/react'
 import type { AppView } from '@/App'
 
 interface LandingPageProps {
@@ -25,10 +25,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 Home
               </button>
               <button 
-                onClick={() => onNavigate('about')}
+                onClick={() => onNavigate('retake-onboarding')}
                 className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
               >
-                About
+                Profile
               </button>
               <button 
                 onClick={() => onNavigate('blog')}
@@ -37,10 +37,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 Blog
               </button>
               <button 
-                onClick={() => onNavigate('contact')}
+                onClick={() => onNavigate('coaching')}
                 className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
               >
-                Contact
+                Coaching
               </button>
             </nav>
             <div className="flex items-center gap-3">
@@ -71,13 +71,13 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <span className="text-sm font-medium text-primary">AI-Powered Relationship Intelligence</span>
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
-              Build Stronger Relationships with{' '}
+              Upgrade your{' '}
               <span className="bg-gradient-to-r from-primary via-secondary to-align bg-clip-text text-transparent">
-                Intelligence
+                relationship intelligence
               </span>
             </h1>
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              LoveSpark is your AI-first relationship operating system. Get data-driven insights, track your Relationship Intelligence Score™, and optimize your connection every day.
+              AI-powered psychological insight for ambitious individuals and couples. Start with your personalized Relationship Intelligence Profile.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button 
@@ -85,19 +85,32 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 onClick={() => onNavigate('register')}
                 className="text-base px-8 py-6 bg-gradient-to-r from-primary via-secondary to-align hover:opacity-90 transition-opacity"
               >
-                Start Your Journey
+                Get Your Relationship Intelligence Profile
                 <Sparkle className="ml-2" weight="fill" />
               </Button>
               <Button 
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate('ai-coach')}
+                onClick={() => onNavigate('login')}
                 className="text-base px-8 py-6 border-2"
               >
-                Try AI Coach
-                <ChatCircle className="ml-2" />
+                Login
               </Button>
             </div>
+            <p className="text-sm text-muted-foreground mt-6 flex items-center justify-center gap-4">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                Private
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                Secure
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                Cancel anytime
+              </span>
+            </p>
           </div>
         </div>
       </section>
@@ -226,6 +239,84 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-foreground mb-4">
+                Go Beyond AI with Expert Coaching
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                For deeper transformation, work with a relationship coach who understands your unique intelligence profile.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-primary/10 rounded-2xl" />
+                <div className="relative bg-card rounded-2xl border border-border/50 p-8 hover:shadow-lg transition-shadow">
+                  <ChatCircle size={40} weight="duotone" className="text-secondary mb-4" />
+                  <h3 className="text-xl font-semibold mb-3">Personalized Guidance</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Work 1-on-1 with expert coaches who provide tailored strategies and real-time feedback.
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                      <span>60-minute video sessions</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                      <span>Integrates with your profile</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                      <span>Structured growth programs</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-align/10 to-elevate/10 rounded-2xl" />
+                <div className="relative bg-card rounded-2xl border border-border/50 p-8 hover:shadow-lg transition-shadow">
+                  <Target size={40} weight="duotone" className="text-align mb-4" />
+                  <h3 className="text-xl font-semibold mb-3">Accelerated Growth</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Break through patterns faster with professional support and accountability.
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-align" />
+                      <span>Single sessions or packages</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-align" />
+                      <span>Email support between sessions</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-align" />
+                      <span>Progress tracking & insights</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center mt-8">
+              <Button 
+                size="lg"
+                variant="outline"
+                onClick={() => onNavigate('coaching')}
+                className="text-base px-8 py-6 border-2"
+              >
+                Learn About Coaching
+              </Button>
             </div>
           </div>
         </div>

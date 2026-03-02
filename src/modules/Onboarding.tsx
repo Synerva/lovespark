@@ -801,27 +801,88 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl w-full text-center"
+          className="max-w-2xl w-full"
         >
-          <h2 className="text-3xl font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-            Your Relationship Intelligence Score™
-          </h2>
-          <p className="text-muted-foreground mb-8">
-            Your personalized baseline for growth
-          </p>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+              Your Relationship Intelligence Score™
+            </h2>
+            <p className="text-muted-foreground">
+              Your personalized baseline for growth
+            </p>
+          </div>
           
           <div className="flex justify-center mb-8">
             <RISScoreRing score={aiInsight.intelligenceScore} />
           </div>
 
-          <p className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto">
-            This is your starting point. As you engage with assessments, check-ins, and our AI coach, your RIS will evolve to reflect your growing relationship intelligence.
-          </p>
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Your Profile Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-1">Primary Pattern</h4>
+                <p className="text-muted-foreground">{aiInsight.primaryPattern}</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold mb-1">Strength</h4>
+                <p className="text-muted-foreground">{aiInsight.strengths[0]}</p>
+              </div>
 
-          <Button onClick={() => setStep('method-map')} size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            Explore The LoveSpark Method
-            <ArrowRight className="ml-2" size={20} />
-          </Button>
+              <div>
+                <h4 className="font-semibold mb-1">Growth Edge</h4>
+                <p className="text-muted-foreground">{aiInsight.growthEdge}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative mb-6 overflow-hidden">
+            <div className="absolute inset-0 backdrop-blur-sm bg-background/80 z-10 flex items-center justify-center">
+              <div className="text-center p-6">
+                <Sparkle size={32} weight="fill" className="text-primary mx-auto mb-3" />
+                <h4 className="font-semibold mb-2">Unlock Full Profile</h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Get complete insights, pattern analysis, and personalized recommendations
+                </p>
+                <Button 
+                  onClick={() => setStep('method-map')}
+                  className="bg-gradient-to-r from-primary via-secondary to-align"
+                >
+                  Unlock Full Profile
+                </Button>
+              </div>
+            </div>
+            <CardHeader>
+              <CardTitle className="text-lg">Advanced Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="h-16 bg-muted rounded"></div>
+              <div className="h-16 bg-muted rounded"></div>
+              <div className="h-16 bg-muted rounded"></div>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => setStep('method-map')} size="lg" variant="outline">
+              Continue to Dashboard
+              <ArrowRight className="ml-2" size={20} />
+            </Button>
+            <Button 
+              onClick={() => {
+                setStep('method-map')
+              }}
+              size="lg"
+              variant="ghost"
+            >
+              Work with a Coach
+            </Button>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            This is your starting point. As you engage with assessments and check-ins, your RIS will evolve.
+          </p>
         </motion.div>
       </div>
     )

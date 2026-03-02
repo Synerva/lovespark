@@ -5,6 +5,7 @@ import { LandingPage } from './modules/LandingPage'
 import { AboutPage } from './modules/AboutPage'
 import { BlogPage } from './modules/BlogPage'
 import { ContactPage } from './modules/ContactPage'
+import { CoachingPage } from './modules/CoachingPage'
 import { Dashboard } from './modules/Dashboard'
 import { Onboarding } from './modules/Onboarding'
 import { Login } from './modules/Login'
@@ -49,6 +50,7 @@ export type AppView =
   | 'profile'
   | 'pricing'
   | 'usage-stats'
+  | 'coaching'
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('landing')
@@ -135,6 +137,8 @@ function App() {
         return <BlogPage onNavigate={setCurrentView} />
       case 'contact':
         return <ContactPage onNavigate={setCurrentView} />
+      case 'coaching':
+        return <CoachingPage onNavigate={setCurrentView} />
       case 'login':
         return <Login 
           onLoginSuccess={handleLoginSuccess} 
