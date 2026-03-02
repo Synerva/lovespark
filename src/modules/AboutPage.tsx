@@ -36,6 +36,12 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                 Blog
               </button>
               <button 
+                onClick={() => onNavigate('coaching')}
+                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Coaching
+              </button>
+              <button 
                 onClick={() => onNavigate('contact')}
                 className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
               >

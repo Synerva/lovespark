@@ -28,6 +28,12 @@ export function CoachingPage({ onNavigate }: CoachingPageProps) {
                 Home
               </button>
               <button 
+                onClick={() => onNavigate('about')}
+                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+              >
+                About
+              </button>
+              <button 
                 onClick={() => onNavigate('blog')}
                 className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
               >
@@ -38,6 +44,12 @@ export function CoachingPage({ onNavigate }: CoachingPageProps) {
                 className="text-sm font-medium text-foreground transition-colors"
               >
                 Coaching
+              </button>
+              <button 
+                onClick={() => onNavigate('contact')}
+                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Contact
               </button>
             </nav>
             <div className="flex items-center gap-3">
