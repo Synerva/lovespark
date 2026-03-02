@@ -83,8 +83,6 @@ function App() {
       } else {
         setCurrentView('dashboard')
       }
-    } else {
-      setCurrentView('login')
     }
     setIsCheckingAuth(false)
   }, [user?.id])
