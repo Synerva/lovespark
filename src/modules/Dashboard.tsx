@@ -90,8 +90,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     if (!(weeklyInsights || []).some((i: WeeklyInsight) => i.weekNumber === weekNumber)) {
       ProgressService.generateInsight(user.id, currentRisScore, aiMessages || []).then(insight => {
         const fullInsight: WeeklyInsight = {
-          id: `insight-${weekNumber}-${Date.now()}`,
-          ...insight as WeeklyInsight
+          ...insight as WeeklyInsight,
+          id: `insight-${weekNumber}-${Date.now()}`
         }
         setWeeklyInsights((current) => [...(current || []), fullInsight])
       })
@@ -251,6 +251,106 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </Card>
           </motion.div>
         </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <ScoreEvolution 
+              history={scoreHistory || []} 
+              growthMessage={growthMessage}
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <StageIndicator 
+              currentStage={currentStage} 
+              description={stageDescription}
+            />
+          </motion.div>
+        </div>
+
+        {currentWeekInsight && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <WeeklyInsightCard 
+              insight={currentWeekInsight}
+              onMarkRead={handleMarkInsightRead}
+            />
+          </motion.div>
+        )}
+
+        {user?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <MicroActionTracker 
+              userId={user.id}
+              weekNumber={weekNumber}
+            />
+          </motion.div>
+        )}
+
+        {unacknowledgedPatterns.length > 0 && (
+          <div className="space-y-4">
+            {unacknowledgedPatterns.map((pattern, index) => (
+              <motion.div
+                key={pattern.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+              >
+                <PatternAlert
+                  pattern={pattern}
+                  onAcknowledge={() => handleAcknowledgePattern(pattern.id)}
+                  onNavigate={onNavigate}
+                  aiExplanation={`This pattern appears frequently in your conversations and may be affecting your relationship dynamic. Understanding and addressing it could lead to significant growth.`}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {coachingSuggestion.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card className="bg-gradient-to-br from-accent/10 to-secondary/10 border-accent/20 shadow-md">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+                      Consider Professional Coaching
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {coachingSuggestion.reason}
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => onNavigate('coaching')} 
+                    size="lg"
+                    className="w-full md:w-auto"
+                  >
+                    Explore Coaching
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         <div className="grid md:grid-cols-3 gap-6">
           <motion.div
