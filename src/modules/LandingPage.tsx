@@ -15,7 +15,6 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <Logo />
-              <span className="text-xl font-semibold text-foreground">LoveSpark</span>
             </div>
             <nav className="hidden md:flex items-center gap-6">
               <button 
@@ -347,9 +346,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="mb-4">
                 <Logo />
-                <span className="text-lg font-semibold text-foreground">LoveSpark</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 AI-first relationship intelligence platform for high-achieving individuals and couples.
