@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { PublicHeader } from '@/components/PublicHeader'
 import { Logo } from '@/components/Logo'
 import { Sparkle, PaperPlaneTilt, EnvelopeSimple, MapPin, Phone } from '@phosphor-icons/react'
 import { toast } from 'sonner'
@@ -34,62 +35,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <button onClick={() => onNavigate('landing')} className="hover:opacity-80 transition-opacity">
-              <Logo />
-            </button>
-            <nav className="hidden md:flex items-center gap-6">
-              <button 
-                onClick={() => onNavigate('landing')}
-                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-              >
-                Home
-              </button>
-              <button 
-                onClick={() => onNavigate('about')}
-                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-              >
-                About
-              </button>
-              <button 
-                onClick={() => onNavigate('blog')}
-                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-              >
-                Blog
-              </button>
-              <button 
-                onClick={() => onNavigate('coaching')}
-                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-              >
-                Coaching
-              </button>
-              <button 
-                onClick={() => onNavigate('contact')}
-                className="text-sm font-medium text-foreground transition-colors"
-              >
-                Contact
-              </button>
-            </nav>
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                onClick={() => onNavigate('login')}
-                className="text-sm"
-              >
-                Log In
-              </Button>
-              <Button 
-                onClick={() => onNavigate('register')}
-                className="text-sm bg-gradient-to-r from-primary via-secondary to-align hover:opacity-90 transition-opacity"
-              >
-                Get Started
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PublicHeader currentView="contact" onNavigate={onNavigate} />
 
       <section className="relative overflow-hidden py-20">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-align/5" />
