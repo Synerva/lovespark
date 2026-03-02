@@ -77,7 +77,7 @@ function App() {
           email: session.email,
           avatarUrl: session.avatarUrl,
           mode: 'individual',
-          onboardingCompleted: true,
+          onboardingCompleted: false,
           createdAt: session.createdAt,
         }
         setUser(newUser)
@@ -87,14 +87,28 @@ function App() {
   }, [user?.id])
 
   const handleLoginSuccess = (authUser: AuthUser) => {
-    setCurrentView('dashboard')
+    const storedUser = localStorage.getItem('lovespark-user')
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser)
+        if (userData && userData.onboardingCompleted) {
+          setCurrentView('dashboard')
+          return
+        }
+      } catch (e) {
+      }
+    }
+    setCurrentView('onboarding')
   }
 
   const handleRegisterSuccess = (authUser: AuthUser) => {
-    setCurrentView('dashboard')
+    setCurrentView('onboarding')
   }
 
   const handleOnboardingComplete = () => {
+    if (user) {
+      setUser((currentUser) => currentUser ? { ...currentUser, onboardingCompleted: true } : null)
+    }
     setCurrentView('dashboard')
   }
 
