@@ -17,9 +17,8 @@ export function CoachingPage({ onNavigate }: CoachingPageProps) {
       <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('landing')}>
+            <div className="cursor-pointer" onClick={() => onNavigate('landing')}>
               <Logo />
-              <span className="text-xl font-semibold text-foreground">LoveSpark</span>
             </div>
             <nav className="hidden md:flex items-center gap-6">
               <button 
