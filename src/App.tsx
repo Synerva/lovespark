@@ -118,9 +118,9 @@ function App() {
   const renderView = () => {
     const isAuthenticated = authService.isAuthenticated()
 
-    const publicViews: AppView[] = ['landing', 'about', 'blog', 'contact', 'login', 'register', 'forgot-password', 'reset-password']
+    const authRequiredViews: AppView[] = ['dashboard', 'ai-coach', 'check-in', 'check-in-history', 'understand', 'align', 'elevate', 'profile', 'usage-stats', 'onboarding', 'retake-onboarding']
     
-    if (!isAuthenticated && !publicViews.includes(currentView)) {
+    if (!isAuthenticated && authRequiredViews.includes(currentView)) {
       return <LandingPage onNavigate={setCurrentView} />
     }
 
@@ -195,21 +195,24 @@ function App() {
     currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
     currentView !== 'retake-onboarding'
 
+  const isPublicPage = currentView === 'landing' || currentView === 'about' || currentView === 'blog' || currentView === 'contact'
+  const hideNavigationOnPublic = isPublicPage && !authService.isAuthenticated()
+
   return (
     <div className="min-h-screen bg-background">
-      {showNavigation && isMobile && <MobileHeader />}
-      {showNavigation && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
+      {showNavigation && !hideNavigationOnPublic && isMobile && <MobileHeader />}
+      {showNavigation && !hideNavigationOnPublic && <DesktopSidebar currentView={currentView} onNavigate={setCurrentView} />}
       <div 
         className="transition-all duration-300"
         style={{
-          paddingLeft: showNavigation && !isMobile ? `${isCollapsed ? 80 : sidebarWidth}px` : '0',
-          paddingTop: showNavigation && isMobile ? '64px' : '0',
-          paddingBottom: showNavigation && isMobile ? '80px' : '0'
+          paddingLeft: showNavigation && !hideNavigationOnPublic && !isMobile ? `${isCollapsed ? 80 : sidebarWidth}px` : '0',
+          paddingTop: showNavigation && !hideNavigationOnPublic && isMobile ? '64px' : '0',
+          paddingBottom: showNavigation && !hideNavigationOnPublic && isMobile ? '80px' : '0'
         }}
       >
         {renderView()}
       </div>
-      {showNavigation && isMobile && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
+      {showNavigation && !hideNavigationOnPublic && isMobile && <BottomNav currentView={currentView} onNavigate={setCurrentView} />}
       <Toaster />
     </div>
   )

@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
-import { House, ChatCircle, CalendarCheck, User, List, X } from '@phosphor-icons/react'
+import { House, ChatCircle, CalendarCheck, User, List, X, Info, Article, EnvelopeSimple, Sparkle } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/hooks/use-sidebar'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Logo } from './Logo'
+import { Separator } from '@/components/ui/separator'
 
 interface DesktopSidebarProps {
   currentView: AppView
@@ -23,6 +24,13 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
     { view: 'ai-coach', icon: ChatCircle, label: 'Coach' },
     { view: 'check-in', icon: CalendarCheck, label: 'Check-In' },
     { view: 'profile', icon: User, label: 'Profile' },
+  ]
+
+  const publicItems: { view: AppView; icon: typeof Sparkle; label: string }[] = [
+    { view: 'landing', icon: Sparkle, label: 'LoveSpark' },
+    { view: 'about', icon: Info, label: 'About' },
+    { view: 'blog', icon: Article, label: 'Blog' },
+    { view: 'contact', icon: EnvelopeSimple, label: 'Contact' },
   ]
 
   useEffect(() => {
@@ -105,6 +113,11 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
           'flex-1 py-6 space-y-1',
           isCollapsed ? 'px-2' : 'px-3'
         )}>
+          {!isCollapsed && (
+            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Dashboard
+            </div>
+          )}
           {navItems.map(({ view, icon: Icon, label }) => {
             const isActive = currentView === view
             return (
@@ -116,6 +129,35 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
                   isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3',
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+                title={isCollapsed ? label : undefined}
+              >
+                <Icon size={22} weight={isActive ? 'fill' : 'regular'} />
+                {!isCollapsed && <span className="font-medium">{label}</span>}
+              </button>
+            )
+          })}
+
+          {!isCollapsed && <Separator className="my-4" />}
+          {isCollapsed && <div className="h-px bg-border my-4 mx-2" />}
+
+          {!isCollapsed && (
+            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Explore
+            </div>
+          )}
+          {publicItems.map(({ view, icon: Icon, label }) => {
+            const isActive = currentView === view
+            return (
+              <button
+                key={view}
+                onClick={() => onNavigate(view)}
+                className={cn(
+                  'w-full flex items-center rounded-lg transition-all text-left',
+                  isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3',
+                  isActive
+                    ? 'bg-secondary text-secondary-foreground shadow-sm'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
                 title={isCollapsed ? label : undefined}
