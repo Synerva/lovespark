@@ -24,12 +24,6 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 Home
               </button>
               <button 
-                onClick={() => onNavigate('retake-onboarding')}
-                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-              >
-                Profile
-              </button>
-              <button 
                 onClick={() => onNavigate('blog')}
                 className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
               >
