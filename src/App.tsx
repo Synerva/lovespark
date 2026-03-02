@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster } from '@/components/ui/sonner'
+import { LandingPage } from './modules/LandingPage'
+import { AboutPage } from './modules/AboutPage'
+import { BlogPage } from './modules/BlogPage'
+import { ContactPage } from './modules/ContactPage'
 import { Dashboard } from './modules/Dashboard'
 import { Onboarding } from './modules/Onboarding'
 import { Login } from './modules/Login'
@@ -25,6 +29,10 @@ import { useIsMobile } from './hooks/use-mobile'
 import type { RISScore, User, AuthUser, Subscription } from './lib/types'
 
 export type AppView =
+  | 'landing'
+  | 'about'
+  | 'blog'
+  | 'contact'
   | 'login'
   | 'register'
   | 'forgot-password'
@@ -43,7 +51,7 @@ export type AppView =
   | 'usage-stats'
 
 function App() {
-  const [currentView, setCurrentView] = useState<AppView>('login')
+  const [currentView, setCurrentView] = useState<AppView>('landing')
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [resetToken, setResetToken] = useState<string>('')
   const [user, setUser] = useKV<User | null>('lovespark-user', null)
@@ -71,9 +79,6 @@ function App() {
           createdAt: session.createdAt,
         }
         setUser(newUser)
-        setCurrentView('dashboard')
-      } else {
-        setCurrentView('dashboard')
       }
     }
     setIsCheckingAuth(false)
@@ -110,6 +115,7 @@ function App() {
   const renderView = () => {
     const isAuthenticated = authService.isAuthenticated()
 
+    const publicViews: AppView[] = ['landing', 'about', 'blog', 'contact', 'login', 'register', 'forgot-password', 'reset-password']
     const authRequiredViews: AppView[] = ['dashboard', 'ai-coach', 'check-in', 'check-in-history', 'understand', 'align', 'elevate', 'profile', 'usage-stats', 'onboarding', 'retake-onboarding']
     
     if (!isAuthenticated && authRequiredViews.includes(currentView)) {
@@ -121,6 +127,14 @@ function App() {
     }
 
     switch (currentView) {
+      case 'landing':
+        return <LandingPage onNavigate={setCurrentView} />
+      case 'about':
+        return <AboutPage onNavigate={setCurrentView} />
+      case 'blog':
+        return <BlogPage onNavigate={setCurrentView} />
+      case 'contact':
+        return <ContactPage onNavigate={setCurrentView} />
       case 'login':
         return <Login 
           onLoginSuccess={handleLoginSuccess} 
@@ -183,6 +197,7 @@ function App() {
   }
 
   const showNavigation = authService.isAuthenticated() && 
+    currentView !== 'landing' && currentView !== 'about' && currentView !== 'blog' && currentView !== 'contact' &&
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
     currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
     currentView !== 'retake-onboarding'
