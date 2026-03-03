@@ -39,7 +39,6 @@ export function Login({ onLoginSuccess, onSwitchToRegister, onForgotPassword }: 
     setIsLoading(false)
     
     if (result.success && result.user) {
-      toast.success('Welcome back!')
       onLoginSuccess(result.user)
     } else {
       toast.error(result.error || 'Login failed')
@@ -64,7 +63,6 @@ export function Login({ onLoginSuccess, onSwitchToRegister, onForgotPassword }: 
         })
         
         if (authResult.success && authResult.user) {
-          toast.success(`Welcome back!`)
           onLoginSuccess(authResult.user)
         } else {
           toast.error(authResult.error || 'Login failed')

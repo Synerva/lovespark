@@ -94,19 +94,19 @@ function App() {
     setIsCheckingAuth(false)
   }, [user?.id])
 
-  const handleLoginSuccess = (authUser: AuthUser) => {
-    const storedUser = localStorage.getItem('lovespark-user')
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        if (userData && userData.onboardingCompleted) {
-          setCurrentView('dashboard')
-          return
-        }
-      } catch (e) {
+  const handleLoginSuccess = async (authUser: AuthUser) => {
+    try {
+      const existingUserData = await window.spark.kv.get<User>('lovespark-user')
+      
+      if (existingUserData && existingUserData.onboardingCompleted) {
+        setCurrentView('dashboard')
+        return
       }
+      
+      setCurrentView('onboarding')
+    } catch (e) {
+      setCurrentView('onboarding')
     }
-    setCurrentView('onboarding')
   }
 
   const handleRegisterSuccess = (authUser: AuthUser) => {
