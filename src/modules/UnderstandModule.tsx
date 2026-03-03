@@ -1,3 +1,4 @@
+import { useKV } from '@github/spark/hooks'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,7 +10,10 @@ import {
   MagnifyingGlass,
   Lightbulb,
   Eye,
-  HeartStraight
+  HeartStraight,
+  Clock,
+  CheckCircle,
+  Circle
 } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 
@@ -22,12 +26,6 @@ const comingSoonFeatures = [
     icon: ChartLine,
     title: 'Relationship Pattern Scan™',
     description: 'AI-powered analysis of recurring behavioral patterns in your relationship dynamics',
-    category: 'Assessment',
-  },
-  {
-    icon: Brain,
-    title: 'Emotional Intelligence Profile',
-    description: 'Comprehensive assessment of emotional awareness, regulation, and empathy capabilities',
     category: 'Assessment',
   },
   {
@@ -63,6 +61,11 @@ const comingSoonFeatures = [
 ]
 
 export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
+  const [assessmentResults] = useKV<any[]>('lovespark-assessment-results', [])
+  
+  const emotionalReactionCompleted = assessmentResults?.some((r: any) => r.assessmentType === 'emotional-reaction')
+  const communicationTimingCompleted = assessmentResults?.some((r: any) => r.assessmentType === 'communication-timing')
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto">
@@ -82,23 +85,80 @@ export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
           </div>
         </div>
 
-        <div className="mb-8">
-          <Card className="p-6 bg-gradient-to-br from-understand/10 via-understand/5 to-transparent border-understand/30">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-understand/20 rounded-lg">
-                <Lightbulb size={24} weight="duotone" className="text-understand" />
+        <div className="mb-8 space-y-4">
+          <Card 
+            className="p-6 border-understand/40 hover:shadow-lg hover:shadow-understand/20 transition-all cursor-pointer bg-gradient-to-br from-understand/10 via-background to-background group"
+            onClick={() => onNavigate('emotional-reaction-assessment')}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4 flex-1">
+                <div className="p-3 bg-understand/20 rounded-lg group-hover:bg-understand/30 transition-colors">
+                  <Brain size={28} weight="duotone" className="text-understand" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>
+                      Emotional Reaction Style Assessment
+                    </h3>
+                    {emotionalReactionCompleted ? (
+                      <CheckCircle size={20} weight="fill" className="text-success" />
+                    ) : (
+                      <Circle size={20} weight="regular" className="text-muted-foreground" />
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Discover how you respond to stress and conflict. Learn your emotional regulation patterns and get personalized insights.
+                  </p>
+                  <Badge variant="secondary" className="text-xs">
+                    8 Questions • 5 minutes
+                  </Badge>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-                  Powerful Assessment Tools Coming Soon
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  We're building comprehensive assessment tools and AI-powered pattern analysis to help you 
-                  gain deep insights into your relationship dynamics, emotional intelligence, and behavioral patterns.
-                </p>
-              </div>
+              <Button variant={emotionalReactionCompleted ? "outline" : "default"} size="sm" className="ml-4">
+                {emotionalReactionCompleted ? 'Retake' : 'Start'}
+              </Button>
             </div>
           </Card>
+
+          <Card 
+            className="p-6 border-understand/40 hover:shadow-lg hover:shadow-understand/20 transition-all cursor-pointer bg-gradient-to-br from-understand/10 via-background to-background group"
+            onClick={() => onNavigate('communication-timing-assessment')}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4 flex-1">
+                <div className="p-3 bg-understand/20 rounded-lg group-hover:bg-understand/30 transition-colors">
+                  <Clock size={28} weight="duotone" className="text-understand" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>
+                      Communication Timing Assessment
+                    </h3>
+                    {communicationTimingCompleted ? (
+                      <CheckCircle size={20} weight="fill" className="text-success" />
+                    ) : (
+                      <Circle size={20} weight="regular" className="text-muted-foreground" />
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Understand your emotional timing preferences. Learn when you're most receptive to difficult conversations.
+                  </p>
+                  <Badge variant="secondary" className="text-xs">
+                    9 Questions • 5 minutes
+                  </Badge>
+                </div>
+              </div>
+              <Button variant={communicationTimingCompleted ? "outline" : "default"} size="sm" className="ml-4">
+                {communicationTimingCompleted ? 'Retake' : 'Start'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
+            Coming Soon
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

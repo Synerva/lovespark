@@ -15,6 +15,8 @@ import { ResetPassword } from './modules/ResetPassword'
 import { AICoach } from './modules/AICoach'
 import { CheckIn } from './modules/CheckIn'
 import { UnderstandModule } from './modules/UnderstandModule'
+import { EmotionalReactionAssessment } from './modules/EmotionalReactionAssessment'
+import { CommunicationTimingAssessment } from './modules/CommunicationTimingAssessment'
 import { AlignModule } from './modules/AlignModule'
 import { ElevateModule } from './modules/ElevateModule'
 import { ProfileSettings } from './modules/ProfileSettings'
@@ -45,6 +47,8 @@ export type AppView =
   | 'check-in'
   | 'check-in-history'
   | 'understand'
+  | 'emotional-reaction-assessment'
+  | 'communication-timing-assessment'
   | 'align'
   | 'elevate'
   | 'profile'
@@ -195,6 +199,10 @@ function App() {
         return <CheckInHistory onNavigate={setCurrentView} />
       case 'understand':
         return <UnderstandModule onNavigate={setCurrentView} />
+      case 'emotional-reaction-assessment':
+        return <EmotionalReactionAssessment onNavigate={setCurrentView} />
+      case 'communication-timing-assessment':
+        return <CommunicationTimingAssessment onNavigate={setCurrentView} />
       case 'align':
         return <AlignModule onNavigate={setCurrentView} />
       case 'elevate':
@@ -218,7 +226,8 @@ function App() {
     currentView !== 'landing' && currentView !== 'about' && currentView !== 'blog' && currentView !== 'contact' &&
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
     currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
-    currentView !== 'retake-onboarding'
+    currentView !== 'retake-onboarding' && currentView !== 'emotional-reaction-assessment' && 
+    currentView !== 'communication-timing-assessment'
 
   return (
     <div className="min-h-screen bg-background">
