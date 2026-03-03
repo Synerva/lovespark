@@ -64,8 +64,9 @@ function App() {
   const [currentView, setCurrentView] = useState<AppView>('landing')
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [resetToken, setResetToken] = useState<string>('')
-  const [user, setUser] = useKV<User | null>('lovespark-user', null)
-  const [risScore] = useKV<RISScore>('lovespark-ris-score', {
+  const [currentUserId, setCurrentUserId] = useState<string>('')
+  const [user, setUser] = useState<User | null>(null)
+  const [risScore, setRisScore] = useState<RISScore>({
     overall: 0,
     understand: 0,
     align: 0,
@@ -76,29 +77,46 @@ function App() {
   const isMobile = useIsMobile()
 
   useEffect(() => {
-    const session = authService.getSession()
-    if (session) {
-      if (!user) {
-        const newUser: User = {
-          id: session.id,
-          name: session.name,
-          email: session.email,
-          avatarUrl: session.avatarUrl,
-          mode: 'individual',
-          onboardingCompleted: false,
-          createdAt: session.createdAt,
+    const loadUserData = async () => {
+      const session = authService.getSession()
+      if (session) {
+        setCurrentUserId(session.id)
+        
+        const existingUserData = await window.spark.kv.get<User>(`lovespark-user-${session.id}`)
+        
+        if (existingUserData) {
+          setUser(existingUserData)
+        } else {
+          const newUser: User = {
+            id: session.id,
+            name: session.name,
+            email: session.email,
+            avatarUrl: session.avatarUrl,
+            mode: 'individual',
+            onboardingCompleted: false,
+            createdAt: session.createdAt,
+          }
+          setUser(newUser)
+          await window.spark.kv.set(`lovespark-user-${session.id}`, newUser)
         }
-        setUser(newUser)
+        
+        const existingRisScore = await window.spark.kv.get<RISScore>(`lovespark-ris-score-${session.id}`)
+        if (existingRisScore) {
+          setRisScore(existingRisScore)
+        }
       }
+      setIsCheckingAuth(false)
     }
-    setIsCheckingAuth(false)
-  }, [user?.id])
+    
+    loadUserData()
+  }, [])
 
   const handleLoginSuccess = async (authUser: AuthUser) => {
     try {
-      const existingUserData = await window.spark.kv.get<User>('lovespark-user')
+      const existingUserData = await window.spark.kv.get<User>(`lovespark-user-${authUser.id}`)
       
       if (existingUserData && existingUserData.onboardingCompleted) {
+        setUser(existingUserData)
         setCurrentView('dashboard')
         return
       }
@@ -113,9 +131,14 @@ function App() {
     setCurrentView('onboarding')
   }
 
-  const handleOnboardingComplete = () => {
-    if (user) {
-      setUser((currentUser) => currentUser ? { ...currentUser, onboardingCompleted: true } : null)
+  const handleOnboardingComplete = async () => {
+    if (currentUserId) {
+      const updatedUser: User = {
+        ...user!,
+        onboardingCompleted: true,
+      }
+      setUser(updatedUser)
+      await window.spark.kv.set(`lovespark-user-${currentUserId}`, updatedUser)
     }
     setCurrentView('dashboard')
   }
@@ -123,6 +146,7 @@ function App() {
   const handleLogout = () => {
     authService.logout()
     setUser(null)
+    setCurrentUserId('')
     setCurrentView('login')
   }
 

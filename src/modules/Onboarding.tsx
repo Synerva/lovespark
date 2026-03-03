@@ -53,12 +53,15 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
     intelligenceScore: number
   } | null>(null)
   
-  const [, setUser] = useKV<User>('lovespark-user', null as any)
-  const [existingRisScore] = useKV<RISScore>('lovespark-ris-score', null as any)
-  const [, setRisScore] = useKV<RISScore>('lovespark-ris-score', null as any)
-  const [existingProfile] = useKV<OnboardingProfile>('lovespark-onboarding-profile', null as any)
-  const [, setOnboardingProfile] = useKV<OnboardingProfile>('lovespark-onboarding-profile', null as any)
-  const [, setAiMessages] = useKV<AIMessage[]>('lovespark-ai-messages', [])
+  const authUser = authService.getSession()
+  const userId = authUser?.id || ''
+  
+  const [, setUser] = useKV<User>(`lovespark-user-${userId}`, null as any)
+  const [existingRisScore] = useKV<RISScore>(`lovespark-ris-score-${userId}`, null as any)
+  const [, setRisScore] = useKV<RISScore>(`lovespark-ris-score-${userId}`, null as any)
+  const [existingProfile] = useKV<OnboardingProfile>(`lovespark-onboarding-profile-${userId}`, null as any)
+  const [, setOnboardingProfile] = useKV<OnboardingProfile>(`lovespark-onboarding-profile-${userId}`, null as any)
+  const [, setAiMessages] = useKV<AIMessage[]>(`lovespark-ai-messages-${userId}`, [])
 
   const steps: OnboardingStep[] = ['welcome', 'mode', 'relationship-status', 'relationship-goal', 'main-challenge', 'communication-style', 'conflict-style', 'emotional-awareness']
   const currentStepIndex = steps.indexOf(step)
