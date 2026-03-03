@@ -17,6 +17,8 @@ import { CheckIn } from './modules/CheckIn'
 import { UnderstandModule } from './modules/UnderstandModule'
 import { EmotionalReactionAssessment } from './modules/EmotionalReactionAssessment'
 import { CommunicationTimingAssessment } from './modules/CommunicationTimingAssessment'
+import { CompatibilityAssessment } from './modules/CompatibilityAssessment'
+import { CommunicationPatternsAssessment } from './modules/CommunicationPatternsAssessment'
 import { AlignModule } from './modules/AlignModule'
 import { ElevateModule } from './modules/ElevateModule'
 import { ProfileSettings } from './modules/ProfileSettings'
@@ -50,6 +52,8 @@ export type AppView =
   | 'emotional-reaction-assessment'
   | 'communication-timing-assessment'
   | 'align'
+  | 'compatibility-assessment'
+  | 'communication-patterns-assessment'
   | 'elevate'
   | 'profile'
   | 'pricing'
@@ -136,7 +140,7 @@ function App() {
     const isAuthenticated = authService.isAuthenticated()
 
     const publicViews: AppView[] = ['landing', 'about', 'blog', 'contact', 'login', 'register', 'forgot-password', 'reset-password']
-    const authRequiredViews: AppView[] = ['dashboard', 'ai-coach', 'check-in', 'check-in-history', 'understand', 'align', 'elevate', 'profile', 'usage-stats', 'onboarding', 'retake-onboarding']
+    const authRequiredViews: AppView[] = ['dashboard', 'ai-coach', 'check-in', 'check-in-history', 'understand', 'align', 'elevate', 'profile', 'usage-stats', 'onboarding', 'retake-onboarding', 'emotional-reaction-assessment', 'communication-timing-assessment', 'compatibility-assessment', 'communication-patterns-assessment']
     
     if (!isAuthenticated && authRequiredViews.includes(currentView)) {
       return <Login 
@@ -205,6 +209,10 @@ function App() {
         return <CommunicationTimingAssessment onNavigate={setCurrentView} />
       case 'align':
         return <AlignModule onNavigate={setCurrentView} />
+      case 'compatibility-assessment':
+        return <CompatibilityAssessment onNavigate={setCurrentView} />
+      case 'communication-patterns-assessment':
+        return <CommunicationPatternsAssessment onNavigate={setCurrentView} />
       case 'elevate':
         return <ElevateModule onNavigate={setCurrentView} />
       case 'profile':
@@ -227,7 +235,8 @@ function App() {
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
     currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
     currentView !== 'retake-onboarding' && currentView !== 'emotional-reaction-assessment' && 
-    currentView !== 'communication-timing-assessment'
+    currentView !== 'communication-timing-assessment' && currentView !== 'compatibility-assessment' &&
+    currentView !== 'communication-patterns-assessment'
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,3 +1,4 @@
+import { useKV } from '@github/spark/hooks'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +11,9 @@ import {
   HeartStraightBreak,
   Crosshair,
   ListChecks,
-  Lightbulb
+  Lightbulb,
+  CheckCircle,
+  Circle
 } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 
@@ -18,36 +21,43 @@ interface AlignModuleProps {
   onNavigate: (view: AppView) => void
 }
 
-const comingSoonFeatures = [
+const activeAssessments = [
   {
     icon: Scales,
-    title: 'Compatibility Intelligence Scan™',
-    description: 'Comprehensive analysis of value alignment, lifestyle compatibility, and long-term vision matching',
+    title: 'Compatibility Assessment',
+    description: 'Evaluate alignment across core values, lifestyle, intimacy, and long-term vision',
     category: 'Assessment',
+    view: 'compatibility-assessment' as AppView,
+    storageKey: 'compatibilityAssessment'
   },
+  {
+    icon: ChatsCircle,
+    title: 'Communication Patterns Assessment',
+    description: 'Analyze your communication effectiveness, listening skills, and conflict management patterns',
+    category: 'Assessment',
+    view: 'communication-patterns-assessment' as AppView,
+    storageKey: 'communicationPatternsAssessment'
+  },
+]
+
+const comingSoonFeatures = [
   {
     icon: Target,
     title: 'Alignment Score Visualization',
     description: 'Real-time tracking of relationship alignment across key dimensions with trend analysis',
-    category: 'Assessment',
-  },
-  {
-    icon: ChatsCircle,
-    title: 'Communication Analyzer',
-    description: 'AI-powered analysis of communication patterns, effectiveness, and emotional tone',
-    category: 'Communication',
+    category: 'Insights',
   },
   {
     icon: Lightbulb,
     title: 'AI Conversation Guidance',
     description: 'Real-time suggestions for navigating difficult conversations and expressing needs clearly',
-    category: 'Communication',
+    category: 'AI Tools',
   },
   {
     icon: ListChecks,
     title: 'Expectation Clarity Tools',
     description: 'Structured exercises to surface and align expectations across relationship dimensions',
-    category: 'Tools',
+    category: 'Exercises',
   },
   {
     icon: HeartStraightBreak,
@@ -59,11 +69,12 @@ const comingSoonFeatures = [
     icon: Crosshair,
     title: 'Couple Alignment Dashboard',
     description: 'Shared view for couples to track alignment progress and celebrate improvements together',
-    category: 'Tools',
+    category: 'Couples',
   },
 ]
 
 export function AlignModule({ onNavigate }: AlignModuleProps) {
+  const [assessmentResults] = useKV<Record<string, any>>('lovespark-assessment-results', {})
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto">
