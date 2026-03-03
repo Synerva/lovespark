@@ -8,7 +8,7 @@ import { authService } from '@/lib/auth-service'
 import { toast } from 'sonner'
 import type { User as UserType, Subscription } from '@/lib/types'
 import { SubscriptionService } from '@/lib/subscription-service'
-import { StripeService } from '@/lib/stripe-service'
+import { PaddleService } from '@/lib/paddle-service'
 import { EmailDigestSettings } from '@/components/EmailDigestSettings'
 import { useState } from 'react'
 
@@ -32,17 +32,15 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
   }
 
   const handleManageBilling = async () => {
-    if (!subscription?.stripeCustomerId) {
-      toast.error('No payment information found')
+    if (!subscription?.paddleSubscriptionId) {
+      toast.info('Billing management is handled through Paddle')
+      onNavigate('pricing')
       return
     }
 
     setIsLoadingPortal(true)
     try {
-      const portalSession = await StripeService.createCustomerPortalSession(
-        subscription.stripeCustomerId
-      )
-      window.location.href = portalSession.url
+      await PaddleService.updatePaymentMethod(subscription.paddleSubscriptionId)
     } catch (error) {
       toast.error('Unable to open billing portal. Please try again.')
       console.error('Portal error:', error)
@@ -164,7 +162,7 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
                   {subscription?.planName === 'FREE' ? 'Upgrade Plan' : 'Change Plan'}
                 </Button>
                 
-                {subscription?.stripeCustomerId && StripeService.isStripeConfigured() && (
+                {subscription?.paddleSubscriptionId && PaddleService.isPaddleConfigured() && (
                   <Button
                     onClick={handleManageBilling}
                     variant="outline"

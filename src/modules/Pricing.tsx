@@ -71,7 +71,7 @@ export function Pricing({ onNavigate }: PricingProps) {
         onNavigate('dashboard')
       }, 1000)
     } catch (error) {
-      if (error instanceof Error && error.message === 'REDIRECTING_TO_STRIPE') {
+      if (error instanceof Error && error.message === 'REDIRECTING_TO_PADDLE') {
         return
       }
       toast.error('Failed to process subscription. Please try again.')

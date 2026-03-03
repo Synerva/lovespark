@@ -5,7 +5,7 @@ import type {
   BillingCycle, 
   PaymentIntent 
 } from './types'
-import { StripeService } from './stripe-service'
+import { PaddleService } from './paddle-service'
 
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
@@ -107,7 +107,7 @@ export class SubscriptionService {
     planId: string,
     billingCycle: BillingCycle,
     userEmail?: string,
-    useStripe: boolean = true
+    usePaddle: boolean = true
   ): Promise<Subscription> {
     const plan = this.getPlanById(planId)
     if (!plan) {
@@ -116,21 +116,18 @@ export class SubscriptionService {
 
     const amount = this.calculatePrice(planId, billingCycle)
 
-    if (amount > 0 && useStripe && StripeService.isStripeConfigured() && userEmail) {
-      const priceId = StripeService.getPriceId(plan.name, billingCycle)
+    if (amount > 0 && usePaddle && PaddleService.isPaddleConfigured() && userEmail) {
+      const priceId = PaddleService.getPriceId(plan.name, billingCycle)
       
       if (priceId) {
-        const session = await StripeService.createCheckoutSession(
+        await PaddleService.openCheckout(
           userId,
           userEmail,
           priceId,
           plan.displayName
         )
         
-        if (session.url) {
-          await StripeService.redirectToCheckout(session.url)
-          throw new Error('REDIRECTING_TO_STRIPE')
-        }
+        throw new Error('REDIRECTING_TO_PADDLE')
       }
     } else if (amount > 0) {
       const paymentIntent = await this.createPaymentIntent(amount)

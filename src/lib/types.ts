@@ -201,10 +201,11 @@ export interface Subscription {
   startDate: string
   renewalDate: string
   createdAt: string
-  stripeCustomerId?: string
-  stripeSubscriptionId?: string
-  stripePriceId?: string
+  paddleCustomerId?: string
+  paddleSubscriptionId?: string
+  paddlePriceId?: string
   cancelAtPeriodEnd?: boolean
+  currentPeriodEnd?: string
 }
 
 export interface PaymentIntent {
