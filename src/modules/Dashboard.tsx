@@ -518,47 +518,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </div>
           </div>
         )}
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ 
-            type: 'spring',
-            stiffness: 260,
-            damping: 20,
-            mass: 1,
-            delay: 0.6
-          }}
-          whileHover={{ 
-            scale: 1.02,
-            y: -4,
-            transition: { 
-              type: 'spring', 
-              stiffness: 400, 
-              damping: 15 
-            }
-          }}
-        >
-          <Card className="bg-gradient-to-br from-accent/10 to-secondary/10 border-accent/20 shadow-md">
-            <CardContent className="p-8 text-center">
-              <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-                Complete Your Weekly Check-In
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Regular reflection drives progress. Update your RIS and unlock new insights.
-              </p>
-              <div className="flex gap-4 justify-center">
-                <Button onClick={() => onNavigate('check-in')} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  Start Check-In
-                </Button>
-                <Button onClick={() => onNavigate('check-in-history')} size="lg" variant="outline">
-                  <ChartLine className="mr-2" />
-                  View History
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
     </div>
   )
