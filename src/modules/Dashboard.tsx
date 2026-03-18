@@ -139,7 +139,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               Welcome back{user?.name ? `, ${user.name}` : ''}
             </h1>
             <p className="text-muted-foreground">
-              {user?.mode === 'couple' ? 'Couple Mode' : 'Individual Mode'}
+              Your Relationship Intelligence Dashboard
             </p>
           </div>
         </header>

@@ -9,7 +9,6 @@ import {
   Target,
   Scales,
   HeartStraightBreak,
-  Crosshair,
   ListChecks,
   Lightbulb,
   CheckCircle,
@@ -64,12 +63,6 @@ const comingSoonFeatures = [
     title: 'Conflict Resolution Patterns',
     description: 'Identify and improve conflict repair strategies based on behavioral data',
     category: 'Pattern Analysis',
-  },
-  {
-    icon: Crosshair,
-    title: 'Couple Alignment Dashboard',
-    description: 'Shared view for couples to track alignment progress and celebrate improvements together',
-    category: 'Couples',
   },
 ]
 

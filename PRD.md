@@ -1,6 +1,6 @@
 # LoveSpark: Relationship Intelligence Platform
 
-LoveSpark is an AI-first Relationship Intelligence Operating System that helps high-achieving individuals and couples UNDERSTAND, ALIGN, and ELEVATE their relationships through data-driven insights and behavioral optimization.
+LoveSpark is an AI-first Relationship Intelligence Operating System that helps high-achieving individuals UNDERSTAND, ALIGN, and ELEVATE their relationships through data-driven insights and behavioral optimization.
 
 **Experience Qualities**:
 1. **Premium & Analytical** - The platform feels like a sophisticated intelligence system, not a therapy app, with data-rich dashboards and precise metrics
@@ -8,7 +8,7 @@ LoveSpark is an AI-first Relationship Intelligence Operating System that helps h
 3. **Dynamic & Adaptive** - The interface responds to user progress, relationship status changes, and behavioral patterns with context-aware personalization
 
 **Complexity Level**: Complex Application (advanced functionality, likely with multiple views)
-This is a multi-module platform with AI integration, real-time score calculations, dynamic user flows, persistent data tracking, assessment systems, and both individual and couple modes requiring sophisticated state management and routing.
+This is a multi-module platform with AI integration, real-time score calculations, dynamic user flows, persistent data tracking, assessment systems, and individual mode requiring sophisticated state management and routing.
 
 ## Essential Features
 
@@ -16,7 +16,7 @@ This is a multi-module platform with AI integration, real-time score calculation
 - **Functionality**: Multi-step intake capturing attachment style, communication patterns, relationship history, and generating initial RIS baseline
 - **Purpose**: Establishes user profile foundation and creates first psychological snapshot for AI personalization
 - **Trigger**: First app launch or account creation
-- **Progression**: Welcome screen → Mode selection (Individual/Couple) → Attachment assessment → Communication tendencies → Relationship history → AI processing → RIS reveal with animated score ring → Dashboard entry
+- **Progression**: Welcome screen → Attachment assessment → Communication tendencies → Relationship history → AI processing → RIS reveal with animated score ring → Dashboard entry
 - **Success criteria**: User completes all intake steps, receives RIS score 0-100, sees personalized first insight, and lands on dashboard
 
 ### RIS Score System
@@ -55,11 +55,11 @@ This is a multi-module platform with AI integration, real-time score calculation
 - **Success criteria**: User completes at least one assessment, sees visual profile, receives 3+ insights, understand pillar score increases
 
 ### ALIGN Module
-- **Functionality**: Compatibility Intelligence tools, Communication Analyzer, Couple Alignment Dashboard, Expectation Clarity exercises
-- **Purpose**: Surfaces misalignments and provides communication optimization for couples or self-reflection for individuals
+- **Functionality**: Communication Analyzer, Expectation Clarity exercises, Self-Reflection tools
+- **Purpose**: Surfaces communication patterns and provides self-reflection for individuals to improve alignment with current or future partners
 - **Trigger**: Dashboard access or after completing UNDERSTAND assessments
-- **Progression**: Tool selection → Input communication patterns or couple responses → AI comparative analysis → Alignment score visualization → Guided conversation prompts → Practice exercises
-- **Success criteria**: Identifies 2+ alignment gaps, provides actionable communication scripts, improves align pillar score
+- **Progression**: Tool selection → Input communication patterns or self-responses → AI analysis → Insight visualization → Guided reflection prompts → Practice exercises
+- **Success criteria**: Identifies 2+ communication patterns, provides actionable insights, improves align pillar score
 
 ### ELEVATE Module
 - **Functionality**: Weekly Optimization Briefs, Growth Protocols (habit tracks), Progress Charts
@@ -68,19 +68,11 @@ This is a multi-module platform with AI integration, real-time score calculation
 - **Progression**: Brief review → Protocol selection → Daily habit tracking → Streak visualization → Milestone celebrations
 - **Success criteria**: User maintains 3+ day streak, completes one protocol, sees elevate score increase, feels momentum
 
-### Couple Mode
-- **Functionality**: Partner invitation system, shared Alignment Score, synchronized check-ins, couple-specific insights
-- **Purpose**: Enables both partners to contribute data for richer AI analysis and relationship-level metrics
-- **Trigger**: Mode toggle in onboarding or settings
-- **Progression**: Invite sent → Partner accepts → Profiles link → Shared dashboard unlocks → Both complete check-ins → Couple-level RIS + Alignment Score generated → Shared insights
-- **Success criteria**: Partner successfully links, both see shared metrics, couple insights differ from individual insights
-
 ## Edge Case Handling
 
 - **Incomplete Assessments** - Save progress automatically, allow resume from any step, show completion % on dashboard
 - **Negative Score Deltas** - Reframe as learning opportunities, provide context (e.g., "Heightened awareness often reveals growth areas"), suggest targeted protocols
 - **Stale Data** - Send gentle reminders after 10 days of inactivity, show "Data freshness affects RIS accuracy" message, maintain last known score
-- **Partner Disconnection** - Gracefully handle when couple mode partner stops using app, offer "Continue as Individual" with data migration
 - **AI Response Failures** - Show "AI Coach is thinking..." with 10s timeout, fallback to pre-written guidance library, offer retry
 - **Sensitive Content Detection** - AI identifies crisis language (self-harm, abuse), immediately surfaces crisis resources + psychologist escalation
 

@@ -106,16 +106,6 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
                   </p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-muted rounded">
-                  <div className="w-2 h-2 rounded-full bg-secondary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Mode</p>
-                  <p className="font-medium capitalize">{user?.mode || 'Individual'}</p>
-                </div>
-              </div>
             </CardContent>
           </Card>
 

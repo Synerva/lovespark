@@ -1,6 +1,6 @@
-export type UserMode = 'individual' | 'couple'
+export type UserMode = 'individual'
 
-export type OnboardingStep = 'welcome' | 'mode-selection' | 'attachment' | 'communication' | 'history' | 'processing' | 'reveal'
+export type OnboardingStep = 'welcome' | 'attachment' | 'communication' | 'history' | 'processing' | 'reveal'
 
 export type PillarType = 'understand' | 'align' | 'elevate'
 
@@ -28,7 +28,6 @@ export interface User {
   email: string
   avatarUrl?: string
   mode: UserMode
-  partnerId?: string
   onboardingCompleted: boolean
   createdAt: string
 }

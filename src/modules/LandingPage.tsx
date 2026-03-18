@@ -28,7 +28,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               </span>
             </h1>
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              AI-powered psychological insight for ambitious individuals and couples. Start with your personalized Relationship Intelligence Profile.
+              AI-powered psychological insight for ambitious individuals. Start with your personalized Relationship Intelligence Profile.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button 

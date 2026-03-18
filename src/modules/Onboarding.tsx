@@ -20,7 +20,6 @@ interface OnboardingProps {
 
 type OnboardingStep = 
   | 'welcome' 
-  | 'mode' 
   | 'relationship-status' 
   | 'relationship-goal' 
   | 'main-challenge' 
@@ -33,7 +32,6 @@ type OnboardingStep =
   | 'method-map'
 
 interface OnboardingAnswers {
-  mode?: 'individual' | 'couple'
   relationshipStatus?: string
   relationshipGoal?: string
   mainChallenge?: string
@@ -63,7 +61,7 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
   const [, setOnboardingProfile] = useKV<OnboardingProfile>(`lovespark-onboarding-profile-${userId}`, null as any)
   const [, setAiMessages] = useKV<AIMessage[]>(`lovespark-ai-messages-${userId}`, [])
 
-  const steps: OnboardingStep[] = ['welcome', 'mode', 'relationship-status', 'relationship-goal', 'main-challenge', 'communication-style', 'conflict-style', 'emotional-awareness']
+  const steps: OnboardingStep[] = ['welcome', 'relationship-status', 'relationship-goal', 'main-challenge', 'communication-style', 'conflict-style', 'emotional-awareness']
   const currentStepIndex = steps.indexOf(step)
   const progress = currentStepIndex >= 0 ? (currentStepIndex / (steps.length - 1)) * 100 : 0
 
@@ -170,7 +168,7 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
       id: prev?.id || authUser?.id || `user-${Date.now()}`,
       name: prev?.name || authUser?.name || 'User',
       email: prev?.email || authUser?.email || 'user@lovespark.ai',
-      mode: answers.mode || 'individual',
+      mode: 'individual',
       onboardingCompleted: true,
       createdAt: prev?.createdAt || authUser?.createdAt || new Date().toISOString(),
     }))
@@ -217,91 +215,11 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
               </p>
             </div>
           )}
-          <Button onClick={() => setStep('mode')} size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
+          <Button onClick={() => setStep('relationship-status')} size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
             {isRetake ? 'Update Assessment' : 'Begin Assessment'}
             <ArrowRight className="ml-2" size={20} />
           </Button>
         </motion.div>
-      </div>
-    )
-  }
-
-  if (step === 'mode') {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-4xl w-full">
-          <Progress value={progress} className="mb-8" />
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl font-semibold mb-3" style={{ fontFamily: 'Sora, sans-serif' }}>
-              Choose Your Mode
-            </h2>
-            <p className="text-muted-foreground">
-              Select how you'd like to use LoveSpark
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card 
-                className={`cursor-pointer hover:shadow-lg transition-all h-full ${answers.mode === 'individual' ? 'ring-2 ring-accent' : ''}`}
-                onClick={() => {
-                  updateAnswer('mode', 'individual')
-                }}
-              >
-                <CardHeader>
-                  <Heart size={32} weight="duotone" className="text-accent mb-2" />
-                  <CardTitle>Individual Mode</CardTitle>
-                  <CardDescription>
-                    Build your relationship intelligence independently. Perfect for personal growth and preparing for future relationships.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Card 
-                className={`cursor-pointer hover:shadow-lg transition-all h-full ${answers.mode === 'couple' ? 'ring-2 ring-accent' : ''}`}
-                onClick={() => {
-                  updateAnswer('mode', 'couple')
-                }}
-              >
-                <CardHeader>
-                  <Lightning size={32} weight="duotone" className="text-secondary mb-2" />
-                  <CardTitle>Couple Mode</CardTitle>
-                  <CardDescription>
-                    Collaborate with your partner. Get couple-level insights, alignment scores, and shared growth protocols.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </motion.div>
-          </div>
-
-          {answers.mode && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-center mt-8"
-            >
-              <Button onClick={handleNext} size="lg">
-                Continue
-                <ArrowRight className="ml-2" size={20} />
-              </Button>
-            </motion.div>
-          )}
-        </div>
       </div>
     )
   }
