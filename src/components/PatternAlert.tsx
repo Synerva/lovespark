@@ -110,10 +110,10 @@ export function PatternAlert({ pattern, onAcknowledge, onNavigate, aiExplanation
             <Button
               variant="default"
               size="sm"
-              onClick={() => onNavigate('coaching')}
+              onClick={() => onNavigate('contact')}
               className="flex-1"
             >
-              Explore Coaching
+              Get Support
             </Button>
           </div>
 

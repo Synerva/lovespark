@@ -263,10 +263,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <Button 
                 size="lg"
                 variant="outline"
-                onClick={() => onNavigate('coaching')}
+                onClick={() => onNavigate('contact')}
                 className="text-base px-8 py-6 border-2"
               >
-                Learn About Coaching
+                Contact Us
               </Button>
             </div>
           </div>

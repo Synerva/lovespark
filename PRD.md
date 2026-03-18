@@ -62,10 +62,10 @@ This is a multi-module platform with AI integration, real-time score calculation
 - **Success criteria**: Identifies 2+ alignment gaps, provides actionable communication scripts, improves align pillar score
 
 ### ELEVATE Module
-- **Functionality**: Weekly Optimization Briefs, Growth Protocols (habit tracks), Progress Charts, Psychologist Session booking
-- **Purpose**: Translates insights into behavioral change through structured protocols and professional support
+- **Functionality**: Weekly Optimization Briefs, Growth Protocols (habit tracks), Progress Charts
+- **Purpose**: Translates insights into behavioral change through structured protocols
 - **Trigger**: Automated weekly brief delivery or user-initiated protocol start
-- **Progression**: Brief review → Protocol selection → Daily habit tracking → Streak visualization → Milestone celebrations → Optional session booking
+- **Progression**: Brief review → Protocol selection → Daily habit tracking → Streak visualization → Milestone celebrations
 - **Success criteria**: User maintains 3+ day streak, completes one protocol, sees elevate score increase, feels momentum
 
 ### Couple Mode

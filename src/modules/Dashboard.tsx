@@ -333,18 +333,18 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-                      Consider Professional Coaching
+                      Need Additional Support?
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {coachingSuggestion.reason}
                     </p>
                   </div>
                   <Button 
-                    onClick={() => onNavigate('coaching')} 
+                    onClick={() => onNavigate('contact')} 
                     size="lg"
                     className="w-full md:w-auto"
                   >
-                    Explore Coaching
+                    Contact Us
                   </Button>
                 </div>
               </CardContent>
