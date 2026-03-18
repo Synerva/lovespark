@@ -206,11 +206,6 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => onNavigate('blog')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Blog
-                  </button>
-                </li>
-                <li>
                   <button onClick={() => onNavigate('contact')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Contact
                   </button>

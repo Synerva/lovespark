@@ -3,7 +3,6 @@ import { useKV } from '@github/spark/hooks'
 import { Toaster } from '@/components/ui/sonner'
 import { LandingPage } from './modules/LandingPage'
 import { AboutPage } from './modules/AboutPage'
-import { BlogPage } from './modules/BlogPage'
 import { ContactPage } from './modules/ContactPage'
 import { CoachingPage } from './modules/CoachingPage'
 import { Dashboard } from './modules/Dashboard'
@@ -36,7 +35,6 @@ import type { RISScore, User, AuthUser, Subscription } from './lib/types'
 export type AppView =
   | 'landing'
   | 'about'
-  | 'blog'
   | 'contact'
   | 'login'
   | 'register'
@@ -163,7 +161,7 @@ function App() {
   const renderView = () => {
     const isAuthenticated = authService.isAuthenticated()
 
-    const publicViews: AppView[] = ['landing', 'about', 'blog', 'contact', 'login', 'register', 'forgot-password', 'reset-password']
+    const publicViews: AppView[] = ['landing', 'about', 'contact', 'login', 'register', 'forgot-password', 'reset-password']
     const authRequiredViews: AppView[] = ['dashboard', 'ai-coach', 'check-in', 'check-in-history', 'understand', 'align', 'elevate', 'profile', 'usage-stats', 'onboarding', 'retake-onboarding', 'emotional-reaction-assessment', 'communication-timing-assessment', 'compatibility-assessment', 'communication-patterns-assessment']
     
     if (!isAuthenticated && authRequiredViews.includes(currentView)) {
@@ -179,8 +177,6 @@ function App() {
         return <LandingPage onNavigate={setCurrentView} />
       case 'about':
         return <AboutPage onNavigate={setCurrentView} />
-      case 'blog':
-        return <BlogPage onNavigate={setCurrentView} />
       case 'contact':
         return <ContactPage onNavigate={setCurrentView} />
       case 'coaching':
@@ -255,7 +251,7 @@ function App() {
   }
 
   const showNavigation = authService.isAuthenticated() && 
-    currentView !== 'landing' && currentView !== 'about' && currentView !== 'blog' && currentView !== 'contact' &&
+    currentView !== 'landing' && currentView !== 'about' && currentView !== 'contact' &&
     currentView !== 'login' && currentView !== 'register' && currentView !== 'onboarding' &&
     currentView !== 'forgot-password' && currentView !== 'reset-password' && currentView !== 'pricing' &&
     currentView !== 'retake-onboarding' && currentView !== 'emotional-reaction-assessment' && 

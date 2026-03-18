@@ -17,7 +17,6 @@ export function PublicHeader({ currentView, onNavigate }: PublicHeaderProps) {
   const navItems = [
     { label: 'Home', view: 'landing' as AppView },
     { label: 'About', view: 'about' as AppView },
-    { label: 'Blog', view: 'blog' as AppView },
     { label: 'Coaching', view: 'coaching' as AppView },
     { label: 'Contact', view: 'contact' as AppView },
   ]
