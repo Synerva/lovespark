@@ -26,12 +26,12 @@ This is a multi-module platform with AI integration, real-time score calculation
 - **Progression**: Data input → AI analysis → Sub-score calculations → Weighted aggregation → Animated score update with delta pulse → Insight generation
 - **Success criteria**: Score displays prominently with smooth animation, delta shows +/- change, pillar breakdown is accessible
 
-### AI Coach Interface
+### AI Assistant Interface
 - **Functionality**: Context-aware conversational AI that knows user's RIS, active challenges, recent check-ins, and provides analytical guidance
 - **Purpose**: Offers 24/7 behavioral insights, pattern recognition, and actionable recommendations without therapeutic jargon
 - **Trigger**: User initiates chat from dashboard or any module
 - **Progression**: User message → Context injection (RIS + pillar scores + recent activity) → GPT-4o processing → Streamed analytical response → Follow-up suggestions
-- **Success criteria**: AI responds within 2s, maintains conversation context, suggests relevant exercises, can escalate to human psychologist
+- **Success criteria**: AI responds within 2s, maintains conversation context, suggests relevant exercises
 
 ### Weekly Check-In
 - **Functionality**: Structured 5-10 question reflection on relationship patterns, emotional states, and behavioral wins/challenges
@@ -169,7 +169,7 @@ Animations serve to reinforce progress, reveal insights, and provide tactile fee
 
 - **Icon Selection** (Phosphor Icons):
   - **Modules**: Brain (UNDERSTAND), UsersThree (ALIGN), TrendUp (ELEVATE)
-  - **Actions**: ChatCircle (AI Coach), CalendarCheck (Check-In), ChartLine (Progress)
+  - **Actions**: ChatCircle (AI Assistant), CalendarCheck (Check-In), ChartLine (Progress)
   - **Navigation**: House (Dashboard), Gear (Settings), User (Profile)
   - **Feedback**: CheckCircle (Success), Info (Insights), Lightning (AI Processing)
 
@@ -180,9 +180,9 @@ Animations serve to reinforce progress, reveal insights, and provide tactile fee
   - **Element Spacing**: space-y-4 (default), space-y-6 (sections)
 
 - **Mobile**: 
-  - **Bottom Tab Navigation**: Fixed bottom bar with 4 tabs (Dashboard, Coach, Check-In, Profile)
+  - **Bottom Tab Navigation**: Fixed bottom bar with 4 tabs (Dashboard, Assistant, Check-In, Profile)
   - **Collapsible Module Headers**: Sticky headers that shrink on scroll
   - **Swipeable Cards**: Assessment questions, insight cards use swipe gestures
-  - **Floating Action Button**: Quick access to AI Coach (persistent)
+  - **Floating Action Button**: Quick access to AI Assistant (persistent)
   - **Adaptive Grid**: 1 column (mobile) → 2 columns (tablet) → 3 columns (desktop) for insight cards
   - **Touch Targets**: Minimum 44px height for all interactive elements

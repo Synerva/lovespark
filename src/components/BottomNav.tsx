@@ -10,7 +10,7 @@ interface BottomNavProps {
 export function BottomNav({ currentView, onNavigate }: BottomNavProps) {
   const navItems: { view: AppView; icon: typeof House; label: string }[] = [
     { view: 'dashboard', icon: House, label: 'Home' },
-    { view: 'ai-coach', icon: ChatCircle, label: 'Coach' },
+    { view: 'ai-coach', icon: ChatCircle, label: 'Assistant' },
     { view: 'check-in', icon: CalendarCheck, label: 'Check-In' },
     { view: 'profile', icon: User, label: 'Profile' },
   ]

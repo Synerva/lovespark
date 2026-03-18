@@ -26,7 +26,7 @@ Generate insights that are:
 - Analytical and data-driven, not therapeutic
 - Specific and actionable
 - Focus on patterns and behavioral optimization
-- Appropriate tone: warm but precise, like a sophisticated coach
+- Appropriate tone: warm but precise, like a sophisticated assistant
 
 Return a JSON object with this structure:
 {
@@ -88,7 +88,7 @@ Generate insights that are:
 - Analytical and data-driven, not therapeutic
 - Specific and actionable
 - Focus on patterns and behavioral optimization
-- Appropriate tone: warm but precise, like a sophisticated coach
+- Appropriate tone: warm but precise, like a sophisticated assistant
 
 Return a JSON object with this structure:
 {
@@ -173,7 +173,7 @@ ${recentCheckIn ? 'Just completed weekly check-in' : ''}
 ${onboardingContext}
 `
 
-  const promptText = `You are an AI Relationship Intelligence Coach for LoveSpark. You help users optimize their relationship patterns through data-driven insights.
+  const promptText = `You are an AI Relationship Intelligence Assistant for LoveSpark. You help users optimize their relationship patterns through data-driven insights.
 
 Your tone is:
 - Analytical yet warm
@@ -484,7 +484,7 @@ Generate a profile that:
 - Identifies a primary relationship pattern (e.g., "Analytical Protector", "Intuitive Connector", "Structured Builder", "Adaptive Navigator")
 - Lists 3 key strengths based on their responses
 - Identifies one specific growth edge (area for development)
-- Provides an encouraging first coaching insight
+- Provides an encouraging first insight
 - Assigns an initial Relationship Intelligence Score between 55-75 (never below 55 to maintain encouragement)
 
 Use analytical, warm, non-therapeutic language. Focus on patterns and potential, not deficits.

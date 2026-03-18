@@ -20,7 +20,7 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
 
   const navItems: { view: AppView; icon: typeof House; label: string }[] = [
     { view: 'dashboard', icon: House, label: 'Home' },
-    { view: 'ai-coach', icon: ChatCircle, label: 'Coach' },
+    { view: 'ai-coach', icon: ChatCircle, label: 'Assistant' },
     { view: 'check-in', icon: CalendarCheck, label: 'Check-In' },
     { view: 'profile', icon: User, label: 'Profile' },
   ]

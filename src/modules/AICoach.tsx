@@ -434,7 +434,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     const link = `${baseUrl}?shared-questions=${encodedQuestions}`
     setShareLink(link)
     
-    const emailTemplate = `Hi,\n\nI'd like to share some relationship coaching questions with you:\n\n${bookmarkedQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n\n')}\n\nThese questions have been helpful for me in exploring my relationship patterns and growth areas. I thought they might be useful for us to discuss together.\n\nBest,\n[Your name]`
+    const emailTemplate = `Hi,\n\nI'd like to share some relationship reflection questions with you:\n\n${bookmarkedQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n\n')}\n\nThese questions have been helpful for me in exploring my relationship patterns and growth areas. I thought they might be useful for us to discuss together.\n\nBest,\n[Your name]`
     setEmailBody(emailTemplate)
     
     setShareDialogOpen(true)
@@ -463,7 +463,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   }
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent('Relationship Coaching Questions to Explore Together')
+    const subject = encodeURIComponent('Relationship Questions to Explore Together')
     const body = encodeURIComponent(emailBody)
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')
   }
@@ -844,7 +844,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-                      Welcome to AI Coach
+                      Welcome to AI Assistant
                     </h3>
                     <p className="text-muted-foreground max-w-md mx-auto">
                       Ask me anything about your relationship intelligence, communication patterns, or get personalized insights based on your RIS score of <span className="font-semibold text-primary">{risScore.overall}</span>
@@ -1206,7 +1206,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               Share Bookmarked Questions
             </DialogTitle>
             <DialogDescription>
-              Share your bookmarked coaching questions with your partner or coach to facilitate meaningful conversations.
+              Share your bookmarked questions with your partner to facilitate meaningful conversations.
             </DialogDescription>
           </DialogHeader>
 
@@ -1229,7 +1229,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
             <TabsContent value="link" className="space-y-4 mt-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Share this link with your partner or coach. They'll be able to view all your bookmarked questions.
+                  Share this link with your partner. They'll be able to view all your bookmarked questions.
                 </p>
                 <div className="flex gap-2">
                   <Input
@@ -1274,7 +1274,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
             <TabsContent value="email" className="space-y-4 mt-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Customize the email message and send it to your partner or coach.
+                  Customize the email message and send it to your partner.
                 </p>
                 <Textarea
                   value={emailBody}
@@ -1324,7 +1324,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               <Sparkle size={20} weight="duotone" className="text-accent flex-shrink-0 mt-0.5" />
               <div className="text-xs text-muted-foreground">
                 <p className="font-medium text-foreground mb-1">Why share questions?</p>
-                <p>Sharing your bookmarked questions helps create transparency and opens up meaningful conversations with your partner or coach about areas you're exploring in your relationship journey.</p>
+                <p>Sharing your bookmarked questions helps create transparency and opens up meaningful conversations with your partner about areas you're exploring in your relationship journey.</p>
               </div>
             </div>
           </div>

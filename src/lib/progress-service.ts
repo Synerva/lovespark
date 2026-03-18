@@ -83,7 +83,7 @@ export class ProgressService {
     const stage = this.determineUserStage(risScore)
     const weekNumber = this.getCurrentWeekNumber()
 
-    const prompt = spark.llmPrompt`You are a relationship intelligence coach. Generate a weekly insight for a user.
+    const prompt = spark.llmPrompt`You are a relationship intelligence assistant. Generate a weekly insight for a user.
 
 Current RIS Score: ${risScore.overall}
 - Understand: ${risScore.understand}
