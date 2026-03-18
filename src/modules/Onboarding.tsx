@@ -176,6 +176,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
     onComplete()
   }
 
+  const skipOnboarding = () => {
+    const authUser = authService.getSession()
+    
+    setUser(prev => ({
+      ...prev!,
+      id: prev?.id || authUser?.id || `user-${Date.now()}`,
+      name: prev?.name || authUser?.name || 'User',
+      email: prev?.email || authUser?.email || 'user@lovespark.ai',
+      mode: 'individual',
+      onboardingCompleted: true,
+      createdAt: prev?.createdAt || authUser?.createdAt || new Date().toISOString(),
+    }))
+    
+    onComplete()
+  }
+
   if (step === 'welcome') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6"
@@ -215,10 +231,15 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
               </p>
             </div>
           )}
-          <Button onClick={() => setStep('relationship-status')} size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            {isRetake ? 'Update Assessment' : 'Begin Assessment'}
-            <ArrowRight className="ml-2" size={20} />
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => setStep('relationship-status')} size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
+              {isRetake ? 'Update Assessment' : 'Begin Assessment'}
+              <ArrowRight className="ml-2" size={20} />
+            </Button>
+            <Button onClick={skipOnboarding} size="lg" variant="outline">
+              Skip for Now
+            </Button>
+          </div>
         </motion.div>
       </div>
     )
@@ -271,18 +292,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
                   </div>
                 </RadioGroup>
 
-                {answers.relationshipStatus && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-end mt-6"
-                  >
-                    <Button onClick={handleNext}>
-                      Continue
-                      <ArrowRight className="ml-2" size={20} />
-                    </Button>
-                  </motion.div>
-                )}
+                <div className="flex justify-between items-center mt-6">
+                  <Button onClick={skipOnboarding} variant="ghost">
+                    Skip Survey
+                  </Button>
+                  {answers.relationshipStatus && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <Button onClick={handleNext}>
+                        Continue
+                        <ArrowRight className="ml-2" size={20} />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -338,18 +363,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
                   </div>
                 </RadioGroup>
 
-                {answers.relationshipGoal && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-end mt-6"
-                  >
-                    <Button onClick={handleNext}>
-                      Continue
-                      <ArrowRight className="ml-2" size={20} />
-                    </Button>
-                  </motion.div>
-                )}
+                <div className="flex justify-between items-center mt-6">
+                  <Button onClick={skipOnboarding} variant="ghost">
+                    Skip Survey
+                  </Button>
+                  {answers.relationshipGoal && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <Button onClick={handleNext}>
+                        Continue
+                        <ArrowRight className="ml-2" size={20} />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -405,18 +434,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
                   </div>
                 </RadioGroup>
 
-                {answers.mainChallenge && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-end mt-6"
-                  >
-                    <Button onClick={handleNext}>
-                      Continue
-                      <ArrowRight className="ml-2" size={20} />
-                    </Button>
-                  </motion.div>
-                )}
+                <div className="flex justify-between items-center mt-6">
+                  <Button onClick={skipOnboarding} variant="ghost">
+                    Skip Survey
+                  </Button>
+                  {answers.mainChallenge && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <Button onClick={handleNext}>
+                        Continue
+                        <ArrowRight className="ml-2" size={20} />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -472,18 +505,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
                   </div>
                 </RadioGroup>
 
-                {answers.communicationStyle && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-end mt-6"
-                  >
-                    <Button onClick={handleNext}>
-                      Continue
-                      <ArrowRight className="ml-2" size={20} />
-                    </Button>
-                  </motion.div>
-                )}
+                <div className="flex justify-between items-center mt-6">
+                  <Button onClick={skipOnboarding} variant="ghost">
+                    Skip Survey
+                  </Button>
+                  {answers.communicationStyle && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <Button onClick={handleNext}>
+                        Continue
+                        <ArrowRight className="ml-2" size={20} />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -539,18 +576,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
                   </div>
                 </RadioGroup>
 
-                {answers.conflictStyle && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-end mt-6"
-                  >
-                    <Button onClick={handleNext}>
-                      Continue
-                      <ArrowRight className="ml-2" size={20} />
-                    </Button>
-                  </motion.div>
-                )}
+                <div className="flex justify-between items-center mt-6">
+                  <Button onClick={skipOnboarding} variant="ghost">
+                    Skip Survey
+                  </Button>
+                  {answers.conflictStyle && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <Button onClick={handleNext}>
+                        Continue
+                        <ArrowRight className="ml-2" size={20} />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -602,18 +643,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
                   </div>
                 </RadioGroup>
 
-                {answers.emotionalAwareness && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-end mt-6"
-                  >
-                    <Button onClick={handleNext}>
-                      Generate My Profile
-                      <Sparkle className="ml-2" size={20} />
-                    </Button>
-                  </motion.div>
-                )}
+                <div className="flex justify-between items-center mt-6">
+                  <Button onClick={skipOnboarding} variant="ghost">
+                    Skip Survey
+                  </Button>
+                  {answers.emotionalAwareness && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <Button onClick={handleNext}>
+                        Generate My Profile
+                        <Sparkle className="ml-2" size={20} />
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
