@@ -9,7 +9,6 @@ import { toast } from 'sonner'
 import type { User as UserType, Subscription } from '@/lib/types'
 import { SubscriptionService } from '@/lib/subscription-service'
 import { PaddleService } from '@/lib/paddle-service'
-import { EmailDigestSettings } from '@/components/EmailDigestSettings'
 import { useState } from 'react'
 
 interface ProfileSettingsProps {
@@ -200,8 +199,6 @@ export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) 
               </Button>
             </CardContent>
           </Card>
-
-          <EmailDigestSettings />
 
           <Card>
             <CardHeader>
