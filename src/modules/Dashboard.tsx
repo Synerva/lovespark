@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { PillarProgressBar } from '@/components/PillarProgressBar'
 import { InsightCard } from '@/components/InsightCard'
-import { ScoreEvolution } from '@/components/ScoreEvolution'
 import { StageIndicator } from '@/components/StageIndicator'
 import { WeeklyInsightCard } from '@/components/WeeklyInsightCard'
 import { MicroActionTracker } from '@/components/MicroActionTracker'
@@ -248,29 +247,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </motion.div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <ScoreEvolution 
-              history={scoreHistory || []} 
-              growthMessage={growthMessage}
-            />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-          >
-            <StageIndicator 
-              currentStage={currentStage} 
-              description={stageDescription}
-            />
-          </motion.div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <StageIndicator 
+            currentStage={currentStage} 
+            description={stageDescription}
+          />
+        </motion.div>
 
         {currentWeekInsight && (
           <motion.div
