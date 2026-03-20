@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { PillarProgressBar } from '@/components/PillarProgressBar'
 import { InsightCard } from '@/components/InsightCard'
-import { StageIndicator } from '@/components/StageIndicator'
+
 import { WeeklyInsightCard } from '@/components/WeeklyInsightCard'
 import { MicroActionTracker } from '@/components/MicroActionTracker'
 import { PatternAlert } from '@/components/PatternAlert'
@@ -57,8 +57,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const weekNumber = ProgressService.getCurrentWeekNumber()
   const currentStage = ProgressService.determineUserStage(currentRisScore)
-  const stageDescription = ProgressService.getStageDescription(currentStage)
-  const growthMessage = ProgressService.getGrowthOpportunityMessage(currentRisScore, currentStage)
 
   const currentWeekInsight = (weeklyInsights || []).find(i => i.weekNumber === weekNumber)
   const unacknowledgedPatterns = (recurringPatterns || []).filter(p => !p.acknowledged)
@@ -246,17 +244,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </Card>
           </motion.div>
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <StageIndicator 
-            currentStage={currentStage} 
-            description={stageDescription}
-          />
-        </motion.div>
 
         {currentWeekInsight && (
           <motion.div
