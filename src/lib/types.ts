@@ -173,7 +173,7 @@ export interface PsychologistSession {
   completed: boolean
 }
 
-export type SubscriptionPlanName = 'FREE' | 'PREMIUM' | 'PREMIUM_COACHING'
+export type SubscriptionPlanName = 'FREE' | 'PREMIUM'
 
 export type BillingCycle = 'monthly' | 'yearly'
 

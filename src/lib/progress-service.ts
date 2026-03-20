@@ -165,35 +165,6 @@ Return ONLY valid JSON in this format:
     return patterns.sort((a, b) => b.frequency - a.frequency)
   }
 
-  static shouldShowCoachingSuggestion(
-    scoreHistory: ScoreHistory[],
-    recurringPatterns: RecurringPattern[],
-    weeksSinceLastChange: number
-  ): { show: boolean; reason?: string } {
-    if (scoreHistory.length >= 3) {
-      const recent = scoreHistory.slice(-3)
-      const scoreDiffs = recent.map((s, i) => i > 0 ? s.score - recent[i - 1].score : 0)
-      const isStagnant = scoreDiffs.slice(1).every(diff => Math.abs(diff) < 2)
-      
-      if (isStagnant) {
-        return {
-          show: true,
-          reason: 'Your score has remained steady. A coaching session could help identify your next growth area.'
-        }
-      }
-    }
-
-    const highFrequencyPatterns = recurringPatterns.filter(p => p.frequency >= 5 && !p.acknowledged)
-    if (highFrequencyPatterns.length > 0) {
-      return {
-        show: true,
-        reason: `You've mentioned "${highFrequencyPatterns[0].pattern.toLowerCase()}" multiple times. A coach could help you break this pattern.`
-      }
-    }
-
-    return { show: false }
-  }
-
   static getGrowthOpportunityMessage(risScore: RISScore, stage: UserStage): string {
     const { understand, align, elevate } = risScore
     

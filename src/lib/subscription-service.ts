@@ -34,28 +34,11 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Unlimited AI coaching',
       'Deep relationship insights',
       'Advanced pattern analysis',
-      'Couple mode access',
       'Priority support',
       'All assessments unlocked',
       'Progress analytics',
     ],
     isPopular: true,
-    isActive: true,
-  },
-  {
-    id: 'plan-premium-coaching',
-    name: 'PREMIUM_COACHING',
-    displayName: 'Premium + Coaching',
-    priceMonthly: 49,
-    priceYearly: 349,
-    features: [
-      'Everything in Premium',
-      'Monthly psychologist session',
-      'Personalized growth protocols',
-      'Relationship strategy planning',
-      'Direct expert support',
-      'Partner integration guidance',
-    ],
     isActive: true,
   },
 ]
@@ -189,15 +172,6 @@ export class SubscriptionService {
     }
 
     const plan = this.getPlanById(subscription.planId)
-    return plan?.name === 'PREMIUM' || plan?.name === 'PREMIUM_COACHING' || false
-  }
-
-  static canAccessCoaching(subscription: Subscription | null): boolean {
-    if (!subscription || subscription.status !== 'active') {
-      return false
-    }
-
-    const plan = this.getPlanById(subscription.planId)
-    return plan?.name === 'PREMIUM_COACHING' || false
+    return plan?.name === 'PREMIUM' || false
   }
 }

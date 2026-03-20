@@ -7,8 +7,6 @@ export interface UsageLimits {
   weekStartDate: string
   assessmentsCompleted: number
   maxAssessments: number
-  canAccessCoupleMode: boolean
-  canAccessCoaching: boolean
   canAccessAdvancedAnalytics: boolean
 }
 
@@ -23,7 +21,6 @@ export class FeatureGateService {
     assessmentsCompleted: number
   ): UsageLimits {
     const isPremium = SubscriptionService.canAccessPremiumFeatures(subscription)
-    const hasCoaching = SubscriptionService.canAccessCoaching(subscription)
 
     return {
       aiMessagesPerWeek: isPremium ? -1 : this.FREE_AI_MESSAGES_PER_WEEK,
@@ -31,8 +28,6 @@ export class FeatureGateService {
       weekStartDate,
       assessmentsCompleted,
       maxAssessments: isPremium ? -1 : this.FREE_MAX_ASSESSMENTS,
-      canAccessCoupleMode: isPremium,
-      canAccessCoaching: hasCoaching,
       canAccessAdvancedAnalytics: isPremium,
     }
   }
@@ -57,14 +52,6 @@ export class FeatureGateService {
     if (isPremium) return true
 
     return assessmentsCompleted < this.FREE_MAX_ASSESSMENTS
-  }
-
-  static canAccessCoupleMode(subscription: Subscription | null): boolean {
-    return SubscriptionService.canAccessPremiumFeatures(subscription)
-  }
-
-  static canAccessCoaching(subscription: Subscription | null): boolean {
-    return SubscriptionService.canAccessCoaching(subscription)
   }
 
   static canAccessAdvancedAnalytics(subscription: Subscription | null): boolean {
