@@ -1,21 +1,18 @@
 import { useKV } from '@github/spark/hooks'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { PillarProgressBar } from '@/components/PillarProgressBar'
-import { InsightCard } from '@/components/InsightCard'
-
 import { WeeklyInsightCard } from '@/components/WeeklyInsightCard'
 import { MicroActionTracker } from '@/components/MicroActionTracker'
 import { PatternAlert } from '@/components/PatternAlert'
 import { Brain, UsersThree, TrendUp, ArrowRight, ChartLine, Sparkle, ChatCircleDots } from '@phosphor-icons/react'
 import type { AppView } from '../App'
-import type { RISScore, Insight, User, Subscription, ScoreHistory, WeeklyInsight, RecurringPattern, AIMessage } from '@/lib/types'
+import type { RISScore, User, Subscription, ScoreHistory, WeeklyInsight, RecurringPattern, AIMessage } from '@/lib/types'
 import { FeatureGateService } from '@/lib/feature-gate-service'
-import { SubscriptionService } from '@/lib/subscription-service'
 import { ProgressService } from '@/lib/progress-service'
 
 interface DashboardProps {
@@ -31,7 +28,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     elevate: 50,
     lastUpdated: new Date().toISOString(),
   })
-  const [insights] = useKV<Insight[]>('lovespark-insights', [])
   const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
   const [weeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
   const [scoreHistory, setScoreHistory] = useKV<ScoreHistory[]>('lovespark-score-history', [])
@@ -42,9 +38,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
 
-  const handleInsightRead = (id: string) => {
-  }
-
   const currentRisScore = risScore || {
     overall: 52,
     understand: 51,
@@ -52,8 +45,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     elevate: 50,
     lastUpdated: new Date().toISOString(),
   }
-
-  const currentInsights = insights || []
 
   const weekNumber = ProgressService.getCurrentWeekNumber()
   const currentStage = ProgressService.determineUserStage(currentRisScore)
@@ -442,23 +433,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </motion.div>
         </div>
 
-        {currentInsights.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
-              Recent Insights
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {currentInsights.slice(0, 3).map((insight, index) => (
-                <InsightCard
-                  key={insight.id}
-                  insight={insight}
-                  onRead={handleInsightRead}
-                  index={index}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   )
