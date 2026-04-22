@@ -1,16 +1,10 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/p
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, Target, Sparkle, CheckCircle, Lock } from '@phosphor-icons/react'
-import type { AppView } from '../App'
-import type { User, RISScore, Subscription } from '@/lib/types'
-
-interface GrowthMindsetAssessmentProps {
-  onNavigate: (view: AppView) => void
+import { ArrowLeft, Target, Sparkle, CheckCircle } from '@phosphor-icons/react'
   onComplete?: () => void
 }
 
