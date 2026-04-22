@@ -10,11 +10,7 @@ import type { User, RISScore, Subscription } from '@/lib/types'
 import type { AppView } from '@/App'
 
 interface GrowthMindsetAssessmentProps {
-  onNavigate: (view: AppView) => void
-  onComplete?: () => void
-}
-
-const questions = [
+  onNavigate: (view
   {
     id: 'personal-growth',
     question: 'How much do you prioritize personal growth in your life?',
@@ -34,21 +30,25 @@ const questions = [
       { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
       { value: 'proactive', label: 'Proactively and intentionally, as a lifestyle', weight: 4 },
     ]
-  },
-  {
-    id: 'feedback-response',
+  },  { value: 'sporadic', label: 'Occasionally, when I think about it', weight: 2 },
+      { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
+    id: 'feedback-response',tentionally, as a lifestyle', weight: 4 },
     question: 'How do you respond to feedback or criticism from your partner?',
-    options: [
+  },
       { value: 'defensive', label: 'I tend to get defensive and shut down', weight: 1 },
       { value: 'resistant', label: 'I listen but often resist making changes', weight: 2 },
       { value: 'receptive', label: 'I\'m usually receptive and willing to reflect', weight: 3 },
       { value: 'welcoming', label: 'I welcome feedback as an opportunity to grow', weight: 4 },
-    ]
-  },
-  {
-    id: 'challenge-view',
+      { value: 'defensive', label: 'I tend to get defensive and shut down', weight: 1 },
+      { value: 'resistant', label: 'I listen but often resist making changes', weight: 2 },
+      { value: 'receptive', label: 'I\'m usually receptive and willing to reflect', weight: 3 },
+    id: 'challenge-view',n opportunity to grow', weight: 4 },
     question: 'How do you view challenges or conflicts in your relationship?',
-    options: [
+  },
+      { value: 'threatening', label: 'As threats to the relationship', weight: 1 },
+      { value: 'frustrating', label: 'As frustrating obstacles to overcome', weight: 2 },
+      { value: 'learning', label: 'As learning opportunities, though difficult', weight: 3 },
+      { value: 'growth', label: 'As valuable growth opportunities we can face together', weight: 4 },
       { value: 'threatening', label: 'As threats to the relationship', weight: 1 },
       { value: 'frustrating', label: 'As frustrating obstacles to overcome', weight: 2 },
       { value: 'learning', label: 'As learning opportunities, though difficult', weight: 3 },
