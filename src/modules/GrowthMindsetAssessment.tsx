@@ -11,22 +11,15 @@ interface GrowthMindsetAssessmentProps {
 }
 
 const questions = [
-  {
+   
     id: 'personal-growth',
     question: 'How much do you prioritize personal growth in your life?',
     options: [
-      { value: 'minimal', label: 'I rarely think about personal growth', weight: 1 },
-      { value: 'occasional', label: 'I occasionally work on self-improvement', weight: 2 },
-      { value: 'regular', label: 'I regularly invest in personal development', weight: 3 },
-      { value: 'core-priority', label: 'Personal growth is a core priority in my life', weight: 4 },
+      { value: 'regular', label: 'I regularly invest in personal development', weight
     ]
-  },
   {
-    id: 'relationship-investment',
     question: 'How much time and energy do you actively invest in improving your relationship?',
-    options: [
-      { value: 'reactive', label: 'Only when problems arise', weight: 1 },
-      { value: 'sporadic', label: 'Occasionally, when I think about it', weight: 2 },
+     
       { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
       { value: 'reactive', label: 'Only when problems arise', weight: 1 },
       { value: 'sporadic', label: 'Occasionally, when I think about it', weight: 2 },
