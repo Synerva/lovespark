@@ -1,3 +1,4 @@
+import { useKV } from '@github/spark/hooks'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,13 +11,35 @@ import {
   Path,
   Lightning,
   UserCircleGear,
-  Lightbulb
+  Lightbulb,
+  Circle,
+  Target,
+  Heart
 } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 
 interface ElevateModuleProps {
   onNavigate: (view: AppView) => void
 }
+
+const activeAssessments = [
+  {
+    icon: Target,
+    title: 'Growth Mindset Assessment',
+    description: 'Evaluate your personal growth orientation, relationship investment patterns, and capacity for change',
+    category: 'Assessment',
+    view: 'growth-mindset-assessment' as AppView,
+    storageKey: 'growthMindsetAssessment'
+  },
+  {
+    icon: Heart,
+    title: 'Intimacy & Connection Assessment',
+    description: 'Assess emotional intimacy, physical connection, vulnerability patterns, and relationship satisfaction',
+    category: 'Assessment',
+    view: 'intimacy-connection-assessment' as AppView,
+    storageKey: 'intimacyConnectionAssessment'
+  },
+]
 
 const comingSoonFeatures = [
   {
@@ -64,6 +87,11 @@ const comingSoonFeatures = [
 ]
 
 export function ElevateModule({ onNavigate }: ElevateModuleProps) {
+  const [assessmentResults] = useKV<Record<string, any>>('lovespark-assessment-results', {})
+  
+  const growthMindsetCompleted = assessmentResults?.growthMindsetAssessment !== undefined
+  const intimacyConnectionCompleted = assessmentResults?.intimacyConnectionAssessment !== undefined
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto">
@@ -83,23 +111,56 @@ export function ElevateModule({ onNavigate }: ElevateModuleProps) {
           </div>
         </div>
 
-        <div className="mb-8">
-          <Card className="p-6 bg-gradient-to-br from-elevate/10 via-elevate/5 to-transparent border-elevate/30">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-elevate/20 rounded-lg">
-                <Lightbulb size={24} weight="duotone" className="text-elevate" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-                  Powerful Growth Tools Coming Soon
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  We're building structured growth protocols, progress tracking systems, and professional support 
-                  features to help you systematically elevate your relationship from insights to lasting change.
-                </p>
-              </div>
-            </div>
-          </Card>
+        <div className="mb-8 space-y-4">
+          {activeAssessments.map((assessment, index) => {
+            const Icon = assessment.icon
+            const isCompleted = assessment.storageKey === 'growthMindsetAssessment' 
+              ? growthMindsetCompleted 
+              : intimacyConnectionCompleted
+            
+            return (
+              <Card 
+                key={index}
+                className="p-6 border-elevate/40 hover:shadow-lg hover:shadow-elevate/20 transition-all cursor-pointer bg-gradient-to-br from-elevate/10 via-background to-background group"
+                onClick={() => onNavigate(assessment.view)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="p-3 bg-elevate/20 rounded-lg group-hover:bg-elevate/30 transition-colors">
+                      <Icon size={28} weight="duotone" className="text-elevate" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>
+                          {assessment.title}
+                        </h3>
+                        {isCompleted ? (
+                          <CheckCircle size={20} weight="fill" className="text-success" />
+                        ) : (
+                          <Circle size={20} weight="regular" className="text-muted-foreground" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {assessment.description}
+                      </p>
+                      <Badge variant="secondary" className="text-xs">
+                        {assessment.category}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Button variant={isCompleted ? "outline" : "default"} size="sm" className="ml-4">
+                    {isCompleted ? 'Retake' : 'Start'}
+                  </Button>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
+            Coming Soon
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -145,7 +206,7 @@ export function ElevateModule({ onNavigate }: ElevateModuleProps) {
         <Card className="mt-8 p-6 bg-muted/30">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-              Get Notified When ELEVATE Launches
+              Get Notified When More ELEVATE Features Launch
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               Be the first to access these growth protocols and progress tracking tools when they become available
