@@ -68,6 +68,10 @@ const comingSoonFeatures = [
 
 export function AlignModule({ onNavigate }: AlignModuleProps) {
   const [assessmentResults] = useKV<Record<string, any>>('lovespark-assessment-results', {})
+  
+  const compatibilityCompleted = assessmentResults?.compatibilityAssessment !== undefined
+  const communicationPatternsCompleted = assessmentResults?.communicationPatternsAssessment !== undefined
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto">
@@ -87,23 +91,56 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
           </div>
         </div>
 
-        <div className="mb-8">
-          <Card className="p-6 bg-gradient-to-br from-align/10 via-align/5 to-transparent border-align/30">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-align/20 rounded-lg">
-                <Lightbulb size={24} weight="duotone" className="text-align" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-                  Advanced Alignment Tools Coming Soon
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  We're developing powerful communication analysis and alignment tracking tools to help you 
-                  bridge gaps, improve understanding, and strengthen connection through data-driven insights.
-                </p>
-              </div>
-            </div>
-          </Card>
+        <div className="mb-8 space-y-4">
+          {activeAssessments.map((assessment, index) => {
+            const Icon = assessment.icon
+            const isCompleted = assessment.storageKey === 'compatibilityAssessment' 
+              ? compatibilityCompleted 
+              : communicationPatternsCompleted
+            
+            return (
+              <Card 
+                key={index}
+                className="p-6 border-align/40 hover:shadow-lg hover:shadow-align/20 transition-all cursor-pointer bg-gradient-to-br from-align/10 via-background to-background group"
+                onClick={() => onNavigate(assessment.view)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="p-3 bg-align/20 rounded-lg group-hover:bg-align/30 transition-colors">
+                      <Icon size={28} weight="duotone" className="text-align" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>
+                          {assessment.title}
+                        </h3>
+                        {isCompleted ? (
+                          <CheckCircle size={20} weight="fill" className="text-success" />
+                        ) : (
+                          <Circle size={20} weight="regular" className="text-muted-foreground" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {assessment.description}
+                      </p>
+                      <Badge variant="secondary" className="text-xs">
+                        {assessment.category}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Button variant={isCompleted ? "outline" : "default"} size="sm" className="ml-4">
+                    {isCompleted ? 'Retake' : 'Start'}
+                  </Button>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: 'Sora, sans-serif' }}>
+            Coming Soon
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -149,7 +186,7 @@ export function AlignModule({ onNavigate }: AlignModuleProps) {
         <Card className="mt-8 p-6 bg-muted/30">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
-              Get Notified When ALIGN Launches
+              Get Notified When More ALIGN Features Launch
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               Be the first to access these alignment and communication tools when they become available
