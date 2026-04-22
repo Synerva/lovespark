@@ -3,7 +3,11 @@ import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Card } from '@/components/ui/card'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, Target, Sparkle, Lock } from '@phosphor-icons/react'
 import type { User, RISScore, Subscription } from '@/lib/types'
+import type { AppView } from '@/App'
 
 interface GrowthMindsetAssessmentProps {
   onNavigate: (view: AppView) => void
@@ -11,16 +15,20 @@ interface GrowthMindsetAssessmentProps {
 }
 
 const questions = [
-   
+  {
     id: 'personal-growth',
     question: 'How much do you prioritize personal growth in your life?',
     options: [
-      { value: 'regular', label: 'I regularly invest in personal development', weight
+      { value: 'minimal', label: 'Not much, I don\'t focus on it', weight: 1 },
+      { value: 'occasional', label: 'Occasionally, when I think about it', weight: 2 },
+      { value: 'regular', label: 'I regularly invest in personal development', weight: 3 },
+      { value: 'priority', label: 'It\'s a top priority in my life', weight: 4 },
     ]
+  },
   {
+    id: 'relationship-investment',
     question: 'How much time and energy do you actively invest in improving your relationship?',
-     
-      { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
+    options: [
       { value: 'reactive', label: 'Only when problems arise', weight: 1 },
       { value: 'sporadic', label: 'Occasionally, when I think about it', weight: 2 },
       { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
