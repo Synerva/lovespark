@@ -12,6 +12,9 @@ interface GrowthMindsetAssessmentProps {
 
 const questions = [
   {
+    id: 'personal-growth',
+    question: 'How much do you prioritize personal growth in your life?',
+    options: [
       { value: 'minimal', label: 'I rarely think about personal growth', weight: 1 },
       { value: 'occasional', label: 'I occasionally work on self-improvement', weight: 2 },
       { value: 'regular', label: 'I regularly invest in personal development', weight: 3 },
