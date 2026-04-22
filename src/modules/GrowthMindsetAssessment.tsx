@@ -1,20 +1,20 @@
 import { useState } from 'react'
-import { Button } from '@/components/ui/but
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Card } from '@/components/ui/card'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Target, Sparkle, Lock } from '@phosphor-icons/react'
+import { useKV } from '@github/spark/hooks'
+import type { AppView } from '@/App'
+import type { User, Subscription, RISScore } from '@/lib/types'
 
-  onNavigate: (view: AppView) => voi
+interface GrowthMindsetAssessmentProps {
+  onNavigate: (view: AppView) => void
+  onComplete?: () => void
+}
 
 const questions = [
-    id: 'personal-development',
-    options: [
- 
-
-  },
   {
     id: 'personal-development',
     question: 'How do you approach learning about relationships and personal development?',
@@ -23,9 +23,9 @@ const questions = [
       { value: 'occasional', label: 'I\'m interested and read/listen occasionally', weight: 2 },
       { value: 'interested', label: 'I actively seek out resources and insights', weight: 3 },
       { value: 'regular', label: 'I regularly invest in personal development', weight: 4 },
-    q
+    ]
   },
-   
+  {
     id: 'relationship-investment',
     question: 'How much time and energy do you actively invest in improving your relationship?',
     options: [
@@ -33,7 +33,7 @@ const questions = [
       { value: 'reactive', label: 'Only when problems arise', weight: 2 },
       { value: 'periodic', label: 'Periodically, when I remember', weight: 3 },
       { value: 'consistent', label: 'Consistently, with regular effort', weight: 4 },
-     
+    ]
   },
   {
     id: 'feedback-response',
@@ -41,31 +41,31 @@ const questions = [
     options: [
       { value: 'defensive', label: 'I become defensive or dismissive', weight: 1 },
       { value: 'difficult', label: 'It\'s hard, but I try to listen', weight: 2 },
-  },
+      { value: 'open', label: 'I\'m open to it and reflect on the feedback', weight: 3 },
       { value: 'grateful', label: 'I\'m grateful for the insight and opportunity to grow', weight: 4 },
-    q
-  },
-   
-    id: 'challenge-view',
     ]
-    options: [
-    id: 'partner-growth',
-      { value: 'negative', label: 'As negative experiences to avoid', weight: 2 },
-      { value: 'threatened', label: 'Threatened or uncomfortable', weight: 1 },
-      { value: 'growth', label: 'As essential opportunities for growth', weight: 4 },
-     
   },
-   
+  {
+    id: 'challenge-view',
+    question: 'How do you typically view challenges or conflicts in your relationship?',
+    options: [
+      { value: 'threat', label: 'As threats to the relationship', weight: 1 },
+      { value: 'negative', label: 'As negative experiences to avoid', weight: 2 },
+      { value: 'neutral', label: 'As neutral occurrences that happen', weight: 3 },
+      { value: 'growth', label: 'As essential opportunities for growth', weight: 4 },
+    ]
+  },
+  {
     id: 'vulnerability',
     question: 'How comfortable are you with vulnerability in your relationship?',
-      { value:
+    options: [
       { value: 'closed', label: 'Very uncomfortable, I keep walls up', weight: 1 },
       { value: 'selective', label: 'Selective, only in safe moments', weight: 2 },
       { value: 'growing', label: 'Getting more comfortable with practice', weight: 3 },
       { value: 'open', label: 'I embrace vulnerability as connection', weight: 4 },
     ]
   },
-  c
+  {
     id: 'mistake-response',
     question: 'When you make a mistake in your relationship, your typical response is:',
     options: [
@@ -73,19 +73,19 @@ const questions = [
       { value: 'shame', label: 'Feel ashamed and withdraw', weight: 2 },
       { value: 'acknowledge', label: 'Acknowledge it and try to do better', weight: 3 },
       { value: 'learn', label: 'Own it fully and use it as a learning moment', weight: 4 },
-    c
+    ]
   },
-  }
+  {
     id: 'partner-growth',
     question: 'How do you feel about your partner\'s personal growth and changes?',
-    setRespons
+    options: [
       { value: 'threatened', label: 'Threatened or uncomfortable', weight: 1 },
       { value: 'uncertain', label: 'Uncertain, worried about growing apart', weight: 2 },
       { value: 'supportive', label: 'Supportive, with some concerns', weight: 3 },
       { value: 'encouraging', label: 'Enthusiastically encouraging', weight: 4 },
     ]
   },
-
+  {
     id: 'fixed-patterns',
     question: 'When you notice unhelpful patterns in your relationship, you:',
     options: [
@@ -99,7 +99,16 @@ const questions = [
 
 export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindsetAssessmentProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [responses, setResponses] = useState<Record<string, { value: string; weight: number }>>({})
   const [showResults, setShowResults] = useState(false)
+  const [result, setResult] = useState<{
+    score: number
+    category: string
+    description: string
+    insight: string
+    premiumInsight: string
+  } | null>(null)
+  
   const [user] = useKV<User>('lovespark-user', null)
   const [subscription] = useKV<Subscription>('lovespark-subscription', null)
   const [risScore, setRisScore] = useKV<RISScore>('lovespark-ris-score', {
@@ -107,16 +116,8 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
     understand: 0,
     align: 0,
     elevate: 0,
-      insight = 'Growth mindset is a learn
+    lastUpdated: new Date().toISOString()
   })
-  const [responses, setResponses] = useState<Record<string, { value: string; weight: number }>>({})
-      category,
-      insight,
-    category: string
-    description: string
-    setResult(asses
-    premiumInsight: string
-  } | null>(null)
 
   const isPremium = subscription?.tier === 'premium' || subscription?.tier === 'elite'
   const progress = ((currentQuestion + 1) / questions.length) * 100
@@ -124,18 +125,18 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
   const handleAnswer = (questionId: string, value: string, weight: number) => {
     setResponses((prev) => ({ ...prev, [questionId]: { value, weight } }))
     
-
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion((prev) => prev + 1)
-      setCur
+    } else {
       calculateResults()
-
+    }
   }
 
   const calculateResults = () => {
-            initial={{ opacity: 0, y: 20 }}
+    const totalWeight = Object.values(responses).reduce((sum, r) => sum + r.weight, 0)
     const responseCount = Object.keys(responses).length + 1
     const avgScore = totalWeight / responseCount
-            <Card className="p-8 bg-gradient-to-
+    const percentageScore = (avgScore / 4) * 100
     
     let category = ''
     let description = ''
@@ -153,7 +154,7 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
       insight = 'You\'re on a positive trajectory. Focus on one specific area where you can lean more into growth orientation.'
       premiumInsight = 'Your pattern shows strong growth orientation with some protective habits still active. Notice when you shift into "fixed" thinking - it\'s often a sign of feeling unsafe or uncertain. Creating more emotional safety in those moments will unlock your natural growth orientation.'
     } else if (percentageScore >= 45) {
-
+      category = 'Emerging Growth Mindset'
       description = 'You\'re beginning to develop a growth mindset but may still default to fixed patterns under stress or conflict.'
       insight = 'Start small: identify one area where you can experiment with a more growth-oriented approach this week.'
       premiumInsight = 'Your pattern suggests you intellectually understand growth mindset but emotionally revert to protection under pressure. This is normal. The work is building new neural pathways through repeated practice in low-stakes moments first. What would it look like to practice growth thinking in calm, safe moments?'
@@ -162,7 +163,7 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
       description = 'You may be operating primarily from a fixed mindset, which can create barriers to relationship growth and change.'
       insight = 'Growth mindset is a learnable skill. Begin by noticing one pattern you\'d like to shift and approach it with curiosity.'
       premiumInsight = 'Your pattern indicates deep-seated beliefs that change is threatening or unlikely. This often stems from past experiences where growth felt unsafe or was punished. The invitation is to start very small: can you be curious about one small thing this week? Not to change it, just to be curious about it.'
-     
+    }
 
     const assessmentResult = {
       score: Math.round(percentageScore),
@@ -179,186 +180,177 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
     const newElevateScore = Math.round((currentRisScore.elevate + percentageScore) / 2)
     const newOverall = Math.round((currentRisScore.understand + currentRisScore.align + newElevateScore) / 3)
     
-                        <div cl
+    setRisScore((current) => ({
       ...current,
+      elevate: newElevateScore,
       overall: newOverall,
-                        </div>
-                    )}
+      lastUpdated: new Date().toISOString()
     }))
   }
 
   const handleBack = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion((prev) => prev - 1)
+    }
+  }
+
+  if (showResults && result) {
+    return (
+      <div className="min-h-screen bg-background py-12 px-4">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="p-8 bg-gradient-to-br from-elevate/5 to-background">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-elevate/10 mb-4">
+                  <Target size={40} className="text-elevate" weight="duotone" />
+                </div>
+                <h1 className="text-3xl font-bold mb-2">Growth Mindset Assessment Complete</h1>
+                <Badge variant="secondary" className="text-lg px-4 py-1">
+                  Score: {result.score}/100
+                </Badge>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-semibold mb-2 text-elevate">{result.category}</h2>
+                  <p className="text-muted-foreground">{result.description}</p>
+                </div>
+
+                <div className="bg-card p-6 rounded-lg border">
+                  <div className="flex items-start gap-3">
+                    <Sparkle size={24} className="text-elevate mt-1" weight="fill" />
+                    <div>
+                      <h3 className="font-semibold mb-2">Key Insight</h3>
+                      <p className="text-sm">{result.insight}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {isPremium ? (
+                  <div className="bg-gradient-to-br from-elevate/10 to-primary/5 p-6 rounded-lg border border-elevate/20">
+                    <div className="flex items-start gap-3">
+                      <Sparkle size={24} className="text-elevate mt-1" weight="fill" />
+                      <div>
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          Premium Deep-Dive Analysis
+                          <Badge variant="secondary" className="text-xs">Premium</Badge>
+                        </h3>
+                        <p className="text-sm">{result.premiumInsight}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-muted/50 p-6 rounded-lg border border-dashed">
+                    <div className="flex items-start gap-3">
+                      <Lock size={24} className="text-muted-foreground mt-1" />
+                      <div>
+                        <h3 className="font-semibold mb-2">Unlock Premium Deep-Dive Analysis</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Get personalized insights into your growth patterns and specific recommendations for your unique situation.
+                        </p>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          onClick={() => onNavigate('pricing')}
+                        >
+                          Upgrade to Premium
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={() => onNavigate('elevate')}
+                    variant="outline"
+                    className="flex-1"
                   >
+                    Back to Elevate
                   </Button>
-     
-   
-
-                    Go to Dash
-            
+                  <Button
+                    onClick={() => onNavigate('dashboard')}
+                    className="flex-1"
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
+              </div>
             </Card>
+          </motion.div>
         </div>
-    )
-
-
-    <div className="min-h-screen bg-backgr
-        <Bu
-        </Button>
-        <Card className="p-8">
-            <div className="flex items-center justify-between mb-2">
-                Question {currentQuestion + 1} of {questions.length}
-              <span cl
-            <Progress value={progress} className="h-2" />
-
-            <motion.d
-              initial={{ opacity: 0, x: 20 }}
-              exit={
-
-                {currentQ.question}
-
-                {currentQ.options.map((option) => (
-                    key={option.value}
-                    className="w-full
-                    whil
-                    {o
-
-
-                <Button
-                  onClick={handleBack}
-                >
-                  Previous Questio
-              )}
-          </AnimatePresence>
       </div>
-
-
-
-
-
-
-
-
-
-
-
-                      <Sparkle size={18} className="text-elevate" weight="fill" />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    )
+  }
+
+  const currentQ = questions[currentQuestion]
+
+  return (
+    <div className="min-h-screen bg-background py-12 px-4">
+      <div className="max-w-3xl mx-auto">
+        <Button
+          variant="ghost"
+          onClick={() => onNavigate('elevate')}
+          className="mb-6"
+        >
+          <ArrowLeft size={20} className="mr-2" />
+          Back to Elevate
+        </Button>
+        
+        <Card className="p-8">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">
+                Question {currentQuestion + 1} of {questions.length}
+              </span>
+              <span className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentQuestion}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-semibold">
+                {currentQ.question}
+              </h2>
+
+              <div className="space-y-3">
+                {currentQ.options.map((option) => (
+                  <Button
+                    key={option.value}
+                    variant={responses[currentQ.id]?.value === option.value ? "default" : "outline"}
+                    className="w-full justify-start text-left h-auto py-4 px-6"
+                    onClick={() => handleAnswer(currentQ.id, option.value, option.weight)}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+
+              {currentQuestion > 0 && (
+                <Button
+                  variant="ghost"
+                  onClick={handleBack}
+                  className="mt-4"
+                >
+                  Previous Question
+                </Button>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </Card>
+      </div>
+    </div>
+  )
+}
