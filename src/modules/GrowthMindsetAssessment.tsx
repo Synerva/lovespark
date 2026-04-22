@@ -3,10 +3,6 @@ import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Card } from '@/components/ui/card'
-import { ArrowLeft, Target, Sparkle, Lock } from '@phosphor-icons/react'
-import { motion, AnimatePresence } from 'framer-motion'
-import type { AppView } from '@/App'
 import type { User, RISScore, Subscription } from '@/lib/types'
 
 interface GrowthMindsetAssessmentProps {
@@ -16,9 +12,6 @@ interface GrowthMindsetAssessmentProps {
 
 const questions = [
   {
-    id: 'personal-growth-commitment',
-    question: 'How committed are you to your own personal growth and development?',
-    options: [
       { value: 'minimal', label: 'I rarely think about personal growth', weight: 1 },
       { value: 'occasional', label: 'I occasionally work on self-improvement', weight: 2 },
       { value: 'regular', label: 'I regularly invest in personal development', weight: 3 },
@@ -29,6 +22,9 @@ const questions = [
     id: 'relationship-investment',
     question: 'How much time and energy do you actively invest in improving your relationship?',
     options: [
+      { value: 'reactive', label: 'Only when problems arise', weight: 1 },
+      { value: 'sporadic', label: 'Occasionally, when I think about it', weight: 2 },
+      { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
       { value: 'reactive', label: 'Only when problems arise', weight: 1 },
       { value: 'sporadic', label: 'Occasionally, when I think about it', weight: 2 },
       { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
