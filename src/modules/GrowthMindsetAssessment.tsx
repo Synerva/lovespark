@@ -15,172 +15,86 @@ interface GrowthMindsetAssessmentProps {
 }
 
 const questions = [
-  {
-    id: 'personal-growth',
-    question: 'How much do you prioritize personal growth in your life?',
-    options: [
-      { value: 'minimal', label: 'Not much, I don\'t focus on it', weight: 1 },
-      { value: 'occasional', label: 'Occasionally, when I think about it', weight: 2 },
-      { value: 'regular', label: 'I regularly invest in personal development', weight: 3 },
-      { value: 'priority', label: 'It\'s a top priority in my life', weight: 4 },
+   
+      { value: 'minimal', 
+      { value: 'regular', label: 'I regularly invest in personal developm
     ]
-  },
   {
-    id: 'relationship-investment',
-    question: 'How much time and energy do you actively invest in improving your relationship?',
-    options: [
+    question: 'How much time and energy do you actively invest in improving your relati
       { value: 'reactive', label: 'Only when problems arise', weight: 1 },
-      { value: 'sporadic', label: 'Occasionally, when I think about it', weight: 2 },
-      { value: 'consistent', label: 'Consistently, with regular effort', weight: 3 },
-      { value: 'proactive', label: 'Proactively and intentionally, as a lifestyle', weight: 4 },
+      { value: 'consistent', label: 'Consistently, with regular effort', weight: 
     ]
-  },
+  {
+   
+      { value: 'defensive', label:
+      { value: 'receptive', label: 'I\'m usually receptive and willing to reflect', weight: 3 },
+    ]
+  {
+    question: 'How do you view challenges or conflicts in your relationship?',
+      { value: 'threatening', label: 'As threats to the relationship', weight: 1 },
+      { value: 'learning', label: 'As learning opportunities, though difficult', weight: 3 },
+    ]
+    
   {
     id: 'feedback-response',
     question: 'How do you respond to feedback or criticism from your partner?',
     options: [
-      { value: 'defensive', label: 'I tend to get defensive and shut down', weight: 1 },
-      { value: 'resistant', label: 'I listen but often resist making changes', weight: 2 },
-      { value: 'receptive', label: 'I\'m usually receptive and willing to reflect', weight: 3 },
-      { value: 'welcoming', label: 'I welcome feedback as an opportunity to grow', weight: 4 },
+  {
+    question: 'How do you approach learning about relationships and personal development?',
+      { value: 'avoidant', label: 'I don\'t really engage with it', weight: 1 },
+      { value: 'interested', label: 'I\'m interested and read/listen occasionally', weight: 3 }
     ]
-  },
+    
   {
     id: 'challenge-view',
     question: 'How do you view challenges or conflicts in your relationship?',
     options: [
-      { value: 'threatening', label: 'As threats to the relationship', weight: 1 },
-      { value: 'frustrating', label: 'As frustrating obstacles to overcome', weight: 2 },
-      { value: 'learning', label: 'As learning opportunities, though difficult', weight: 3 },
-      { value: 'growth', label: 'As valuable growth opportunities we can face together', weight: 4 },
-    ]
-  },
   {
-    id: 'change-capability',
-    question: 'How capable do you feel of changing relationship patterns or behaviors?',
-    options: [
-      { value: 'stuck', label: 'I feel stuck in my patterns', weight: 1 },
-      { value: 'difficult', label: 'Change is very difficult for me', weight: 2 },
-      { value: 'capable', label: 'I believe I can change with effort', weight: 3 },
-      { value: 'confident', label: 'I\'m confident in my ability to evolve and grow', weight: 4 },
-    ]
-  },
-  {
-    id: 'learning-approach',
-    question: 'How do you approach learning about relationships and personal development?',
-    options: [
-      { value: 'avoidant', label: 'I don\'t really engage with it', weight: 1 },
-      { value: 'crisis-only', label: 'Only when there\'s a problem', weight: 2 },
-      { value: 'interested', label: 'I\'m interested and read/listen occasionally', weight: 3 },
-      { value: 'active', label: 'I actively seek out resources and apply what I learn', weight: 4 },
-    ]
-  },
-  {
-    id: 'failure-response',
-    question: 'When you make a mistake or "fail" in your relationship, how do you respond?',
-    options: [
-      { value: 'shame', label: 'I feel ashamed and avoid thinking about it', weight: 1 },
-      { value: 'blame', label: 'I tend to blame circumstances or my partner', weight: 2 },
-      { value: 'acknowledge', label: 'I acknowledge it and try to do better', weight: 3 },
-      { value: 'learn', label: 'I analyze what happened and actively learn from it', weight: 4 },
-    ]
-  },
-  {
-    id: 'vulnerability',
     question: 'How comfortable are you with vulnerability in your relationship?',
-    options: [
       { value: 'closed', label: 'Very uncomfortable, I keep walls up', weight: 1 },
-      { value: 'selective', label: 'Somewhat uncomfortable, I\'m selective about sharing', weight: 2 },
       { value: 'growing', label: 'Getting more comfortable with practice', weight: 3 },
-      { value: 'open', label: 'Comfortable being open and vulnerable', weight: 4 },
-    ]
-  },
-]
-
-export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindsetAssessmentProps) {
-  const [user] = useKV<User>('lovespark-user', null as any)
-  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
-  const [risScore, setRisScore] = useKV<RISScore>('lovespark-ris-score', {
-    overall: 52,
-    understand: 51,
+expor
+  co
+   
     align: 53,
-    elevate: 50,
     lastUpdated: new Date().toISOString(),
-  })
   
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [responses, setResponses] = useState<Record<string, { value: string; weight: number }>>({})
-  const [showResults, setShowResults] = useState(false)
+  const [responses, setResponses] = useState<Record<string, { value: strin
   const [result, setResult] = useState<{
-    category: string
     score: number
-    description: string
     insight: string
-    premiumInsight: string
-  } | null>(null)
+  } |
+  co
 
-  const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
-  const progress = ((currentQuestion + 1) / questions.length) * 100
-
-  const handleAnswer = (questionId: string, value: string, weight: number) => {
-    setResponses((prev) => ({ ...prev, [questionId]: { value, weight } }))
-    
+    setResponses((prev) => (
     if (currentQuestion < questions.length - 1) {
-      setTimeout(() => setCurrentQuestion((prev) => prev + 1), 300)
     } else {
-      calculateResults()
     }
-  }
 
-  const calculateResults = () => {
     const totalWeight = Object.values(responses).reduce((sum, r) => sum + r.weight, 0)
-    const avgScore = totalWeight / Object.keys(responses).length
     const percentageScore = (avgScore / 4) * 100
+    l
+    
 
-    let category = ''
-    let description = ''
-    let insight = ''
-    let premiumInsight = ''
-
-    if (percentageScore >= 85) {
-      category = 'Growth-Oriented Leader'
-      description = 'You demonstrate a strong growth mindset and actively invest in your personal and relational development. You view challenges as opportunities and embrace vulnerability as a path to connection.'
-      insight = 'Your commitment to growth is a powerful asset. Continue to model this mindset and invite your partner into the journey with you.'
-      premiumInsight = 'Your assessment reveals an advanced growth orientation that creates a powerful flywheel effect in your relationship. Your willingness to learn, adapt, and be vulnerable creates psychological safety that allows your partner to do the same. Research shows that when one partner consistently demonstrates growth mindset, the other partner\'s growth mindset increases by an average of 23% over 6 months. Your leadership here is transformative. To optimize: focus on making your learning process visible to your partner and creating shared growth rituals.'
-    } else if (percentageScore >= 70) {
-      category = 'Active Learner'
-      description = 'You have a solid foundation of growth mindset and are actively working on your development. You\'re open to feedback and see value in continuous improvement.'
-      insight = 'You\'re building strong growth habits. Focus on consistency and bringing your partner along on the journey.'
-      premiumInsight = 'Your pattern shows strong growth orientation with some protective barriers still in place. You\'re willing to grow, but may still experience resistance when growth feels threatening to your identity or requires deep vulnerability. The key leverage point is distinguishing between "growth as achievement" (which can become another form of performance pressure) and "growth as unfolding" (which is more sustainable and authentic). Practice self-compassion during setbacks - research shows self-compassion actually increases motivation and resilience more than self-criticism.'
-    } else if (percentageScore >= 50) {
+      category = 'Growth-Or
+      insight = 'Your commitment to growth is a powerful asset. Continue to model this minds
+    } else if 
+      description = 'You have a solid foundation of growth mindset and are actively worki
+      premiumInsight = 'Your pattern shows strong growth orientation with some protective 
       category = 'Emerging Growth Mindset'
-      description = 'You\'re beginning to develop a growth orientation, though you may still default to fixed mindset thinking in challenging moments. There\'s significant opportunity to strengthen your growth capacity.'
-      insight = 'Start small: identify one area where you can experiment with a more growth-oriented approach. Notice the results.'
-      premiumInsight = 'Your assessment indicates you\'re in transition between fixed and growth mindset patterns. You understand growth mindset intellectually but haven\'t fully internalized it emotionally yet. This is actually a powerful position - awareness is the first step. The most effective intervention at this stage is to work with your self-talk. Notice when you use fixed language ("I\'m just not good at that") and practice reframing ("I haven\'t developed that skill yet"). The word "yet" is powerful. Also, focus on process over outcome - celebrate effort and learning, not just results.'
-    } else {
-      category = 'Fixed Mindset Patterns'
-      description = 'You tend to operate from a more fixed mindset, which may limit your capacity for growth and adaptation in relationships. Building growth mindset would significantly enhance your relationship quality.'
-      insight = 'This is a powerful growth opportunity. Consider exploring what beliefs or fears may be keeping you from embracing change and vulnerability.'
-      premiumInsight = 'Your pattern suggests deeply embedded fixed mindset beliefs that likely developed as protective mechanisms. Fixed mindset isn\'t a character flaw - it\'s often a response to environments where mistakes were punished or where love and acceptance were conditional on performance. The path forward isn\'t to force yourself to change, but to understand and have compassion for these protective patterns while gently experimenting with new approaches. Recommended focus: work with a therapist or coach to explore the origins of these patterns. Also, start with low-stakes growth experiments outside the relationship context to build confidence and new neural pathways.'
+      insight = 'Start small: identify one area where you can experiment with a more growth-orien
     }
+    
+   
 
-    const scoreDelta = Math.round((avgScore - 2) * 2)
-    const currentRisScore = risScore || { understand: 51, align: 53, elevate: 50, overall: 52, lastUpdated: new Date().toISOString() }
-    const newElevateScore = Math.max(0, Math.min(100, currentRisScore.elevate + scoreDelta))
-    const newOverallScore = Math.round((currentRisScore.understand * 0.35) + (currentRisScore.align * 0.35) + (newElevateScore * 0.30))
-
+    const currentRisScore = risScore || { understand: 51, align: 53, elevate: 50,
+    const newO
     setRisScore((current) => ({
-      ...(current || currentRisScore),
       elevate: newElevateScore,
-      overall: newOverallScore,
       lastUpdated: new Date().toISOString()
-    }))
 
-    setResult({ category, score: Math.round(percentageScore), description, insight, premiumInsight })
-    setShowResults(true)
-  }
+    s
 
-  const handleBack = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion((prev) => prev - 1)
     }
