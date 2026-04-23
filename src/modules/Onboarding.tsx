@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -12,6 +11,11 @@ import type { User, RISScore, OnboardingProfile, AIMessage } from '@/lib/types'
 import { calculateRISScore } from '@/lib/ris-calculator'
 import { authService } from '@/lib/auth-service'
 import { generateOnboardingInsight } from '@/lib/ai-service'
+import { completeOnboarding as completeOnboardingInDb, saveOnboardingComposite } from '@/lib/db/onboarding'
+import { saveRelationshipIntelligenceScore, loadLatestRISScore } from '@/lib/db/assessments'
+import { getOrCreatePrimaryConversation, saveChatMessage } from '@/lib/db/ai'
+import { getOrCreateProfile } from '@/lib/db/profiles'
+import { toast } from 'sonner'
 
 interface OnboardingProps {
   onComplete: () => void
@@ -52,14 +56,7 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
   } | null>(null)
   
   const authUser = authService.getSession()
-  const userId = authUser?.id || ''
-  
-  const [, setUser] = useKV<User>(`lovespark-user-${userId}`, null as any)
-  const [existingRisScore] = useKV<RISScore>(`lovespark-ris-score-${userId}`, null as any)
-  const [, setRisScore] = useKV<RISScore>(`lovespark-ris-score-${userId}`, null as any)
-  const [existingProfile] = useKV<OnboardingProfile>(`lovespark-onboarding-profile-${userId}`, null as any)
-  const [, setOnboardingProfile] = useKV<OnboardingProfile>(`lovespark-onboarding-profile-${userId}`, null as any)
-  const [, setAiMessages] = useKV<AIMessage[]>(`lovespark-ai-messages-${userId}`, [])
+  const [existingRisScore, setExistingRisScore] = useState<RISScore | null>(null)
 
   const steps: OnboardingStep[] = ['welcome', 'relationship-status', 'relationship-goal', 'main-challenge', 'communication-style', 'conflict-style', 'emotional-awareness']
   const currentStepIndex = steps.indexOf(step)
@@ -68,6 +65,22 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
   const updateAnswer = (key: keyof OnboardingAnswers, value: string) => {
     setAnswers(prev => ({ ...prev, [key]: value }))
   }
+
+  useEffect(() => {
+    const loadExistingRis = async () => {
+      if (!authUser) {
+        return
+      }
+      try {
+        const latest = await loadLatestRISScore()
+        setExistingRisScore(latest)
+      } catch (error) {
+        console.error('Failed to load prior RIS score during onboarding:', error)
+      }
+    }
+
+    void loadExistingRis()
+  }, [authUser])
 
   const handleNext = () => {
     const currentIndex = steps.indexOf(step)
@@ -84,14 +97,45 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
     const authUser = authService.getSession()
     
     try {
-      const insight = await generateOnboardingInsight({
+      if (!authUser) {
+        throw new Error('You must be signed in to complete onboarding.')
+      }
+
+      const onboardingPayload = {
         relationshipStatus: answers.relationshipStatus || '',
         relationshipGoal: answers.relationshipGoal || '',
         mainChallenge: answers.mainChallenge || '',
         communicationStyle: answers.communicationStyle || '',
         conflictStyle: answers.conflictStyle || '',
         emotionalAwareness: answers.emotionalAwareness || '',
-      })
+      }
+
+      console.log('[Onboarding] Submit start')
+      console.log('[Onboarding] Payload mapped:', onboardingPayload)
+
+      await saveOnboardingComposite(onboardingPayload)
+      console.log('[Onboarding] onboarding_responses write success')
+
+      let insight: {
+        primaryPattern: string
+        strengths: string[]
+        growthEdge: string
+        firstInsight: string
+        intelligenceScore: number
+      }
+
+      try {
+        insight = await generateOnboardingInsight(onboardingPayload)
+      } catch (error) {
+        console.error('[Onboarding] Insight generation failed, using fallback insight:', error)
+        insight = {
+          primaryPattern: 'Intentional Builder',
+          strengths: ['Strong commitment to growth', 'Reflective self-awareness', 'Willingness to engage deeply'],
+          growthEdge: 'Translating awareness into consistent action',
+          firstInsight: 'Your engagement with this assessment shows intentionality-a core predictor of relationship success.',
+          intelligenceScore: 65,
+        }
+      }
       
       setAiInsight(insight)
       
@@ -119,8 +163,10 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
           risScore: baseScore,
         },
       }
-      
-      setAiMessages((prev) => [...(prev || []), onboardingMessage])
+      console.log('[Onboarding] Creating/loading primary conversation for onboarding insight')
+      const conversationId = await getOrCreatePrimaryConversation()
+      await saveChatMessage(conversationId, onboardingMessage)
+      console.log('[Onboarding] onboarding AI message write success')
       
       const onboardingProfile: OnboardingProfile = {
         userId: authUser?.id || `user-${Date.now()}`,
@@ -136,60 +182,73 @@ export function Onboarding({ onComplete, isRetake = false }: OnboardingProps) {
         growthEdge: insight.growthEdge,
         createdAt: new Date().toISOString(),
       }
-      
-      setOnboardingProfile(onboardingProfile)
-      setRisScore(initialScore)
+
+      await saveRelationshipIntelligenceScore(
+        onboardingPayload,
+        {
+          ...initialScore,
+          intelligenceScore: insight.intelligenceScore,
+          primaryPattern: insight.primaryPattern,
+          strengths: insight.strengths,
+          growthEdge: insight.growthEdge,
+          onboardingProfile,
+        }
+      )
+      console.log('[Onboarding] assessments write success')
+
+      await getOrCreateProfile({
+        name: authUser.name,
+        email: authUser.email,
+        avatarUrl: authUser.avatarUrl,
+      })
+
+      console.log('[Onboarding] Submit success')
       
       setTimeout(() => {
         setStep('insight')
       }, 2000)
       
     } catch (error) {
-      console.error('Error processing onboarding:', error)
-      
-      const fallbackInsight = {
-        primaryPattern: 'Intentional Builder',
-        strengths: ['Strong commitment to growth', 'Reflective self-awareness', 'Willingness to engage deeply'],
-        growthEdge: 'Translating awareness into consistent action',
-        firstInsight: 'Your engagement with this assessment shows intentionality—a core predictor of relationship success.',
-        intelligenceScore: 65,
-      }
-      
-      setAiInsight(fallbackInsight)
-      setTimeout(() => setStep('insight'), 2000)
+      console.error('[Onboarding] Submit failed:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unable to save onboarding to Supabase. Please try again.'
+      toast.error(errorMessage)
+      setStep('emotional-awareness')
     }
   }
 
-  const completeOnboarding = () => {
+  const completeOnboarding = async () => {
     const authUser = authService.getSession()
-    
-    setUser(prev => ({
-      ...prev!,
-      id: prev?.id || authUser?.id || `user-${Date.now()}`,
-      name: prev?.name || authUser?.name || 'User',
-      email: prev?.email || authUser?.email || 'user@lovespark.ai',
-      mode: 'individual',
-      onboardingCompleted: true,
-      createdAt: prev?.createdAt || authUser?.createdAt || new Date().toISOString(),
-    }))
-    
-    onComplete()
+
+    if (!authUser) {
+      toast.error('You must be signed in to complete onboarding.')
+      return
+    }
+
+    try {
+      await completeOnboardingInDb()
+      console.log('[Onboarding] onboarding completion persisted')
+      onComplete()
+    } catch (error) {
+      console.error('[Onboarding] Failed to persist onboarding completion:', error)
+      toast.error('Unable to mark onboarding complete. Please try again.')
+    }
   }
 
-  const skipOnboarding = () => {
+  const skipOnboarding = async () => {
     const authUser = authService.getSession()
-    
-    setUser(prev => ({
-      ...prev!,
-      id: prev?.id || authUser?.id || `user-${Date.now()}`,
-      name: prev?.name || authUser?.name || 'User',
-      email: prev?.email || authUser?.email || 'user@lovespark.ai',
-      mode: 'individual',
-      onboardingCompleted: true,
-      createdAt: prev?.createdAt || authUser?.createdAt || new Date().toISOString(),
-    }))
-    
-    onComplete()
+    if (!authUser) {
+      toast.error('You must be signed in to skip onboarding.')
+      return
+    }
+
+    try {
+      await completeOnboardingInDb()
+      console.log('[Onboarding] onboarding skipped and completion persisted')
+      onComplete()
+    } catch (error) {
+      console.error('[Onboarding] Failed to persist skip onboarding:', error)
+      toast.error('Unable to skip onboarding right now. Please try again.')
+    }
   }
 
   if (step === 'welcome') {

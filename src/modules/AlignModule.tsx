@@ -1,4 +1,4 @@
-import { useKV } from '@github/spark/hooks'
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +15,7 @@ import {
   Circle
 } from '@phosphor-icons/react'
 import type { AppView } from '../App'
+import { loadLatestAssessmentByType } from '@/lib/db/assessments'
 
 interface AlignModuleProps {
   onNavigate: (view: AppView) => void
@@ -67,10 +68,25 @@ const comingSoonFeatures = [
 ]
 
 export function AlignModule({ onNavigate }: AlignModuleProps) {
-  const [assessmentResults] = useKV<Record<string, any>>('lovespark-assessment-results', {})
-  
-  const compatibilityCompleted = assessmentResults?.compatibilityAssessment !== undefined
-  const communicationPatternsCompleted = assessmentResults?.communicationPatternsAssessment !== undefined
+  const [compatibilityCompleted, setCompatibilityCompleted] = useState(false)
+  const [communicationPatternsCompleted, setCommunicationPatternsCompleted] = useState(false)
+
+  useEffect(() => {
+    const loadCompletion = async () => {
+      try {
+        const [compatibility, patterns] = await Promise.all([
+          loadLatestAssessmentByType('conflict_pattern'),
+          loadLatestAssessmentByType('communication_pattern'),
+        ])
+        setCompatibilityCompleted(Boolean(compatibility))
+        setCommunicationPatternsCompleted(Boolean(patterns))
+      } catch (error) {
+        console.error('Failed loading ALIGN assessment completion:', error)
+      }
+    }
+
+    void loadCompletion()
+  }, [])
 
   return (
     <div className="min-h-screen bg-background p-6">

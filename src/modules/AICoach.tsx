@@ -18,6 +18,22 @@ import { useTextToSpeech } from '@/hooks/use-text-to-speech'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  clearConversationMessages,
+  deleteMessage,
+  getOrCreatePrimaryConversation,
+  loadChatHistory,
+  saveChatMessage,
+} from '@/lib/db/ai'
+import { getAuthenticatedUserId } from '@/lib/db/auth'
+import { getCurrentSubscription } from '@/lib/db/subscriptions'
+import { getStateSnapshot, upsertStateSnapshot } from '@/lib/db/state-snapshots'
+import {
+  hasFeatureMigrationCompleted,
+  loadLegacyMessages,
+  loadLegacySubscription,
+  markFeatureMigrationCompleted,
+} from '@/lib/db/migration'
 
 interface AICoachProps {
   risScore: RISScore
@@ -25,12 +41,12 @@ interface AICoachProps {
 }
 
 export function AICoach({ risScore, onNavigate }: AICoachProps) {
-  const [messages, setMessages] = useKV<AIMessage[]>('lovespark-ai-messages', [])
+  const [messages, setMessages] = useState<AIMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
-  const [weeklyMessageCount, setWeeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
-  const [weekStartDate, setWeekStartDate] = useKV<string>('lovespark-week-start-date', FeatureGateService.getWeekStartDate())
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [weeklyMessageCount, setWeeklyMessageCount] = useState(0)
+  const [weekStartDate, setWeekStartDate] = useState(FeatureGateService.getWeekStartDate())
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
   const [interimTranscript, setInterimTranscript] = useState('')
@@ -47,6 +63,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [clearedMessagesBackup, setClearedMessagesBackup] = useState<AIMessage[] | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchActive, setSearchActive] = useState(false)
+  const [conversationId, setConversationId] = useState<string | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -54,12 +71,81 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const { isSupported: ttsSupported, isSpeaking, isPaused, voices, selectedVoice, setSelectedVoice, speak, pause, resume, stop } = useTextToSpeech()
 
   useEffect(() => {
+    const loadData = async () => {
+      const userId = await getAuthenticatedUserId()
+      if (!userId) {
+        console.log('[Chat] No authenticated user, skipping chat init')
+        return
+      }
+
+      try {
+        console.log('[Chat] Init started', { userId })
+        const history = await loadChatHistory()
+        setConversationId(history.conversationId)
+        setMessages(history.messages)
+        console.log('[Chat] Conversation loaded', { conversationId: history.conversationId, messageCount: history.messages.length })
+      } catch (error) {
+        console.error('Failed to load Supabase chat history:', error)
+      }
+
+      try {
+        const sub = await getCurrentSubscription()
+        setSubscription(sub)
+      } catch (error) {
+        console.error('Failed to load subscription for AI coach:', error)
+      }
+
+      try {
+        const count = await getStateSnapshot<number>('weekly_message_count')
+        const windowStart = await getStateSnapshot<string>('weekly_message_window')
+        setWeeklyMessageCount(count ?? 0)
+        setWeekStartDate(windowStart ?? FeatureGateService.getWeekStartDate())
+      } catch (error) {
+        console.error('Failed to load weekly AI message counters:', error)
+      }
+
+      if (!hasFeatureMigrationCompleted('ai-messages')) {
+        try {
+          const legacyMessages = await loadLegacyMessages(userId)
+          if (legacyMessages && legacyMessages.length > 0) {
+            const cid = await getOrCreatePrimaryConversation()
+            setConversationId(cid)
+            for (const msg of legacyMessages) {
+              await saveChatMessage(cid, msg)
+            }
+            setMessages(legacyMessages)
+          }
+          markFeatureMigrationCompleted('ai-messages')
+        } catch (error) {
+          console.error('Failed migrating legacy AI messages:', error)
+        }
+      }
+
+      if (!hasFeatureMigrationCompleted('subscription')) {
+        try {
+          const legacySubscription = await loadLegacySubscription()
+          if (legacySubscription && !subscription) {
+            setSubscription(legacySubscription)
+          }
+          markFeatureMigrationCompleted('subscription')
+        } catch (error) {
+          console.error('Failed migrating legacy subscription snapshot:', error)
+        }
+      }
+    }
+
+    void loadData()
+  }, [])
+
+  useEffect(() => {
     if (weekStartDate && FeatureGateService.isNewWeek(weekStartDate)) {
       const reset = FeatureGateService.resetWeeklyLimits()
       setWeeklyMessageCount(reset.messageCount)
       setWeekStartDate(reset.weekStartDate)
+      void upsertStateSnapshot('weekly_message_count', reset.messageCount)
+      void upsertStateSnapshot('weekly_message_window', reset.weekStartDate)
     }
-  }, [weekStartDate, setWeeklyMessageCount, setWeekStartDate])
+  }, [weekStartDate])
 
   useEffect(() => {
     return () => {
@@ -478,6 +564,10 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     setMessages([])
     setClearHistoryDialogOpen(false)
 
+    if (conversationId) {
+      void clearConversationMessages(conversationId)
+    }
+
     toast.success(`Chat history cleared (${backup.length} messages)`, {
       description: 'You can undo this action',
       action: {
@@ -495,6 +585,14 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const handleUndoClear = () => {
     if (clearedMessagesBackup) {
       setMessages(clearedMessagesBackup)
+      if (conversationId) {
+        void (async () => {
+          await clearConversationMessages(conversationId)
+          for (const message of clearedMessagesBackup) {
+            await saveChatMessage(conversationId, message)
+          }
+        })()
+      }
       setClearedMessagesBackup(null)
       if (undoTimeoutRef.current) {
         clearTimeout(undoTimeoutRef.current)
@@ -506,6 +604,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
 
   const handleDeleteMessage = (messageId: string) => {
     setMessages((current) => (current || []).filter((msg) => msg.id !== messageId))
+    void deleteMessage(messageId)
     toast.success('Message deleted')
   }
 
@@ -578,23 +677,55 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       return
     }
 
+    const pendingInput = input.trim()
     const userMessage: AIMessage = {
       id: `msg-${Date.now()}`,
       role: 'user',
-      content: input,
+      content: pendingInput,
       timestamp: new Date().toISOString(),
     }
 
-    setMessages((prev) => [...(prev || []), userMessage])
     setInput('')
     setIsLoading(true)
+    console.log('[Chat] Send message start')
 
-    if (!isPremium) {
-      setWeeklyMessageCount((current) => (current ?? 0) + 1)
+    let activeConversationId = conversationId
+    if (!activeConversationId) {
+      try {
+        console.log('[Chat] Conversation bootstrap start')
+        activeConversationId = await getOrCreatePrimaryConversation()
+        console.log('[Chat] Conversation bootstrap success:', activeConversationId)
+        setConversationId(activeConversationId)
+      } catch (error) {
+        console.error('[Chat] Conversation bootstrap failed:', error)
+        toast.error('Unable to open your chat history. Please try again.')
+        setIsLoading(false)
+        return
+      }
     }
 
     try {
-      const response = await generateAICoachResponse(input, risScore)
+      console.log('[Chat] User message insert start')
+      await saveChatMessage(activeConversationId, userMessage)
+      console.log('[Chat] User message insert success')
+      setMessages((prev) => [...(prev || []), userMessage])
+    } catch (error) {
+      console.error('Failed writing user AI message to Supabase:', error)
+      toast.error('Unable to save your message. Please try again.')
+      setInput(pendingInput)
+      setIsLoading(false)
+      return
+    }
+
+    if (!isPremium) {
+      const nextCount = (weeklyMessageCount ?? 0) + 1
+      setWeeklyMessageCount(nextCount)
+      void upsertStateSnapshot('weekly_message_count', nextCount)
+      void upsertStateSnapshot('weekly_message_window', weekStartDate)
+    }
+
+    try {
+      const response = await generateAICoachResponse(pendingInput, risScore)
       
       const aiMessage: AIMessage = {
         id: `msg-${Date.now()}-ai`,
@@ -604,6 +735,9 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
         context: { risScore: risScore.overall },
       }
 
+      console.log('[Chat] Assistant message insert start')
+      await saveChatMessage(activeConversationId, aiMessage)
+      console.log('[Chat] Assistant message insert success')
       setMessages((prev) => [...(prev || []), aiMessage])
 
       if (autoSpeak && ttsSupported) {
@@ -612,15 +746,18 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
         setSpeakingMessageId(aiMessage.id)
       }
     } catch (error) {
+      console.error('[Chat] Failed generating or persisting assistant message:', error)
       const errorMessage: AIMessage = {
         id: `msg-${Date.now()}-error`,
         role: 'assistant',
-        content: "I'm having trouble processing your request. Please try again.",
+        content: "I could not complete this response because a save failed. Please retry.",
         timestamp: new Date().toISOString(),
       }
       setMessages((prev) => [...(prev || []), errorMessage])
       if (!isPremium) {
-        setWeeklyMessageCount((current) => Math.max(0, (current ?? 0) - 1))
+        const nextCount = Math.max(0, (weeklyMessageCount ?? 0) - 1)
+        setWeeklyMessageCount(nextCount)
+        void upsertStateSnapshot('weekly_message_count', nextCount)
       }
     } finally {
       setIsLoading(false)

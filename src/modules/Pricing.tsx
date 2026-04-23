@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { PricingCard } from '@/components/PricingCard'
@@ -7,7 +6,10 @@ import { ArrowLeft, Sparkle } from '@phosphor-icons/react'
 import { SubscriptionService } from '@/lib/subscription-service'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
-import type { Subscription, BillingCycle, User } from '@/lib/types'
+import type { Subscription, BillingCycle } from '@/lib/types'
+import { getCurrentSubscription, upsertSubscription } from '@/lib/db/subscriptions'
+import { authService } from '@/lib/auth-service'
+import { useEffect } from 'react'
 
 export type AppView =
   | 'login'
@@ -32,15 +34,25 @@ interface PricingProps {
 export function Pricing({ onNavigate }: PricingProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [subscription, setSubscription] = useKV<Subscription | null>(
-    'lovespark-subscription',
-    null
-  )
-  const [user] = useKV<User | null>('lovespark-user', null)
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
+
+  useEffect(() => {
+    const loadSubscription = async () => {
+      try {
+        const current = await getCurrentSubscription()
+        setSubscription(current)
+      } catch (error) {
+        console.error('Failed loading subscription in pricing view:', error)
+      }
+    }
+
+    void loadSubscription()
+  }, [])
 
   const plans = SubscriptionService.getPlans()
 
   const handleSelectPlan = async (planId: string) => {
+    const user = authService.getSession()
     if (!user) {
       toast.error('Please log in to upgrade your plan')
       onNavigate('login')
@@ -58,7 +70,8 @@ export function Pricing({ onNavigate }: PricingProps) {
         true
       )
 
-      setSubscription(newSubscription)
+      const savedSubscription = await upsertSubscription(newSubscription)
+      setSubscription(savedSubscription)
 
       const plan = SubscriptionService.getPlanById(planId)
       toast.success(

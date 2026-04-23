@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -8,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Target, Sparkle, CheckCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { AppView } from '../App'
+import { saveAssessment } from '@/lib/db/assessments'
 
 interface GrowthMindsetAssessmentProps {
   onNavigate: (view: AppView) => void
@@ -121,7 +121,7 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [isComplete, setIsComplete] = useState(false)
-  const [assessmentResults, setAssessmentResults] = useKV<Record<string, any>>('lovespark-assessment-results', {})
+  const [assessmentResult, setAssessmentResult] = useState<Record<string, any> | null>(null)
 
   const currentQuestion = questions[currentQuestionIndex]
   const progress = (Object.keys(answers).length / questions.length) * 100
@@ -158,10 +158,29 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
       completedAt: new Date().toISOString(),
     }
 
-    await setAssessmentResults((current) => ({
-      ...current,
-      growthMindsetAssessment: result,
-    }))
+    console.log('[Assessment][growth_mindset] started')
+    console.log('[Assessment][growth_mindset] payload mapped', {
+      type: 'growth_mindset',
+      answerKeys: Object.keys(answers),
+      score: percentageScore,
+    })
+
+    try {
+      await saveAssessment({
+        type: 'growth_mindset',
+        status: 'completed',
+        version: 'v1',
+        answers,
+        scorePayload: result,
+      })
+      console.log('[Assessment][growth_mindset] Supabase insert success')
+    } catch (error) {
+      console.error('[Assessment][growth_mindset] Supabase insert failure', error)
+      toast.error(error instanceof Error ? error.message : 'Unable to save assessment to Supabase.')
+      return
+    }
+
+    setAssessmentResult(result)
 
     setIsComplete(true)
     toast.success('Assessment completed!')
@@ -212,7 +231,10 @@ export function GrowthMindsetAssessment({ onNavigate, onComplete }: GrowthMindse
   }
 
   if (isComplete) {
-    const result = assessmentResults?.growthMindsetAssessment
+    const result = assessmentResult
+    if (!result) {
+      return null
+    }
     const scoreLevel = getScoreLevel(result.score)
     const insights = getInsights(result.score)
 

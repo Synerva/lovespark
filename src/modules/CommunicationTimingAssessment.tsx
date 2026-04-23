@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,7 +6,9 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Clock, Sparkle, Lock } from '@phosphor-icons/react'
 import type { AppView } from '../App'
-import type { User, RISScore, Subscription } from '@/lib/types'
+import type { RISScore, Subscription } from '@/lib/types'
+import { getCurrentSubscription } from '@/lib/db/subscriptions'
+import { loadLatestRISScore, saveAssessment, saveRelationshipIntelligenceScore } from '@/lib/db/assessments'
 
 interface CommunicationTimingAssessmentProps {
   onNavigate: (view: AppView) => void
@@ -108,15 +109,33 @@ const questions = [
 ]
 
 export function CommunicationTimingAssessment({ onNavigate, onComplete }: CommunicationTimingAssessmentProps) {
-  const [user] = useKV<User>('lovespark-user', null as any)
-  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
-  const [risScore, setRisScore] = useKV<RISScore>('lovespark-ris-score', {
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [risScore, setRisScore] = useState<RISScore>({
     overall: 52,
     understand: 51,
     align: 53,
     elevate: 50,
     lastUpdated: new Date().toISOString(),
   })
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [currentSubscription, latestRis] = await Promise.all([
+          getCurrentSubscription(),
+          loadLatestRISScore(),
+        ])
+        setSubscription(currentSubscription)
+        if (latestRis) {
+          setRisScore(latestRis)
+        }
+      } catch (error) {
+        console.error('Failed loading communication timing assessment state:', error)
+      }
+    }
+
+    void loadData()
+  }, [])
   
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [responses, setResponses] = useState<Record<string, { value: string; weight: number }>>({})
@@ -138,11 +157,11 @@ export function CommunicationTimingAssessment({ onNavigate, onComplete }: Commun
     if (currentQuestion < questions.length - 1) {
       setTimeout(() => setCurrentQuestion((prev) => prev + 1), 300)
     } else {
-      calculateResults()
+      void calculateResults()
     }
   }
 
-  const calculateResults = () => {
+  const calculateResults = async () => {
     const totalWeight = Object.values(responses).reduce((sum, r) => sum + r.weight, 0)
     const avgScore = totalWeight / Object.keys(responses).length
     const percentageScore = (avgScore / 4) * 100
@@ -179,12 +198,49 @@ export function CommunicationTimingAssessment({ onNavigate, onComplete }: Commun
     const newUnderstandScore = Math.max(0, Math.min(100, currentRisScore.understand + scoreDelta))
     const newOverallScore = Math.round((newUnderstandScore * 0.35) + (currentRisScore.align * 0.35) + (currentRisScore.elevate * 0.30))
 
-    setRisScore((current) => ({
-      ...(current || currentRisScore),
+    const updatedScore: RISScore = {
+      ...(currentRisScore || currentRisScore),
       understand: newUnderstandScore,
       overall: newOverallScore,
-      lastUpdated: new Date().toISOString()
-    }))
+      lastUpdated: new Date().toISOString(),
+    }
+
+    setRisScore(updatedScore)
+
+    const assessmentAnswers = responses
+    const assessmentPayload = {
+      category,
+      score: Math.round(percentageScore),
+      description,
+      insight,
+      premiumInsight,
+    }
+
+    console.log('[Assessment][communication_timing] Submit start')
+    console.log('[Assessment][communication_timing] Payload mapped:', assessmentPayload)
+
+    try {
+      await saveAssessment({
+        type: 'custom',
+        status: 'completed',
+        version: 'communication_timing_v1',
+        answers: assessmentAnswers,
+        scorePayload: assessmentPayload,
+      })
+
+      await saveRelationshipIntelligenceScore(
+        {
+          source: 'communication_timing_assessment',
+          responses: assessmentAnswers,
+        },
+        updatedScore
+      )
+      console.log('[Assessment][communication_timing] Supabase write success')
+    } catch (error) {
+      console.error('[Assessment][communication_timing] Supabase write failed:', error)
+      toast.error('Unable to save assessment to Supabase. Please try again.')
+      return
+    }
 
     setResult({ category, score: Math.round(percentageScore), description, insight, premiumInsight })
     setShowResults(true)

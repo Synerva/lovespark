@@ -45,15 +45,43 @@ export function Register({ onRegisterSuccess, onSwitchToLogin }: RegisterProps) 
 
     setIsLoading(true)
     
+    console.log('[Register] Attempting registration for:', email)
     const result = await authService.register({ name, email, password })
     
     setIsLoading(false)
     
     if (result.success && result.user) {
+      console.log('[Register] Registration successful')
       toast.success('Account created successfully!')
       onRegisterSuccess(result.user)
     } else {
-      toast.error(result.error || 'Registration failed')
+      const errorMessage = result.error || 'Registration failed'
+      console.error('[Register] Registration failed:', errorMessage)
+      
+      // Provide user-friendly error messages
+      let displayMessage = errorMessage
+      if (errorMessage.includes('already')) {
+        displayMessage = 'This email is already registered. Please sign in instead.'
+        toast.error(displayMessage, {
+          action: {
+            label: 'Sign In',
+            onClick: onSwitchToLogin,
+          },
+        })
+        return
+      } else if (errorMessage.includes('invalid email') || errorMessage.includes('Invalid email')) {
+        displayMessage = 'Please enter a valid email address.'
+      } else if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
+        displayMessage = 'Registration is temporarily rate-limited by Supabase. Wait about 60 seconds and try again. For local dev, you can create a test user in Supabase Dashboard > Authentication > Users.'
+      } else if (errorMessage.includes('network') || errorMessage.includes('Network')) {
+        displayMessage = 'Network error. Please check your internet connection.'
+      } else if (errorMessage.includes('configured') || errorMessage.includes('Supabase')) {
+        displayMessage = 'Service is not configured properly. Please contact support.'
+      } else if (errorMessage.includes('check your email')) {
+        displayMessage = 'Please check your email to confirm your account.'
+      }
+      
+      toast.error(displayMessage)
     }
   }
 
@@ -65,21 +93,8 @@ export function Register({ onRegisterSuccess, onSwitchToLogin }: RegisterProps) 
         ? await socialAuthService.loginWithGoogle()
         : await socialAuthService.loginWithGitHub()
       
-      if (socialResult.success && socialResult.profile) {
-        const authResult = await authService.loginWithSocial({
-          email: socialResult.profile.email,
-          name: socialResult.profile.name,
-          provider,
-          providerId: socialResult.profile.id,
-          avatarUrl: socialResult.profile.avatarUrl,
-        })
-        
-        if (authResult.success && authResult.user) {
-          toast.success(`Account created successfully!`)
-          onRegisterSuccess(authResult.user)
-        } else {
-          toast.error(authResult.error || 'Registration failed')
-        }
+      if (socialResult.success) {
+        toast.success('Redirecting to provider...')
       } else {
         toast.error(socialResult.error || 'Social login failed')
       }

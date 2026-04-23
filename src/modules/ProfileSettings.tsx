@@ -1,4 +1,3 @@
-import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { User, SignOut, EnvelopeSimple, Calendar, Crown, CreditCard, ChartLine, ArrowsClockwise } from '@phosphor-icons/react'
@@ -9,7 +8,9 @@ import { toast } from 'sonner'
 import type { User as UserType, Subscription } from '@/lib/types'
 import { SubscriptionService } from '@/lib/subscription-service'
 import { PaddleService } from '@/lib/paddle-service'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getCurrentSubscription } from '@/lib/db/subscriptions'
+import { getOrCreateProfile } from '@/lib/db/profiles'
 
 interface ProfileSettingsProps {
   onNavigate: (view: AppView) => void
@@ -17,12 +18,46 @@ interface ProfileSettingsProps {
 }
 
 export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) {
-  const [user] = useKV<UserType | null>('lovespark-user', null)
-  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
+  const [user, setUser] = useState<UserType | null>(null)
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [isLoadingPortal, setIsLoadingPortal] = useState(false)
   
   const authUser = authService.getSession()
   const plan = subscription ? SubscriptionService.getPlanById(subscription.planId) : SubscriptionService.getPlanByName('FREE')
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!authUser) {
+        return
+      }
+
+      try {
+        const [profile, currentSubscription] = await Promise.all([
+          getOrCreateProfile({
+            name: authUser.name,
+            email: authUser.email,
+            avatarUrl: authUser.avatarUrl,
+          }),
+          getCurrentSubscription(),
+        ])
+
+        setUser({
+          id: profile.id,
+          name: profile.full_name || authUser.name,
+          email: profile.email || authUser.email,
+          avatarUrl: profile.avatar_url || authUser.avatarUrl,
+          mode: 'individual',
+          onboardingCompleted: profile.onboarding_completed,
+          createdAt: profile.created_at,
+        })
+        setSubscription(currentSubscription)
+      } catch (error) {
+        console.error('Failed loading profile settings data:', error)
+      }
+    }
+
+    void loadData()
+  }, [authUser?.id])
 
   const handleLogout = () => {
     authService.logout()

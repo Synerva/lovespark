@@ -1,4 +1,5 @@
 import type { RISScore, PillarType, Insight, AssessmentResponse } from './types'
+import { loadOnboardingComposite } from './db/onboarding'
 
 export async function generateCheckInInsights(
   responses: Record<string, number>,
@@ -137,21 +138,11 @@ export async function generateAICoachResponse(
   let onboardingContext = ''
   
   try {
-    const onboardingProfile = await window.spark.kv.get<{
-      primaryPattern: string
-      strengths: string[]
-      growthEdge: string
-      relationshipStatus: string
-      relationshipGoal: string
-      mainChallenge: string
-    }>('lovespark-onboarding-profile')
+    const onboardingProfile = await loadOnboardingComposite()
     
     if (onboardingProfile) {
       onboardingContext = `
 Onboarding Profile:
-- Relationship Pattern: ${onboardingProfile.primaryPattern}
-- Key Strengths: ${onboardingProfile.strengths.join(', ')}
-- Growth Edge: ${onboardingProfile.growthEdge}
 - Relationship Status: ${onboardingProfile.relationshipStatus}
 - Primary Goal: ${onboardingProfile.relationshipGoal}
 - Main Challenge: ${onboardingProfile.mainChallenge}

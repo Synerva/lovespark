@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,7 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, ChatsCircle, Sparkle, Lock, TrendUp } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { AppView } from '../App'
-import type { User, RISScore, Subscription } from '@/lib/types'
+import type { RISScore, Subscription } from '@/lib/types'
+import { getCurrentSubscription } from '@/lib/db/subscriptions'
+import { loadLatestRISScore, saveAssessment, saveRelationshipIntelligenceScore } from '@/lib/db/assessments'
 
 interface CommunicationPatternsAssessmentProps {
   onNavigate: (view: AppView) => void
@@ -160,16 +161,33 @@ export function CommunicationPatternsAssessment({ onNavigate, onComplete }: Comm
   const [score, setScore] = useState(0)
   const [isProcessing, setIsProcessing] = useState(false)
   
-  const [user] = useKV<User | null>('lovespark-user', null)
-  const [risScore, setRisScore] = useKV<RISScore>('lovespark-ris-score', {
+  const [risScore, setRisScore] = useState<RISScore>({
     overall: 0,
     understand: 0,
     align: 0,
     elevate: 0,
     lastUpdated: new Date().toISOString(),
   })
-  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
-  const [assessmentResults, setAssessmentResults] = useKV<Record<string, any>>('lovespark-assessment-results', {})
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [currentSubscription, latestRis] = await Promise.all([
+          getCurrentSubscription(),
+          loadLatestRISScore(),
+        ])
+        setSubscription(currentSubscription)
+        if (latestRis) {
+          setRisScore(latestRis)
+        }
+      } catch (error) {
+        console.error('Failed loading communication patterns assessment state:', error)
+      }
+    }
+
+    void loadData()
+  }, [])
 
   const isPremium = subscription?.status === 'active' && 
     (subscription?.planId === 'premium' || subscription?.planId === 'premium_coaching')
@@ -229,25 +247,52 @@ export function CommunicationPatternsAssessment({ onNavigate, onComplete }: Comm
       (elevateScore * 0.30)
     )
     
-    setRisScore({
+    const updatedRis: RISScore = {
       overall: newOverallScore,
       understand: understandScore,
       align: newAlignScore,
       elevate: elevateScore,
       delta: newOverallScore - (risScore?.overall || 0),
       lastUpdated: new Date().toISOString(),
+    }
+
+    setRisScore(updatedRis)
+
+    console.log('[Assessment][communication_pattern] Submit start')
+    console.log('[Assessment][communication_pattern] Payload mapped', {
+      type: 'communication_pattern',
+      score: calculatedScore,
+      answerKeys: Object.keys(finalAnswers),
     })
-    
-    setAssessmentResults({
-      ...assessmentResults,
-      communicationPatternsAssessment: {
-        score: calculatedScore,
-        category: categoryKey,
-        categoryData: categories[categoryKey],
-        completedAt: new Date().toISOString(),
-        answers: finalAnswers
-      }
-    })
+
+    try {
+      await saveAssessment({
+        type: 'communication_pattern',
+        status: 'completed',
+        version: 'v1',
+        answers: finalAnswers,
+        scorePayload: {
+          score: calculatedScore,
+          category: categoryKey,
+          categoryData: categories[categoryKey],
+          completedAt: new Date().toISOString(),
+        },
+      })
+
+      await saveRelationshipIntelligenceScore(
+        {
+          source: 'communication_patterns_assessment',
+          answers: finalAnswers,
+        },
+        updatedRis
+      )
+      console.log('[Assessment][communication_pattern] Supabase write success')
+    } catch (error) {
+      console.error('[Assessment][communication_pattern] Supabase write failed', error)
+      toast.error(error instanceof Error ? error.message : 'Unable to save assessment to Supabase.')
+      setIsProcessing(false)
+      return
+    }
     
     setIsProcessing(false)
     setIsComplete(true)

@@ -1,4 +1,4 @@
-import { useKV } from '@github/spark/hooks'
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,7 @@ import {
   Heart
 } from '@phosphor-icons/react'
 import type { AppView } from '../App'
+import { loadLatestAssessmentByType } from '@/lib/db/assessments'
 
 interface ElevateModuleProps {
   onNavigate: (view: AppView) => void
@@ -87,10 +88,25 @@ const comingSoonFeatures = [
 ]
 
 export function ElevateModule({ onNavigate }: ElevateModuleProps) {
-  const [assessmentResults] = useKV<Record<string, any>>('lovespark-assessment-results', {})
-  
-  const growthMindsetCompleted = assessmentResults?.growthMindsetAssessment !== undefined
-  const intimacyConnectionCompleted = assessmentResults?.intimacyConnectionAssessment !== undefined
+  const [growthMindsetCompleted, setGrowthMindsetCompleted] = useState(false)
+  const [intimacyConnectionCompleted, setIntimacyConnectionCompleted] = useState(false)
+
+  useEffect(() => {
+    const loadCompletion = async () => {
+      try {
+        const [growthMindset, intimacy] = await Promise.all([
+          loadLatestAssessmentByType('growth_mindset'),
+          loadLatestAssessmentByType('intimacy_connection'),
+        ])
+        setGrowthMindsetCompleted(Boolean(growthMindset))
+        setIntimacyConnectionCompleted(Boolean(intimacy))
+      } catch (error) {
+        console.error('Failed loading ELEVATE assessment completion:', error)
+      }
+    }
+
+    void loadCompletion()
+  }, [])
 
   return (
     <div className="min-h-screen bg-background p-6">

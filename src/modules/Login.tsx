@@ -34,14 +34,32 @@ export function Login({ onLoginSuccess, onSwitchToRegister, onForgotPassword }: 
 
     setIsLoading(true)
     
+    console.log('[Login] Attempting login for:', email)
     const result = await authService.login({ email, password })
     
     setIsLoading(false)
     
     if (result.success && result.user) {
+      console.log('[Login] Login successful')
+      toast.success('Welcome back!')
       onLoginSuccess(result.user)
     } else {
-      toast.error(result.error || 'Login failed')
+      const errorMessage = result.error || 'Login failed'
+      console.error('[Login] Login failed:', errorMessage)
+      
+      // Provide user-friendly error messages
+      let displayMessage = errorMessage
+      if (errorMessage.includes('Invalid') || errorMessage.includes('invalid')) {
+        displayMessage = 'Invalid email or password. Please check your credentials.'
+      } else if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
+        displayMessage = 'Login is temporarily rate-limited by Supabase. Wait about 60 seconds and try again.'
+      } else if (errorMessage.includes('network') || errorMessage.includes('Network')) {
+        displayMessage = 'Network error. Please check your internet connection.'
+      } else if (errorMessage.includes('configured') || errorMessage.includes('Supabase')) {
+        displayMessage = 'Service is not configured properly. Please contact support.'
+      }
+      
+      toast.error(displayMessage)
     }
   }
 
@@ -53,20 +71,8 @@ export function Login({ onLoginSuccess, onSwitchToRegister, onForgotPassword }: 
         ? await socialAuthService.loginWithGoogle()
         : await socialAuthService.loginWithGitHub()
       
-      if (socialResult.success && socialResult.profile) {
-        const authResult = await authService.loginWithSocial({
-          email: socialResult.profile.email,
-          name: socialResult.profile.name,
-          provider,
-          providerId: socialResult.profile.id,
-          avatarUrl: socialResult.profile.avatarUrl,
-        })
-        
-        if (authResult.success && authResult.user) {
-          onLoginSuccess(authResult.user)
-        } else {
-          toast.error(authResult.error || 'Login failed')
-        }
+      if (socialResult.success) {
+        toast.success('Redirecting to provider...')
       } else {
         toast.error(socialResult.error || 'Social login failed')
       }

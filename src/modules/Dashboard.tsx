@@ -1,5 +1,4 @@
-import { useKV } from '@github/spark/hooks'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,26 +13,77 @@ import type { AppView } from '../App'
 import type { RISScore, User, Subscription, ScoreHistory, WeeklyInsight, RecurringPattern, AIMessage } from '@/lib/types'
 import { FeatureGateService } from '@/lib/feature-gate-service'
 import { ProgressService } from '@/lib/progress-service'
+import { authService } from '@/lib/auth-service'
+import { getOrCreateProfile } from '@/lib/db/profiles'
+import { loadLatestRISScore } from '@/lib/db/assessments'
+import { getCurrentSubscription } from '@/lib/db/subscriptions'
+import { loadChatHistory } from '@/lib/db/ai'
+import { getStateSnapshot, upsertStateSnapshot } from '@/lib/db/state-snapshots'
 
 interface DashboardProps {
   onNavigate: (view: AppView) => void
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-  const [user] = useKV<User>('lovespark-user', null as any)
-  const [risScore] = useKV<RISScore>('lovespark-ris-score', {
+  const [user, setUser] = useState<User | null>(null)
+  const [risScore, setRisScore] = useState<RISScore>({
     overall: 52,
     understand: 51,
     align: 53,
     elevate: 50,
     lastUpdated: new Date().toISOString(),
   })
-  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
-  const [weeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
-  const [scoreHistory, setScoreHistory] = useKV<ScoreHistory[]>('lovespark-score-history', [])
-  const [weeklyInsights, setWeeklyInsights] = useKV<WeeklyInsight[]>('lovespark-weekly-insights', [])
-  const [recurringPatterns, setRecurringPatterns] = useKV<RecurringPattern[]>('lovespark-recurring-patterns', [])
-  const [aiMessages] = useKV<AIMessage[]>('lovespark-ai-messages', [])
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [weeklyMessageCount, setWeeklyMessageCount] = useState(0)
+  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([])
+  const [weeklyInsights, setWeeklyInsights] = useState<WeeklyInsight[]>([])
+  const [recurringPatterns, setRecurringPatterns] = useState<RecurringPattern[]>([])
+  const [aiMessages, setAiMessages] = useState<AIMessage[]>([])
+
+  useEffect(() => {
+    const loadData = async () => {
+      const session = authService.getSession()
+      if (!session) {
+        return
+      }
+
+      try {
+        const [profile, dbRis, currentSubscription, history, weeklyCount, scoreHistorySnapshot, weeklyInsightsSnapshot, recurringPatternsSnapshot] = await Promise.all([
+          getOrCreateProfile({ name: session.name, email: session.email, avatarUrl: session.avatarUrl }),
+          loadLatestRISScore(),
+          getCurrentSubscription(),
+          loadChatHistory(),
+          getStateSnapshot<number>('weekly_message_count'),
+          getStateSnapshot<ScoreHistory[]>('score_history'),
+          getStateSnapshot<WeeklyInsight[]>('weekly_insights'),
+          getStateSnapshot<RecurringPattern[]>('recurring_patterns'),
+        ])
+
+        setUser({
+          id: profile.id,
+          name: profile.full_name || session.name,
+          email: profile.email || session.email,
+          avatarUrl: profile.avatar_url || session.avatarUrl,
+          mode: 'individual',
+          onboardingCompleted: profile.onboarding_completed,
+          createdAt: profile.created_at,
+        })
+        if (dbRis) {
+          setRisScore(dbRis)
+        }
+        setSubscription(currentSubscription)
+        setAiMessages(history.messages)
+        setWeeklyMessageCount(weeklyCount ?? 0)
+        setScoreHistory(scoreHistorySnapshot ?? [])
+        setWeeklyInsights(weeklyInsightsSnapshot ?? [])
+        setRecurringPatterns(recurringPatternsSnapshot ?? [])
+      } catch (error) {
+        console.error('Failed loading dashboard data from Supabase:', error)
+      }
+    }
+
+    void loadData()
+  }, [])
   
   const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
   const remainingMessages = FeatureGateService.getRemainingAIMessages(subscription ?? null, weeklyMessageCount ?? 0)
@@ -69,6 +119,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         source: 'manual'
       }
       setScoreHistory((current) => [...(current || []), newHistory])
+      void upsertStateSnapshot('score_history', [...(scoreHistory || []), newHistory])
     }
 
     if (!(weeklyInsights || []).some((i: WeeklyInsight) => i.weekNumber === weekNumber)) {
@@ -78,6 +129,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           id: `insight-${weekNumber}-${Date.now()}`
         }
         setWeeklyInsights((current) => [...(current || []), fullInsight])
+        void upsertStateSnapshot('weekly_insights', [...(weeklyInsights || []), fullInsight])
       })
     }
 
@@ -96,6 +148,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           acknowledged: false
         }
         setRecurringPatterns((current) => [...(current || []), newPattern])
+        void upsertStateSnapshot('recurring_patterns', [...(recurringPatterns || []), newPattern])
       }
     }
   }, [user?.id, weekNumber])
@@ -105,12 +158,24 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       setWeeklyInsights((current) =>
         (current || []).map((i: WeeklyInsight) => i.id === currentWeekInsight.id ? { ...i, read: true } : i)
       )
+      void upsertStateSnapshot(
+        'weekly_insights',
+        (weeklyInsights || []).map((i: WeeklyInsight) =>
+          i.id === currentWeekInsight.id ? { ...i, read: true } : i
+        )
+      )
     }
   }
 
   const handleAcknowledgePattern = (patternId: string) => {
     setRecurringPatterns((current) =>
       (current || []).map((p: RecurringPattern) => p.id === patternId ? { ...p, acknowledged: true } : p)
+    )
+    void upsertStateSnapshot(
+      'recurring_patterns',
+      (recurringPatterns || []).map((p: RecurringPattern) =>
+        p.id === patternId ? { ...p, acknowledged: true } : p
+      )
     )
   }
 

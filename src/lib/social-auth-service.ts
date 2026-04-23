@@ -1,3 +1,5 @@
+import { supabase } from './supabase'
+
 export interface SocialProfile {
   id: string
   email: string
@@ -8,16 +10,14 @@ export interface SocialProfile {
 class SocialAuthService {
   async loginWithGoogle(): Promise<{ success: boolean; profile?: SocialProfile; error?: string }> {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const mockProfile: SocialProfile = {
-        id: `google-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        email: `user${Date.now()}@gmail.com`,
-        name: 'Google User',
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      })
+      if (error) {
+        return { success: false, error: error.message }
       }
-      
-      return { success: true, profile: mockProfile }
+      return { success: true }
     } catch (error) {
       return { success: false, error: 'Google authentication failed' }
     }
@@ -25,16 +25,14 @@ class SocialAuthService {
 
   async loginWithGitHub(): Promise<{ success: boolean; profile?: SocialProfile; error?: string }> {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const mockProfile: SocialProfile = {
-        id: `github-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        email: `user${Date.now()}@github.com`,
-        name: 'GitHub User',
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now() + 1}`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: { redirectTo: window.location.origin },
+      })
+      if (error) {
+        return { success: false, error: error.message }
       }
-      
-      return { success: true, profile: mockProfile }
+      return { success: true }
     } catch (error) {
       return { success: false, error: 'GitHub authentication failed' }
     }

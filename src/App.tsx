@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Toaster } from '@/components/ui/sonner'
+import { InitializationError } from './components/InitializationError'
 import { LandingPage } from './modules/LandingPage'
 import { AboutPage } from './modules/AboutPage'
 import { ContactPage } from './modules/ContactPage'
@@ -29,9 +30,13 @@ import { DesktopSidebar } from './components/DesktopSidebar'
 import { MobileHeader } from './components/MobileHeader'
 import { BottomNav } from './components/BottomNav'
 import { authService } from './lib/auth-service'
+import { supabaseInitError } from './lib/supabase'
 import { useSidebar } from './hooks/use-sidebar'
 import { useIsMobile } from './hooks/use-mobile'
 import type { RISScore, User, AuthUser, Subscription } from './lib/types'
+import { getOrCreateProfile, setOnboardingCompleted } from './lib/db/profiles'
+import { loadLatestRISScore, saveRelationshipIntelligenceScore } from './lib/db/assessments'
+import { hasFeatureMigrationCompleted, loadLegacyRIS, loadLegacyUser, markFeatureMigrationCompleted } from './lib/db/migration'
 
 export type AppView =
   | 'landing'
@@ -76,34 +81,69 @@ function App() {
   const { isCollapsed, sidebarWidth } = useSidebar()
   const isMobile = useIsMobile()
 
+  // Check if Supabase was initialized successfully
+  if (supabaseInitError) {
+    return <InitializationError error={supabaseInitError.message} />
+  }
+
   useEffect(() => {
     const loadUserData = async () => {
+      console.log('[App] Checking authentication status on startup')
       const session = authService.getSession()
       if (session) {
+        console.log('[App] Found existing session for user:', session.id)
         setCurrentUserId(session.id)
-        
-        const existingUserData = await window.spark.kv.get<User>(`lovespark-user-${session.id}`)
-        
-        if (existingUserData) {
-          setUser(existingUserData)
-        } else {
-          const newUser: User = {
-            id: session.id,
+
+        try {
+          const profile = await getOrCreateProfile({
             name: session.name,
             email: session.email,
             avatarUrl: session.avatarUrl,
+          })
+
+          const hydratedUser: User = {
+            id: session.id,
+            name: profile.full_name || session.name,
+            email: profile.email || session.email,
+            avatarUrl: profile.avatar_url || session.avatarUrl,
             mode: 'individual',
-            onboardingCompleted: false,
-            createdAt: session.createdAt,
+            onboardingCompleted: profile.onboarding_completed,
+            createdAt: profile.created_at,
           }
-          setUser(newUser)
-          await window.spark.kv.set(`lovespark-user-${session.id}`, newUser)
+
+          setUser(hydratedUser)
+          console.log('[App] User data loaded successfully on startup')
+
+          let loadedRis = await loadLatestRISScore()
+
+          if (!loadedRis && !hasFeatureMigrationCompleted('ris')) {
+            const legacyRis = await loadLegacyRIS(session.id)
+            if (legacyRis) {
+              await saveRelationshipIntelligenceScore({ source: 'legacy-migration' }, legacyRis)
+              loadedRis = legacyRis
+            }
+            markFeatureMigrationCompleted('ris')
+          }
+
+          if (loadedRis) {
+            setRisScore(loadedRis)
+          }
+
+          if (!profile.onboarding_completed && !hasFeatureMigrationCompleted('user-profile')) {
+            const legacyUser = await loadLegacyUser(session.id)
+            if (legacyUser?.onboardingCompleted) {
+              await setOnboardingCompleted(true)
+              setUser((prev) => (prev ? { ...prev, onboardingCompleted: true } : prev))
+            }
+            markFeatureMigrationCompleted('user-profile')
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          console.error('[App] Failed loading user data on startup:', errorMessage)
+          // Keep user as authenticated even if profile load fails
         }
-        
-        const existingRisScore = await window.spark.kv.get<RISScore>(`lovespark-ris-score-${session.id}`)
-        if (existingRisScore) {
-          setRisScore(existingRisScore)
-        }
+      } else {
+        console.log('[App] No existing session found')
       }
       setIsCheckingAuth(false)
     }
@@ -112,17 +152,53 @@ function App() {
   }, [])
 
   const handleLoginSuccess = async (authUser: AuthUser) => {
+    console.log('[App] Login successful for user:', authUser.id)
+    setCurrentUserId(authUser.id)
+
     try {
-      const existingUserData = await window.spark.kv.get<User>(`lovespark-user-${authUser.id}`)
-      
-      if (existingUserData && existingUserData.onboardingCompleted) {
-        setUser(existingUserData)
+      console.log('[App] Attempting to load/create profile')
+      const profile = await getOrCreateProfile({
+        name: authUser.name,
+        email: authUser.email,
+        avatarUrl: authUser.avatarUrl,
+      })
+
+      const mappedUser: User = {
+        id: authUser.id,
+        name: profile.full_name || authUser.name,
+        email: profile.email || authUser.email,
+        avatarUrl: profile.avatar_url || authUser.avatarUrl,
+        mode: 'individual',
+        onboardingCompleted: profile.onboarding_completed,
+        createdAt: profile.created_at,
+      }
+
+      setUser(mappedUser)
+      console.log('[App] User profile loaded successfully')
+
+      if (mappedUser.onboardingCompleted) {
+        console.log('[App] Onboarding completed, redirecting to dashboard')
         setCurrentView('dashboard')
         return
       }
       
+      console.log('[App] Onboarding not completed, redirecting to onboarding')
       setCurrentView('onboarding')
-    } catch (e) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('[App] Failed to load profile after login:', errorMessage)
+      
+      // Still proceed with login even if profile loading fails, but go to onboarding
+      // where profile can be completed/recovered
+      setUser({
+        id: authUser.id,
+        name: authUser.name,
+        email: authUser.email,
+        avatarUrl: authUser.avatarUrl,
+        mode: 'individual',
+        onboardingCompleted: false,
+        createdAt: new Date().toISOString(),
+      })
       setCurrentView('onboarding')
     }
   }
@@ -138,7 +214,11 @@ function App() {
         onboardingCompleted: true,
       }
       setUser(updatedUser)
-      await window.spark.kv.set(`lovespark-user-${currentUserId}`, updatedUser)
+      try {
+        await setOnboardingCompleted(true)
+      } catch (error) {
+        console.error('Failed to persist onboarding completion in Supabase:', error)
+      }
     }
     setCurrentView('dashboard')
   }

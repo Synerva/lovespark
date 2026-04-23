@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,14 +16,34 @@ import {
 import { motion } from 'framer-motion'
 import type { CheckIn, RISScore } from '@/lib/types'
 import type { AppView } from '@/App'
+import { loadCheckIns } from '@/lib/db/checkins'
+import { loadInsights } from '@/lib/db/insights'
 
 interface CheckInHistoryProps {
   onNavigate: (view: AppView) => void
 }
 
 export function CheckInHistory({ onNavigate }: CheckInHistoryProps) {
-  const [checkIns] = useKV<CheckIn[]>('lovespark-check-ins', [])
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([])
+  const [insights, setInsights] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'insights'>('overview')
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [loadedCheckIns, loadedInsights] = await Promise.all([
+          loadCheckIns(),
+          loadInsights(),
+        ])
+        setCheckIns(loadedCheckIns)
+        setInsights(loadedInsights)
+      } catch (error) {
+        console.error('Failed loading check-in history data:', error)
+      }
+    }
+
+    void loadData()
+  }, [])
 
   const sortedCheckIns = useMemo(() => {
     return [...(checkIns || [])].sort((a, b) => 
@@ -446,8 +465,6 @@ function CheckInCard({ checkIn, index }: { checkIn: CheckIn; index: number }) {
 
 function CheckInDetailCard({ checkIn, index }: { checkIn: CheckIn; index: number }) {
   const delta = checkIn.risScoreAfter.delta || 0
-  const [insights] = useKV<any[]>('lovespark-insights', [])
-  
   const checkInInsights = (insights || []).filter((insight: any) => 
     checkIn.insightsGenerated.includes(insight.id)
   )

@@ -1,4 +1,4 @@
-import { useKV } from '@github/spark/hooks'
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +16,7 @@ import {
   Circle
 } from '@phosphor-icons/react'
 import type { AppView } from '../App'
+import { loadLatestAssessmentByType } from '@/lib/db/assessments'
 
 interface UnderstandModuleProps {
   onNavigate: (view: AppView) => void
@@ -61,10 +62,25 @@ const comingSoonFeatures = [
 ]
 
 export function UnderstandModule({ onNavigate }: UnderstandModuleProps) {
-  const [assessmentResults] = useKV<any[]>('lovespark-assessment-results', [])
-  
-  const emotionalReactionCompleted = assessmentResults?.some((r: any) => r.assessmentType === 'emotional-reaction')
-  const communicationTimingCompleted = assessmentResults?.some((r: any) => r.assessmentType === 'communication-timing')
+  const [emotionalReactionCompleted, setEmotionalReactionCompleted] = useState(false)
+  const [communicationTimingCompleted, setCommunicationTimingCompleted] = useState(false)
+
+  useEffect(() => {
+    const loadCompletion = async () => {
+      try {
+        const [emotional, timing] = await Promise.all([
+          loadLatestAssessmentByType('attachment_style'),
+          loadLatestAssessmentByType('custom'),
+        ])
+        setEmotionalReactionCompleted(Boolean(emotional))
+        setCommunicationTimingCompleted(Boolean(timing))
+      } catch (error) {
+        console.error('Failed loading UNDERSTAND assessment completion:', error)
+      }
+    }
+
+    void loadCompletion()
+  }, [])
 
   return (
     <div className="min-h-screen bg-background p-6">

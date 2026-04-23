@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +19,9 @@ import {
 import type { AppView } from '../App'
 import type { AIMessage, Subscription } from '@/lib/types'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, subWeeks, isWithinInterval, parseISO } from 'date-fns'
+import { loadChatHistory } from '@/lib/db/ai'
+import { getCurrentSubscription } from '@/lib/db/subscriptions'
+import { getStateSnapshot } from '@/lib/db/state-snapshots'
 
 interface UsageStatsProps {
   onNavigate: (view: AppView) => void
@@ -42,11 +44,31 @@ interface WeeklyStats {
 }
 
 export function UsageStats({ onNavigate }: UsageStatsProps) {
-  const [messages] = useKV<AIMessage[]>('lovespark-ai-messages', [])
-  const [subscription] = useKV<Subscription | null>('lovespark-subscription', null)
-  const [weeklyMessageCount] = useKV<number>('lovespark-weekly-message-count', 0)
+  const [messages, setMessages] = useState<AIMessage[]>([])
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [weeklyMessageCount, setWeeklyMessageCount] = useState(0)
   const [timeRange, setTimeRange] = useState<TimeRange>('30days')
   const [selectedWeek, setSelectedWeek] = useState<number>(0)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [history, currentSubscription, weeklyCount] = await Promise.all([
+          loadChatHistory(),
+          getCurrentSubscription(),
+          getStateSnapshot<number>('weekly_message_count'),
+        ])
+
+        setMessages(history.messages)
+        setSubscription(currentSubscription)
+        setWeeklyMessageCount(weeklyCount ?? 0)
+      } catch (error) {
+        console.error('Failed loading usage stats data:', error)
+      }
+    }
+
+    void loadData()
+  }, [])
 
   const isPremium = subscription && subscription.status === 'active' && subscription.planName !== 'FREE'
 

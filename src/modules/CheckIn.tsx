@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
@@ -10,6 +9,18 @@ import type { RISScore, Insight, CheckIn as CheckInType } from '@/lib/types'
 import { updateScoreFromCheckIn } from '@/lib/ris-calculator'
 import { generateCheckInInsights, generateFollowUpQuestions } from '@/lib/ai-service'
 import { motion, AnimatePresence } from 'framer-motion'
+import { authService } from '@/lib/auth-service'
+import { loadCheckIns, saveCheckIn } from '@/lib/db/checkins'
+import { loadInsights, saveInsights } from '@/lib/db/insights'
+import { loadLatestRISScore, saveRelationshipIntelligenceScore } from '@/lib/db/assessments'
+import { saveRecommendationsFromInsights } from '@/lib/db/recommendations'
+import {
+  hasFeatureMigrationCompleted,
+  loadLegacyCheckIns,
+  loadLegacyInsights,
+  loadLegacyRIS,
+  markFeatureMigrationCompleted,
+} from '@/lib/db/migration'
 
 interface CheckInProps {
   onComplete: () => void
@@ -117,20 +128,88 @@ export function CheckIn({ onComplete }: CheckInProps) {
   const [stage, setStage] = useState<CheckInStage>('questions')
   const [currentQ, setCurrentQ] = useState(0)
   const [responses, setResponses] = useState<Record<string, number>>({})
-  const [risScore, setRisScore] = useKV<RISScore>('lovespark-ris-score', {
+  const [risScore, setRisScore] = useState<RISScore>({
     overall: 52,
     understand: 51,
     align: 53,
     elevate: 50,
     lastUpdated: new Date().toISOString(),
   })
-  const [insights, setInsights] = useKV<Insight[]>('lovespark-insights', [])
-  const [checkIns, setCheckIns] = useKV<CheckInType[]>('lovespark-check-ins', [])
+  const [insights, setInsights] = useState<Insight[]>([])
+  const [checkIns, setCheckIns] = useState<CheckInType[]>([])
   const [newInsights, setNewInsights] = useState<Insight[]>([])
   const [updatedScore, setUpdatedScore] = useState<RISScore | null>(null)
   const [allQuestions, setAllQuestions] = useState<QuestionItem[]>(checkInQuestions)
   const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false)
   const [hasLoadedFollowUps, setHasLoadedFollowUps] = useState(false)
+
+  useEffect(() => {
+    const loadData = async () => {
+      const session = authService.getSession()
+      if (!session) {
+        return
+      }
+
+      try {
+        const [dbRis, dbCheckIns, dbInsights] = await Promise.all([
+          loadLatestRISScore(),
+          loadCheckIns(),
+          loadInsights(),
+        ])
+
+        if (dbRis) {
+          setRisScore(dbRis)
+        }
+        setCheckIns(dbCheckIns)
+        setInsights(dbInsights)
+      } catch (error) {
+        console.error('Failed loading check-in data from Supabase:', error)
+      }
+
+      if (!hasFeatureMigrationCompleted('check-ins')) {
+        try {
+          const legacyCheckIns = await loadLegacyCheckIns()
+          if (legacyCheckIns?.length) {
+            for (const record of legacyCheckIns) {
+              await saveCheckIn(record)
+            }
+            setCheckIns(legacyCheckIns)
+          }
+          markFeatureMigrationCompleted('check-ins')
+        } catch (error) {
+          console.error('Failed migrating legacy check-ins:', error)
+        }
+      }
+
+      if (!hasFeatureMigrationCompleted('insights')) {
+        try {
+          const legacyInsights = await loadLegacyInsights()
+          if (legacyInsights?.length) {
+            await saveInsights(legacyInsights)
+            setInsights(legacyInsights)
+          }
+          markFeatureMigrationCompleted('insights')
+        } catch (error) {
+          console.error('Failed migrating legacy insights:', error)
+        }
+      }
+
+      if (!hasFeatureMigrationCompleted('ris')) {
+        try {
+          const legacyRis = await loadLegacyRIS(session.id)
+          if (legacyRis) {
+            await saveRelationshipIntelligenceScore({ source: 'legacy-migration' }, legacyRis)
+            setRisScore(legacyRis)
+          }
+          markFeatureMigrationCompleted('ris')
+        } catch (error) {
+          console.error('Failed migrating legacy RIS score in check-in flow:', error)
+        }
+      }
+    }
+
+    void loadData()
+  }, [])
 
   useEffect(() => {
     const loadFollowUpQuestions = async () => {
@@ -211,6 +290,18 @@ export function CheckIn({ onComplete }: CheckInProps) {
       setRisScore(newScore)
       setInsights((current) => [...generatedInsights, ...(current || [])])
       setCheckIns((current) => [...(current || []), checkInRecord])
+
+      try {
+        await saveRelationshipIntelligenceScore({
+          source: 'weekly_check_in',
+          responses: checkInResponses,
+        }, newScore)
+        await saveCheckIn(checkInRecord)
+        await saveInsights(generatedInsights)
+        await saveRecommendationsFromInsights(generatedInsights)
+      } catch (error) {
+        console.error('Failed persisting check-in results to Supabase:', error)
+      }
       
       setTimeout(() => {
         setStage('results')

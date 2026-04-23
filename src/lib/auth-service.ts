@@ -1,4 +1,5 @@
 import type { AuthUser } from './types'
+import { supabase, supabaseInitError } from './supabase'
 
 export interface RegisterData {
   email: string
@@ -20,261 +21,204 @@ export interface SocialAuthData {
 }
 
 class AuthService {
-  private readonly STORAGE_KEY = 'lovespark-auth-users'
   private readonly SESSION_KEY = 'lovespark-auth-session'
-  private readonly RESET_TOKENS_KEY = 'lovespark-reset-tokens'
 
-  private getUsers(): Record<string, { 
-    email: string
-    password?: string
-    name: string
-    provider: 'email' | 'google' | 'github'
-    providerId?: string
-    avatarUrl?: string
-  }> {
-    const stored = localStorage.getItem(this.STORAGE_KEY)
-    return stored ? JSON.parse(stored) : {}
+  constructor() {
+    if (!supabase) {
+      console.warn('[AuthService] Supabase not initialized:', supabaseInitError?.message)
+      return
+    }
+
+    // Listen for auth state changes from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('[AuthService] Auth state changed:', { hasSession: !!session, event: _event })
+      if (session?.user) {
+        const authUser = this.mapSupabaseUserToAuthUser(session.user)
+        this.setSession(authUser)
+      } else {
+        localStorage.removeItem(this.SESSION_KEY)
+      }
+    })
   }
 
-  private saveUsers(users: Record<string, { 
-    email: string
-    password?: string
-    name: string
-    provider: 'email' | 'google' | 'github'
-    providerId?: string
-    avatarUrl?: string
-  }>) {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users))
-  }
-
-  private getResetTokens(): Record<string, { 
-    email: string
-    token: string
-    expiresAt: string
-  }> {
-    const stored = localStorage.getItem(this.RESET_TOKENS_KEY)
-    return stored ? JSON.parse(stored) : {}
-  }
-
-  private saveResetTokens(tokens: Record<string, { 
-    email: string
-    token: string
-    expiresAt: string
-  }>) {
-    localStorage.setItem(this.RESET_TOKENS_KEY, JSON.stringify(tokens))
+  private mapSupabaseUserToAuthUser(user: {
+    id: string
+    email?: string
+    user_metadata?: Record<string, unknown>
+    app_metadata?: Record<string, unknown>
+    created_at?: string
+  }): AuthUser {
+    const provider = (user.app_metadata?.provider as AuthUser['provider']) || 'email'
+    return {
+      id: user.id,
+      email: user.email || '',
+      name: (user.user_metadata?.name as string) || (user.user_metadata?.full_name as string) || 'User',
+      createdAt: user.created_at || new Date().toISOString(),
+      provider,
+      avatarUrl: (user.user_metadata?.avatar_url as string) || undefined,
+    }
   }
 
   async register(data: RegisterData): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
-    const users = this.getUsers()
-    
-    if (Object.values(users).some(u => u.email.toLowerCase() === data.email.toLowerCase())) {
-      return { success: false, error: 'Email already registered' }
+    if (!supabase) {
+      const message = 'Supabase is not configured. Check your environment variables.'
+      console.error('[AuthService] Register failed:', message)
+      return { success: false, error: message }
     }
 
-    const userId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    users[userId] = {
+    console.log('[AuthService] Attempting registration for:', data.email)
+
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
-      name: data.name,
-      provider: 'email',
+      options: {
+        data: {
+          name: data.name,
+          full_name: data.name,
+        },
+      },
+    })
+
+    if (error) {
+      const errorMessage = error.message || 'Registration failed'
+      console.error('[AuthService] Registration error:', { message: errorMessage, code: error.code })
+      return { success: false, error: errorMessage }
     }
-    
-    this.saveUsers(users)
-    
-    const authUser: AuthUser = {
-      id: userId,
-      email: data.email,
-      name: data.name,
-      createdAt: new Date().toISOString(),
-      provider: 'email',
+
+    if (!signUpData.user) {
+      const message = 'Registration succeeded but no user was returned'
+      console.error('[AuthService] Registration result invalid:', signUpData)
+      return { success: false, error: message }
     }
-    
+
+    const authUser = this.mapSupabaseUserToAuthUser(signUpData.user)
     this.setSession(authUser)
-    
+    console.log('[AuthService] Registration successful:', { userId: authUser.id, email: authUser.email })
     return { success: true, user: authUser }
   }
 
   async login(data: LoginData): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
-    const users = this.getUsers()
-    
-    const userEntry = Object.entries(users).find(
-      ([_, u]) => u.email.toLowerCase() === data.email.toLowerCase() && u.password === data.password
-    )
-    
-    if (!userEntry) {
-      return { success: false, error: 'Invalid email or password' }
+    if (!supabase) {
+      const message = 'Supabase is not configured. Check your environment variables.'
+      console.error('[AuthService] Login failed:', message)
+      return { success: false, error: message }
     }
-    
-    const [userId, userData] = userEntry
-    const authUser: AuthUser = {
-      id: userId,
-      email: userData.email,
-      name: userData.name,
-      createdAt: new Date().toISOString(),
-      provider: userData.provider || 'email',
-      avatarUrl: userData.avatarUrl,
+
+    console.log('[AuthService] Attempting login for:', data.email)
+
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    })
+
+    if (error) {
+      const errorMessage = error.message || 'Login failed'
+      console.error('[AuthService] Login error:', { message: errorMessage, code: error.code })
+      return { success: false, error: errorMessage }
     }
-    
+
+    if (!signInData.user) {
+      const message = 'Login succeeded but no user was returned'
+      console.error('[AuthService] Login result invalid:', signInData)
+      return { success: false, error: message }
+    }
+
+    const authUser = this.mapSupabaseUserToAuthUser(signInData.user)
     this.setSession(authUser)
-    
+    console.log('[AuthService] Login successful:', { userId: authUser.id, email: authUser.email })
     return { success: true, user: authUser }
   }
 
   async loginWithSocial(data: SocialAuthData): Promise<{ success: boolean; error?: string; user?: AuthUser }> {
-    const users = this.getUsers()
-    
-    const existingUser = Object.entries(users).find(
-      ([_, u]) => u.provider === data.provider && u.providerId === data.providerId
-    )
-    
-    let userId: string
-    let userData: AuthUser
-    
-    if (existingUser) {
-      [userId] = existingUser
-      userData = {
-        id: userId,
-        email: data.email,
-        name: data.name,
-        createdAt: new Date().toISOString(),
-        provider: data.provider,
-        avatarUrl: data.avatarUrl,
-      }
-    } else {
-      const emailExists = Object.values(users).some(
-        u => u.email.toLowerCase() === data.email.toLowerCase()
-      )
-      
-      if (emailExists) {
-        return { 
-          success: false, 
-          error: `An account with this email already exists. Please sign in with your email and password.` 
-        }
-      }
-      
-      userId = `user-${data.provider}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      users[userId] = {
-        email: data.email,
-        name: data.name,
-        provider: data.provider,
-        providerId: data.providerId,
-        avatarUrl: data.avatarUrl,
-      }
-      
-      this.saveUsers(users)
-      
-      userData = {
-        id: userId,
-        email: data.email,
-        name: data.name,
-        createdAt: new Date().toISOString(),
-        provider: data.provider,
-        avatarUrl: data.avatarUrl,
-      }
+    const authUser: AuthUser = {
+      id: data.providerId,
+      email: data.email,
+      name: data.name,
+      createdAt: new Date().toISOString(),
+      provider: data.provider,
+      avatarUrl: data.avatarUrl,
     }
-    
-    this.setSession(userData)
-    
-    return { success: true, user: userData }
+
+    this.setSession(authUser)
+    console.log('[AuthService] Social login successful:', { userId: authUser.id, provider: data.provider })
+    return { success: true, user: authUser }
   }
 
   logout(): void {
+    console.log('[AuthService] Logging out')
+    if (supabase) {
+      void supabase.auth.signOut()
+    }
     localStorage.removeItem(this.SESSION_KEY)
   }
 
   getSession(): AuthUser | null {
     const stored = localStorage.getItem(this.SESSION_KEY)
-    return stored ? JSON.parse(stored) : null
+    const session = stored ? JSON.parse(stored) : null
+    if (session) {
+      console.log('[AuthService] Session retrieved from localStorage:', { userId: session.id })
+    }
+    return session
   }
 
   private setSession(user: AuthUser): void {
     localStorage.setItem(this.SESSION_KEY, JSON.stringify(user))
+    console.log('[AuthService] Session saved to localStorage:', { userId: user.id })
   }
 
   isAuthenticated(): boolean {
-    return this.getSession() !== null
+    const session = this.getSession()
+    return !!session
   }
 
   async requestPasswordReset(email: string): Promise<{ success: boolean; error?: string; token?: string }> {
-    const users = this.getUsers()
-    
-    const userEntry = Object.entries(users).find(
-      ([_, u]) => u.email.toLowerCase() === email.toLowerCase() && u.provider === 'email'
-    )
-    
-    if (!userEntry) {
-      return { 
-        success: false, 
-        error: 'If an account exists with this email, you will receive a password reset link.' 
+    if (!supabase) {
+      return { success: false, error: 'Supabase is not configured.' }
+    }
+
+    console.log('[AuthService] Requesting password reset for:', email)
+
+    const redirectTo = `${window.location.origin}`
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+
+    if (error) {
+      console.error('[AuthService] Password reset request failed:', error.message)
+      return {
+        success: false,
+        error: error.message,
       }
     }
-    
-    const token = `reset-${Date.now()}-${Math.random().toString(36).substr(2, 16)}`
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
-    
-    const resetTokens = this.getResetTokens()
-    resetTokens[token] = {
-      email: email.toLowerCase(),
-      token,
-      expiresAt,
-    }
-    this.saveResetTokens(resetTokens)
-    
-    return { 
-      success: true, 
-      token,
+
+    console.log('[AuthService] Password reset email sent')
+    return {
+      success: true,
+      token: 'supabase-email-sent',
     }
   }
 
   async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
-    const resetTokens = this.getResetTokens()
-    const resetData = resetTokens[token]
-    
-    if (!resetData) {
-      return { success: false, error: 'Invalid or expired reset link' }
+    if (!token) {
+      return { success: false, error: 'Invalid reset token.' }
     }
-    
-    if (new Date(resetData.expiresAt) < new Date()) {
-      delete resetTokens[token]
-      this.saveResetTokens(resetTokens)
-      return { success: false, error: 'This reset link has expired. Please request a new one.' }
+
+    if (!supabase) {
+      return { success: false, error: 'Supabase is not configured.' }
     }
-    
-    const users = this.getUsers()
-    const userEntry = Object.entries(users).find(
-      ([_, u]) => u.email.toLowerCase() === resetData.email.toLowerCase()
-    )
-    
-    if (!userEntry) {
-      return { success: false, error: 'User account not found' }
+
+    console.log('[AuthService] Resetting password')
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      console.error('[AuthService] Password reset failed:', error.message)
+      return { success: false, error: error.message }
     }
-    
-    const [userId, userData] = userEntry
-    users[userId] = {
-      ...userData,
-      password: newPassword,
-    }
-    this.saveUsers(users)
-    
-    delete resetTokens[token]
-    this.saveResetTokens(resetTokens)
-    
+
+    console.log('[AuthService] Password reset successful')
     return { success: true }
   }
 
   verifyResetToken(token: string): { valid: boolean; expired?: boolean } {
-    const resetTokens = this.getResetTokens()
-    const resetData = resetTokens[token]
-    
-    if (!resetData) {
-      return { valid: false }
-    }
-    
-    if (new Date(resetData.expiresAt) < new Date()) {
-      return { valid: false, expired: true }
-    }
-    
-    return { valid: true }
+    return { valid: Boolean(token) }
   }
 }
 

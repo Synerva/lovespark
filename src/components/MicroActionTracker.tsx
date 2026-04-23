@@ -1,10 +1,11 @@
-import { useKV } from '@github/spark/hooks'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle } from '@phosphor-icons/react'
 import type { MicroAction, MicroActionCompletion } from '@/lib/types'
 import { ProgressService } from '@/lib/progress-service'
+import { loadMicroActionCompletions, setMicroActionCompletion } from '@/lib/db/recommendations'
 
 interface MicroActionTrackerProps {
   userId: string
@@ -12,10 +13,20 @@ interface MicroActionTrackerProps {
 }
 
 export function MicroActionTracker({ userId, weekNumber }: MicroActionTrackerProps) {
-  const [completions, setCompletions] = useKV<MicroActionCompletion[]>(
-    `lovespark-micro-actions-${weekNumber}`,
-    []
-  )
+  const [completions, setCompletions] = useState<MicroActionCompletion[]>([])
+
+  useEffect(() => {
+    const loadCompletions = async () => {
+      try {
+        const loaded = await loadMicroActionCompletions(weekNumber)
+        setCompletions(loaded)
+      } catch (error) {
+        console.error('Failed loading micro-action completions:', error)
+      }
+    }
+
+    void loadCompletions()
+  }, [weekNumber])
 
   const isCompleted = (actionId: string) => {
     return (completions || []).some(
@@ -26,22 +37,23 @@ export function MicroActionTracker({ userId, weekNumber }: MicroActionTrackerPro
   const handleToggle = (action: MicroAction) => {
     const completed = isCompleted(action.id)
 
-    if (completed) {
-      setCompletions(current =>
-        (current || []).filter(c => !(c.microActionId === action.id && c.weekNumber === weekNumber))
-      )
-    } else {
-      setCompletions(current => [
-        ...(current || []),
+    setCompletions((current) => {
+      if (completed) {
+        return current.filter((c) => !(c.microActionId === action.id && c.weekNumber === weekNumber))
+      }
+      return [
+        ...current,
         {
           id: `${userId}-${action.id}-${weekNumber}-${Date.now()}`,
           userId,
           microActionId: action.id,
           weekNumber,
-          completedAt: new Date().toISOString()
-        }
-      ])
-    }
+          completedAt: new Date().toISOString(),
+        },
+      ]
+    })
+
+    void setMicroActionCompletion(action, weekNumber, !completed)
   }
 
   const completedCount = ProgressService.MICRO_ACTIONS.filter(a => isCompleted(a.id)).length
