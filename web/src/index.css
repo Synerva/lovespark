@@ -1,0 +1,171 @@
+@import 'tailwindcss';
+@import "tw-animate-css";
+
+@layer base {
+  * {
+    @apply border-border
+  }
+  
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+:root {
+  --background: oklch(0.99 0.008 30);
+  --foreground: oklch(0.18 0.03 20);
+  
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.03 20);
+  
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.03 20);
+  
+  --primary: oklch(0.52 0.28 28);
+  --primary-foreground: oklch(1 0 0);
+  
+  --secondary: oklch(0.75 0.18 340);
+  --secondary-foreground: oklch(0.98 0 0);
+  
+  --accent: oklch(0.65 0.24 60);
+  --accent-foreground: oklch(0.98 0 0);
+  
+  --muted: oklch(0.95 0.015 280);
+  --muted-foreground: oklch(0.48 0.04 260);
+  
+  --destructive: oklch(0.58 0.26 25);
+  --destructive-foreground: oklch(1 0 0);
+  
+  --success: oklch(0.62 0.20 145);
+  --success-foreground: oklch(0.98 0 0);
+  
+  --warning: oklch(0.75 0.18 80);
+  --warning-foreground: oklch(0.15 0.02 80);
+  
+  --info: oklch(0.60 0.22 240);
+  --info-foreground: oklch(0.98 0 0);
+  
+  --understand: oklch(0.65 0.22 280);
+  --understand-foreground: oklch(0.98 0 0);
+  
+  --align: oklch(0.62 0.24 340);
+  --align-foreground: oklch(0.98 0 0);
+  
+  --elevate: oklch(0.68 0.20 140);
+  --elevate-foreground: oklch(0.98 0 0);
+  
+  --border: oklch(0.90 0.02 300);
+  --input: oklch(0.90 0.02 300);
+  --ring: oklch(0.65 0.24 28);
+  
+  --radius: 0.875rem;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-understand: var(--understand);
+  --color-understand-foreground: var(--understand-foreground);
+  --color-align: var(--align);
+  --color-align-foreground: var(--align-foreground);
+  --color-elevate: var(--elevate);
+  --color-elevate-foreground: var(--elevate-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-2xl: calc(var(--radius) * 3);
+  --radius-full: 9999px;
+}
+
+@keyframes score-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes stream-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-pulse {
+  0%, 100% {
+    background-position: 0% 50%;
+    opacity: 0.8;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 1;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-score-pulse {
+  animation: score-pulse 0.6s ease-in-out;
+}
+
+.animate-stream-in {
+  animation: stream-in 0.4s ease-out;
+}
+
+.animate-gradient-pulse {
+  background-size: 200% 200%;
+  animation: gradient-pulse 3s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

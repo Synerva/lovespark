@@ -1,23 +1,70 @@
-# ✨ Welcome to Your Spark Template!
-You've just launched your brand-new Spark Template Codespace — everything’s fired up and ready for you to explore, build, and create with Spark!
+# LoveSpark Repo Layout
 
-This template is your blank canvas. It comes with a minimal setup to help you get started quickly with Spark development.
+This repository now contains two independently deployable Vite projects:
 
-🚀 What's Inside?
-- A clean, minimal Spark environment
-- Pre-configured for local development
-- Ready to scale with your ideas
-  
-🧠 What Can You Do?
+- `web/` - public marketing website (no authenticated product runtime)
+- `app/` - authenticated LoveSpark product application (Supabase/auth preserved)
 
-Right now, this is just a starting point — the perfect place to begin building and testing your Spark applications.
+## Local Development
 
-🧹 Just Exploring?
-No problem! If you were just checking things out and don’t need to keep this code:
+### Marketing Website (`web`)
 
-- Simply delete your Spark.
-- Everything will be cleaned up — no traces left behind.
+```bash
+cd web
+npm install
+npm run dev
+```
 
-📄 License For Spark Template Resources 
+Optional environment variable for CTA redirects:
 
-The Spark Template files and resources from GitHub are licensed under the terms of the MIT license, Copyright GitHub, Inc.
+- `VITE_APP_URL` - full URL of the deployed app (for example: `https://app.yourdomain.com`)
+
+If `VITE_APP_URL` is not set, CTAs default to `http://localhost:5173`.
+
+### Product App (`app`)
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+Required environment variables for app authentication/data:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+## Build
+
+```bash
+cd web
+npm run build
+
+cd ../app
+npm run build
+```
+
+## Vercel Deployment (Same GitHub Repo, Two Projects)
+
+Create two Vercel projects from this same repository:
+
+1. Project A (Marketing Website)
+- Root Directory: `web`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+
+2. Project B (Product App)
+- Root Directory: `app`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+
+Set environment variables separately per Vercel project:
+
+- `web` project: `VITE_APP_URL` (recommended)
+- `app` project: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+
+## Notes
+
+- `app` retains Supabase/auth logic and authenticated product modules.
+- `web` is public-facing and does not run product auth flows directly.
+- Keep secrets in environment variables only; do not hardcode in source.

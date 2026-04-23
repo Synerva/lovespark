@@ -1,0 +1,258 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { User, SignOut, EnvelopeSimple, Calendar, Crown, CreditCard, ChartLine, ArrowsClockwise } from '@phosphor-icons/react'
+import type { AppView } from '../App'
+import { ArrowLeft } from '@phosphor-icons/react'
+import { authService } from '@/lib/auth-service'
+import { toast } from 'sonner'
+import type { User as UserType, Subscription } from '@/lib/types'
+import { SubscriptionService } from '@/lib/subscription-service'
+import { PaddleService } from '@/lib/paddle-service'
+import { useEffect, useState } from 'react'
+import { getCurrentSubscription } from '@/lib/db/subscriptions'
+import { getOrCreateProfile } from '@/lib/db/profiles'
+
+interface ProfileSettingsProps {
+  onNavigate: (view: AppView) => void
+  onLogout: () => void
+}
+
+export function ProfileSettings({ onNavigate, onLogout }: ProfileSettingsProps) {
+  const [user, setUser] = useState<UserType | null>(null)
+  const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false)
+  
+  const authUser = authService.getSession()
+  const plan = subscription ? SubscriptionService.getPlanById(subscription.planId) : SubscriptionService.getPlanByName('FREE')
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!authUser) {
+        return
+      }
+
+      try {
+        const [profile, currentSubscription] = await Promise.all([
+          getOrCreateProfile({
+            name: authUser.name,
+            email: authUser.email,
+            avatarUrl: authUser.avatarUrl,
+          }),
+          getCurrentSubscription(),
+        ])
+
+        setUser({
+          id: profile.id,
+          name: profile.full_name || authUser.name,
+          email: profile.email || authUser.email,
+          avatarUrl: profile.avatar_url || authUser.avatarUrl,
+          mode: 'individual',
+          onboardingCompleted: profile.onboarding_completed,
+          createdAt: profile.created_at,
+        })
+        setSubscription(currentSubscription)
+      } catch (error) {
+        console.error('Failed loading profile settings data:', error)
+      }
+    }
+
+    void loadData()
+  }, [authUser?.id])
+
+  const handleLogout = () => {
+    authService.logout()
+    toast.success('Logged out successfully')
+    onLogout()
+  }
+
+  const handleManageBilling = async () => {
+    if (!subscription?.paddleSubscriptionId) {
+      toast.info('Billing management is handled through Paddle')
+      onNavigate('pricing')
+      return
+    }
+
+    setIsLoadingPortal(true)
+    try {
+      await PaddleService.updatePaymentMethod(subscription.paddleSubscriptionId)
+    } catch (error) {
+      toast.error('Unable to open billing portal. Please try again.')
+      console.error('Portal error:', error)
+    } finally {
+      setIsLoadingPortal(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-4xl mx-auto">
+        <Button variant="ghost" onClick={() => onNavigate('dashboard')} className="mb-6">
+          <ArrowLeft className="mr-2" /> Back to Dashboard
+        </Button>
+        
+        <div className="flex items-center gap-4 mb-8">
+          <div className="p-3 bg-secondary/20 rounded-lg">
+            <User size={32} weight="duotone" className="text-secondary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold" style={{ fontFamily: 'Sora, sans-serif' }}>
+              Profile & Settings
+            </h1>
+            <p className="text-muted-foreground">Manage your account and preferences</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Your personal details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <User size={20} weight="duotone" className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Name</p>
+                  <p className="font-medium">{authUser?.name || user?.name || 'User'}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <EnvelopeSimple size={20} weight="duotone" className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{authUser?.email || user?.email || 'user@lovespark.ai'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Calendar size={20} weight="duotone" className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Member Since</p>
+                  <p className="font-medium">
+                    {user?.createdAt 
+                      ? new Date(user.createdAt).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })
+                      : 'Recently'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown weight="duotone" className="text-secondary" />
+                Subscription
+              </CardTitle>
+              <CardDescription>Manage your subscription plan</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Current Plan</p>
+                <p className="text-lg font-semibold">{plan?.displayName}</p>
+              </div>
+
+              {subscription && subscription.status === 'active' && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Billing Cycle</p>
+                  <p className="font-medium capitalize">{subscription.billingCycle}</p>
+                </div>
+              )}
+
+              {subscription && subscription.renewalDate && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Next Renewal</p>
+                  <p className="font-medium">
+                    {new Date(subscription.renewalDate).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => onNavigate('pricing')}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {subscription?.planName === 'FREE' ? 'Upgrade Plan' : 'Change Plan'}
+                </Button>
+                
+                {subscription?.paddleSubscriptionId && PaddleService.isPaddleConfigured() && (
+                  <Button
+                    onClick={handleManageBilling}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isLoadingPortal}
+                  >
+                    <CreditCard className="mr-2" size={16} />
+                    {isLoadingPortal ? 'Loading...' : 'Manage Billing'}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Usage & Analytics</CardTitle>
+              <CardDescription>Track your AI Coach usage and conversation history</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => onNavigate('usage-stats')}
+                variant="outline"
+                className="w-full"
+              >
+                <ChartLine className="mr-2" size={20} />
+                View Usage Statistics
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Relationship Intelligence Profile</CardTitle>
+              <CardDescription>Update your assessment and refresh your insights</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => onNavigate('retake-onboarding')}
+                variant="outline"
+                className="w-full"
+              >
+                <ArrowsClockwise className="mr-2" size={20} />
+                Retake Assessment
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Session</CardTitle>
+              <CardDescription>Manage your login session</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={handleLogout}
+                variant="destructive"
+                className="w-full"
+              >
+                <SignOut className="mr-2" size={20} />
+                Log Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
