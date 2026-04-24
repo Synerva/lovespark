@@ -8,11 +8,7 @@ import type {
   RISScore,
   PillarType 
 } from './types'
-
-declare const spark: {
-  llmPrompt: (strings: TemplateStringsArray, ...values: any[]) => string
-  llm: (prompt: string, model?: string, jsonMode?: boolean) => Promise<string>
-}
+import { generateAIResponse } from './ai/ai-service'
 
 export class ProgressService {
   static MICRO_ACTIONS: MicroAction[] = [
@@ -83,7 +79,7 @@ export class ProgressService {
     const stage = this.determineUserStage(risScore)
     const weekNumber = this.getCurrentWeekNumber()
 
-    const prompt = spark.llmPrompt`You are a relationship intelligence assistant. Generate a weekly insight for a user.
+    const prompt = `You are a relationship intelligence assistant. Generate a weekly insight for a user.
 
 Current RIS Score: ${risScore.overall}
 - Understand: ${risScore.understand}
@@ -107,7 +103,16 @@ Return ONLY valid JSON in this format:
 }`
 
     try {
-      const response = await spark.llm(prompt, 'gpt-4o', true)
+      const response = await generateAIResponse([
+        {
+          role: 'system',
+          content: 'You are LoveSpark AI. Return valid JSON only when asked for structured output.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ])
       const insight = JSON.parse(response)
       
       return {

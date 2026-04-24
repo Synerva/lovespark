@@ -1,20 +1,22 @@
 import { useState, useEffect, useRef } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star, ShareNetwork, Copy, Check, Envelope, Link as LinkIcon, Trash, Warning, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHigh, SpeakerSlash, Pause, Play, CaretDown, ArrowsClockwise, BookmarkSimple, Star, ShareNetwork, Copy, Check, Envelope, Link as LinkIcon, Trash, Warning, MagnifyingGlass, X, CircleNotch } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
+import { getAIProviderStatus, runAIDiagnostic } from '@/lib/ai/ai-service'
+import { isAIProviderError, USER_SAFE_AI_ERROR_MESSAGE } from '@/lib/ai/ai-provider'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { FeatureGateService } from '@/lib/feature-gate-service'
 import { toast } from 'sonner'
 import { formatAIMessage } from '@/lib/message-formatter'
 import { useTextToSpeech } from '@/hooks/use-text-to-speech'
+import { useLocalStorageState } from '@/hooks/use-local-storage-state'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
@@ -40,6 +42,12 @@ interface AICoachProps {
   onNavigate: (view: AppView) => void
 }
 
+type ChatErrorState = {
+  kind: 'provider' | 'auth' | 'session'
+  message: string
+  retryInput?: string
+}
+
 export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [messages, setMessages] = useState<AIMessage[]>([])
   const [input, setInput] = useState('')
@@ -51,9 +59,9 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [speechSupported, setSpeechSupported] = useState(false)
   const [interimTranscript, setInterimTranscript] = useState('')
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null)
-  const [autoSpeak, setAutoSpeak] = useKV<boolean>('lovespark-auto-speak', false)
+  const [autoSpeak, setAutoSpeak] = useLocalStorageState<boolean>('lovespark-auto-speak', false)
   const [questionSet, setQuestionSet] = useState(0)
-  const [bookmarkedQuestions, setBookmarkedQuestions] = useKV<string[]>('lovespark-bookmarked-questions', [])
+  const [bookmarkedQuestions, setBookmarkedQuestions] = useLocalStorageState<string[]>('lovespark-bookmarked-questions', [])
   const [showBookmarks, setShowBookmarks] = useState(false)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [shareLink, setShareLink] = useState('')
@@ -64,6 +72,9 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchActive, setSearchActive] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
+  const [chatError, setChatError] = useState<ChatErrorState | null>(null)
+  const [diagnosticSummary, setDiagnosticSummary] = useState<string | null>(null)
+  const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -75,6 +86,10 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       const userId = await getAuthenticatedUserId()
       if (!userId) {
         console.log('[Chat] No authenticated user, skipping chat init')
+        setChatError({
+          kind: 'auth',
+          message: 'Your session is not available. Sign in again to use LoveSpark AI.',
+        })
         return
       }
 
@@ -233,7 +248,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight
       }
     }
-  }, [messages, isLoading])
+  }, [messages, isLoading, chatError])
 
   useEffect(() => {
     if (!isSpeaking) {
@@ -253,6 +268,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
 
   const hasSearchResults = searchQuery.trim() && filteredMessages.length > 0
   const hasNoSearchResults = searchQuery.trim() && filteredMessages.length === 0
+  const providerStatus = getAIProviderStatus()
 
   const getLowestPillar = () => {
     const scores = {
@@ -669,15 +685,27 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     }
   }
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return
+  const handleSend = async (overrideInput?: string | unknown) => {
+    const rawInput = typeof overrideInput === 'string' ? overrideInput : input
+    if (!rawInput.trim() || isLoading) return
 
-    if (!canSendMessage) {
-      toast.error('Weekly message limit reached. Upgrade to Premium for unlimited messages!')
-      return
-    }
+    try {
+      if (!canSendMessage) {
+        toast.error('Weekly message limit reached. Upgrade to Premium for unlimited messages!')
+        return
+      }
 
-    const pendingInput = input.trim()
+      const userId = await getAuthenticatedUserId()
+      if (!userId) {
+        setChatError({
+          kind: 'auth',
+          message: 'Your session is not available. Sign in again to use LoveSpark AI.',
+          retryInput: rawInput.trim(),
+        })
+        return
+      }
+
+    const pendingInput = rawInput.trim()
     const userMessage: AIMessage = {
       id: `msg-${Date.now()}`,
       role: 'user',
@@ -685,82 +713,182 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       timestamp: new Date().toISOString(),
     }
 
-    setInput('')
-    setIsLoading(true)
-    console.log('[Chat] Send message start')
-
-    let activeConversationId = conversationId
-    if (!activeConversationId) {
-      try {
-        console.log('[Chat] Conversation bootstrap start')
-        activeConversationId = await getOrCreatePrimaryConversation()
-        console.log('[Chat] Conversation bootstrap success:', activeConversationId)
-        setConversationId(activeConversationId)
-      } catch (error) {
-        console.error('[Chat] Conversation bootstrap failed:', error)
-        toast.error('Unable to open your chat history. Please try again.')
-        setIsLoading(false)
-        return
-      }
-    }
-
-    try {
-      console.log('[Chat] User message insert start')
-      await saveChatMessage(activeConversationId, userMessage)
-      console.log('[Chat] User message insert success')
+      setInput('')
+      setIsLoading(true)
+      setChatError(null)
       setMessages((prev) => [...(prev || []), userMessage])
+      console.log('[Chat] Send message start')
+
+      let activeConversationId = conversationId
+      if (!activeConversationId) {
+        try {
+          console.log('[Chat] Conversation bootstrap start')
+          activeConversationId = await getOrCreatePrimaryConversation()
+          console.log('[Chat] Conversation bootstrap success:', activeConversationId)
+          setConversationId(activeConversationId)
+        } catch (error) {
+          console.error('[Chat] Conversation bootstrap failed:', error)
+          setChatError({
+            kind: 'session',
+            message: 'Live chat is working, but history sync is unavailable right now.',
+            retryInput: pendingInput,
+          })
+        }
+      }
+
+      if (activeConversationId) {
+        console.log('[Chat] User message insert start')
+        void saveChatMessage(activeConversationId, userMessage)
+          .then(() => {
+            console.log('[Chat] User message insert success')
+          })
+          .catch((error) => {
+            console.error('Failed writing user AI message to Supabase:', error)
+            setChatError({
+              kind: 'session',
+              message: 'Live chat is working, but your history could not be saved.',
+              retryInput: pendingInput,
+            })
+          })
+      }
+
+      if (!isPremium) {
+        const nextCount = (weeklyMessageCount ?? 0) + 1
+        setWeeklyMessageCount(nextCount)
+        void upsertStateSnapshot('weekly_message_count', nextCount)
+        void upsertStateSnapshot('weekly_message_window', weekStartDate)
+      }
+
+      try {
+        const response = await new Promise<string>((resolve, reject) => {
+          const timeoutId = window.setTimeout(() => {
+            reject(new Error('AI response timed out.'))
+          }, 20000)
+
+          generateAICoachResponse(pendingInput, risScore)
+            .then((value) => {
+              window.clearTimeout(timeoutId)
+              resolve(value)
+            })
+            .catch((error) => {
+              window.clearTimeout(timeoutId)
+              reject(error)
+            })
+        })
+
+        const aiMessage: AIMessage = {
+          id: `msg-${Date.now()}-ai`,
+          role: 'assistant',
+          content: response,
+          timestamp: new Date().toISOString(),
+          context: { risScore: risScore.overall },
+        }
+
+        setMessages((prev) => [...(prev || []), aiMessage])
+
+        if (activeConversationId) {
+          console.log('[Chat] Assistant message insert start')
+          void saveChatMessage(activeConversationId, aiMessage)
+            .then(() => {
+              console.log('[Chat] Assistant message insert success')
+            })
+            .catch((error) => {
+              console.error('Failed writing assistant AI message to Supabase:', error)
+              setChatError({
+                kind: 'session',
+                message: 'AI replied, but your history could not be saved.',
+                retryInput: pendingInput,
+              })
+            })
+        }
+
+        if (autoSpeak && ttsSupported) {
+          const cleanText = response.replace(/[#*_~`]/g, '').replace(/\n+/g, ' ')
+          speak(cleanText)
+          setSpeakingMessageId(aiMessage.id)
+        }
+      } catch (error) {
+        console.error('[Chat] Failed generating or persisting assistant message:', error)
+
+        if (isAIProviderError(error)) {
+          setChatError({
+            kind: 'provider',
+            message: USER_SAFE_AI_ERROR_MESSAGE,
+            retryInput: pendingInput,
+          })
+        } else {
+          setChatError({
+            kind: 'provider',
+            message: error instanceof Error && error.message.includes('timed out')
+              ? 'The AI request took too long. Please try again.'
+              : 'I could not generate an AI response right now. Please try again.',
+            retryInput: pendingInput,
+          })
+        }
+
+        if (!isPremium) {
+          const nextCount = Math.max(0, (weeklyMessageCount ?? 0) - 1)
+          setWeeklyMessageCount(nextCount)
+          void upsertStateSnapshot('weekly_message_count', nextCount)
+        }
+      } finally {
+        setIsLoading(false)
+      }
     } catch (error) {
-      console.error('Failed writing user AI message to Supabase:', error)
-      toast.error('Unable to save your message. Please try again.')
-      setInput(pendingInput)
+      console.error('[Chat] Unexpected send failure:', error)
+      setChatError({
+        kind: 'session',
+        message: 'Something went wrong while sending your message. Please try again.',
+        retryInput: rawInput.trim(),
+      })
       setIsLoading(false)
+    }
+  }
+
+  const handleRetryLastError = () => {
+    if (!chatError?.retryInput) {
       return
     }
 
-    if (!isPremium) {
-      const nextCount = (weeklyMessageCount ?? 0) + 1
-      setWeeklyMessageCount(nextCount)
-      void upsertStateSnapshot('weekly_message_count', nextCount)
-      void upsertStateSnapshot('weekly_message_window', weekStartDate)
-    }
+    void handleSend(chatError.retryInput)
+  }
+
+  const handleRunDiagnostic = async () => {
+    setIsRunningDiagnostic(true)
+    setDiagnosticSummary(null)
 
     try {
-      const response = await generateAICoachResponse(pendingInput, risScore)
-      
-      const aiMessage: AIMessage = {
-        id: `msg-${Date.now()}-ai`,
-        role: 'assistant',
-        content: response,
-        timestamp: new Date().toISOString(),
-        context: { risScore: risScore.overall },
+      const result = await runAIDiagnostic()
+
+      if (result.ok) {
+        const summary = `Provider ${result.provider} responded successfully.`
+        setDiagnosticSummary(summary)
+        toast.success(summary)
+        console.info('[AI] Diagnostic success', {
+          provider: result.provider,
+          configuredProvider: result.configuredProvider,
+          env: result.env,
+          sparkRuntimeAvailable: result.sparkRuntimeAvailable,
+        })
+        return
       }
 
-      console.log('[Chat] Assistant message insert start')
-      await saveChatMessage(activeConversationId, aiMessage)
-      console.log('[Chat] Assistant message insert success')
-      setMessages((prev) => [...(prev || []), aiMessage])
+      const summary = result.provider
+        ? `Provider ${result.provider} failed: ${result.error}`
+        : `AI diagnostic failed: ${result.error}`
 
-      if (autoSpeak && ttsSupported) {
-        const cleanText = response.replace(/[#*_~`]/g, '').replace(/\n+/g, ' ')
-        speak(cleanText)
-        setSpeakingMessageId(aiMessage.id)
-      }
-    } catch (error) {
-      console.error('[Chat] Failed generating or persisting assistant message:', error)
-      const errorMessage: AIMessage = {
-        id: `msg-${Date.now()}-error`,
-        role: 'assistant',
-        content: "I could not complete this response because a save failed. Please retry.",
-        timestamp: new Date().toISOString(),
-      }
-      setMessages((prev) => [...(prev || []), errorMessage])
-      if (!isPremium) {
-        const nextCount = Math.max(0, (weeklyMessageCount ?? 0) - 1)
-        setWeeklyMessageCount(nextCount)
-        void upsertStateSnapshot('weekly_message_count', nextCount)
-      }
+      setDiagnosticSummary(summary)
+      toast.error('AI diagnostic failed. Check the console for details.')
+      console.error('[AI] Diagnostic failure', {
+        provider: result.provider,
+        configuredProvider: result.configuredProvider,
+        env: result.env,
+        sparkRuntimeAvailable: result.sparkRuntimeAvailable,
+        statusCode: result.statusCode,
+        error: result.error,
+      })
     } finally {
-      setIsLoading(false)
+      setIsRunningDiagnostic(false)
     }
   }
 
@@ -883,7 +1011,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
             {!isPremium && (
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
                 <span className="text-sm text-muted-foreground">
-                  {remainingMessages === -1 ? 'Unlimited' : `${remainingMessages}/5 messages this week`}
+                  {remainingMessages === -1 ? 'Unlimited' : `${remainingMessages} ${remainingMessages === 1 ? 'message' : 'messages'} remaining this week`}
                 </span>
                 {remainingMessages <= 2 && remainingMessages > 0 && (
                   <Button 
@@ -896,6 +1024,37 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                     Upgrade
                   </Button>
                 )}
+              </div>
+            )}
+
+            {import.meta.env.DEV && (
+              <div className="hidden lg:flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRunDiagnostic}
+                  disabled={isRunningDiagnostic}
+                  className="flex items-center gap-2"
+                  title="Run AI provider diagnostic"
+                >
+                  <Warning size={16} weight="bold" />
+                  <span className="text-xs">
+                    {isRunningDiagnostic ? 'Testing AI...' : `Test ${providerStatus.configuredProvider ?? 'AI'}`}
+                  </span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setWeeklyMessageCount(0)
+                    setSubscription(null)
+                    toast.success('Weekly message count reset (dev)')
+                  }}
+                  className="flex items-center gap-2 text-xs text-muted-foreground"
+                  title="Reset weekly message limit (dev only)"
+                >
+                  Reset limit
+                </Button>
               </div>
             )}
           </div>
@@ -966,6 +1125,18 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                     View Plans
                   </Button>
                 </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {import.meta.env.DEV && (
+            <Alert className="border-dashed bg-muted/40">
+              <Warning className="h-5 w-5 text-muted-foreground" weight="bold" />
+              <AlertDescription className="ml-2 text-sm text-muted-foreground">
+                Provider: <span className="font-medium text-foreground">{providerStatus.configuredProvider ?? 'not configured'}</span>.
+                OpenAI model configured: <span className="font-medium text-foreground">{providerStatus.env.hasOpenAIModel ? 'yes' : 'no'}</span>.
+                OpenAI key present: <span className="font-medium text-foreground">{providerStatus.env.hasOpenAIKey ? 'yes' : 'no'}</span>.
+                Spark runtime available: <span className="font-medium text-foreground">{providerStatus.sparkRuntimeAvailable ? 'yes' : 'no'}</span>.
               </AlertDescription>
             </Alert>
           )}
@@ -1164,7 +1335,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                   )}
                 </div>
               ))}
-              
+
               {!isLoading && (
                 <div className="space-y-3 pt-4 border-t border-border/50">
                   <div className="flex items-center justify-between">
@@ -1243,6 +1414,33 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               )}
             </>
           )}
+          {chatError && (
+            <div className="flex justify-start animate-stream-in">
+              <div className="flex-shrink-0 mt-1 mr-3">
+                <div className="w-8 h-8 rounded-full bg-destructive/15 flex items-center justify-center">
+                  <Warning size={18} weight="duotone" className="text-destructive" />
+                </div>
+              </div>
+              <div className="max-w-xl rounded-3xl rounded-tl-sm border border-destructive/30 bg-destructive/5 px-5 py-4 shadow-sm space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {chatError.kind === 'provider'
+                      ? 'AI provider error'
+                      : chatError.kind === 'auth'
+                        ? 'Session required'
+                        : 'Chat session error'}
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{chatError.message}</p>
+                </div>
+                {chatError.retryInput && (
+                  <Button variant="outline" size="sm" onClick={handleRetryLastError}>
+                    <ArrowsClockwise size={14} weight="bold" className="mr-2" />
+                    Retry
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
           {isLoading && (
             <div className="flex justify-start animate-stream-in">
               <div className="flex-shrink-0 mt-1 mr-3">
@@ -1264,6 +1462,11 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
 
       <div className="border-t border-border p-4">
         <div className="max-w-4xl mx-auto space-y-2">
+          {diagnosticSummary && import.meta.env.DEV && (
+            <div className="text-center text-xs text-muted-foreground">
+              {diagnosticSummary}
+            </div>
+          )}
           {!isPremium && remainingMessages > 0 && remainingMessages <= 2 && (
             <div className="text-center text-sm text-muted-foreground">
               {remainingMessages} {remainingMessages === 1 ? 'message' : 'messages'} remaining this week
@@ -1287,7 +1490,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !isRecording && handleSend()}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !isRecording && void handleSend()}
                 placeholder={
                   isRecording 
                     ? "Speaking... (click stop when done)" 
@@ -1295,7 +1498,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                     ? "Ask about your relationship patterns..." 
                     : "Upgrade to continue chatting..."
                 }
-                disabled={isLoading || !canSendMessage || isRecording}
+                disabled={isLoading || isRecording}
                 className={isRecording ? "pr-24" : ""}
               />
               {isRecording && (
@@ -1325,11 +1528,15 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
               </Button>
             )}
             <Button 
-              onClick={handleSend} 
-              disabled={isLoading || !input.trim() || !canSendMessage || isRecording}
-              title="Send message"
+              onClick={() => void handleSend()} 
+              disabled={isLoading || !input.trim() || isRecording}
+              title={!canSendMessage ? "Weekly limit reached" : "Send message"}
             >
-              <PaperPlaneTilt size={20} weight="fill" />
+              {isLoading ? (
+                <CircleNotch size={20} weight="bold" className="animate-spin" />
+              ) : (
+                <PaperPlaneTilt size={20} weight="fill" />
+              )}
             </Button>
           </div>
         </div>

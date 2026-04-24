@@ -1,5 +1,17 @@
 import type { RISScore, PillarType, Insight, AssessmentResponse } from './types'
+import { LOVESPARK_CHAT_SYSTEM_PROMPT, generateAIResponse } from './ai/ai-service'
 import { loadOnboardingComposite } from './db/onboarding'
+
+const LOVESPARK_ANALYST_SYSTEM_PROMPT = `You are LoveSpark AI, an empathetic relationship intelligence analyst.
+Stay practical, concise, and specific.
+When the user asks for JSON, return valid JSON only with no extra commentary.`
+
+function requestAnalystResponse(promptText: string) {
+  return generateAIResponse([
+    { role: 'system', content: LOVESPARK_ANALYST_SYSTEM_PROMPT },
+    { role: 'user', content: promptText },
+  ])
+}
 
 export async function generateCheckInInsights(
   responses: Record<string, number>,
@@ -43,7 +55,7 @@ Return a JSON object with this structure:
 }`
 
   try {
-    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const response = await requestAnalystResponse(promptText)
     const parsed = JSON.parse(response)
 
     return parsed.insights.map((insight: {
@@ -105,7 +117,7 @@ Return a JSON object with this structure:
 }`
 
   try {
-    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const response = await requestAnalystResponse(promptText)
     const parsed = JSON.parse(response)
 
     return parsed.insights.map((insight: {
@@ -181,10 +193,12 @@ User Message: ${message}
 Provide a helpful, actionable response (2-4 sentences). If relevant, suggest specific exercises, assessments, or protocols from their pillar modules.`
 
   try {
-    const response = await window.spark.llm(promptText, 'gpt-4o', false)
-    return response
+    return await generateAIResponse([
+      { role: 'system', content: LOVESPARK_CHAT_SYSTEM_PROMPT },
+      { role: 'user', content: promptText },
+    ])
   } catch (error) {
-    return "I'm processing your request. Could you rephrase that or ask about a specific area of your relationship intelligence?"
+    throw error
   }
 }
 
@@ -233,7 +247,7 @@ Return as JSON:
 }`
 
   try {
-    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const response = await requestAnalystResponse(promptText)
     const parsed = JSON.parse(response)
 
     return {
@@ -363,7 +377,7 @@ Return a JSON object with this structure:
 Generate 2-3 questions maximum. Focus on the most meaningful patterns.`
 
   try {
-    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const response = await requestAnalystResponse(promptText)
     const parsed = JSON.parse(response)
 
     return parsed.questions.map((q: any, index: number) => ({
@@ -490,7 +504,7 @@ Return as JSON:
 }`
 
   try {
-    const response = await window.spark.llm(promptText, 'gpt-4o', true)
+    const response = await requestAnalystResponse(promptText)
     const parsed = JSON.parse(response)
 
     return {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useLocalStorageState } from './use-local-storage-state'
 
 const MIN_WIDTH = 200
 const MAX_WIDTH = 400
@@ -7,8 +7,8 @@ const DEFAULT_WIDTH = 256
 const COLLAPSED_WIDTH = 80
 
 export function useSidebar() {
-  const [isCollapsed, setIsCollapsed] = useKV<boolean>('sidebar-collapsed', false)
-  const [sidebarWidth, setSidebarWidth] = useKV<number>('sidebar-width', DEFAULT_WIDTH)
+  const [isCollapsed, setIsCollapsed] = useLocalStorageState<boolean>('sidebar-collapsed', false)
+  const [sidebarWidth, setSidebarWidth] = useLocalStorageState<number>('sidebar-width', DEFAULT_WIDTH)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   
   const currentWidth = sidebarWidth ?? DEFAULT_WIDTH
@@ -27,7 +27,7 @@ export function useSidebar() {
   }
   
   return {
-    isCollapsed: isCollapsed ?? false,
+    isCollapsed,
     sidebarWidth: isCollapsed ? COLLAPSED_WIDTH : clampedWidth,
     isMobileOpen,
     setIsCollapsed,

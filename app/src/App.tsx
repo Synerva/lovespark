@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Toaster } from '@/components/ui/sonner'
 import { InitializationError } from './components/InitializationError'
 import { Dashboard } from './modules/Dashboard'

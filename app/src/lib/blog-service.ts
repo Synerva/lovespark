@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import { generateAIResponse } from './ai/ai-service'
 
 export interface BlogArticle {
   id: string
@@ -107,7 +108,7 @@ class BlogService {
   }
 
   async generateArticleWithAI(topic: string): Promise<{ title: string; summary: string; content: string; tags: string[] }> {
-    const prompt = window.spark.llmPrompt`You are a professional relationship coach and content writer for LoveSpark, a premium relationship intelligence platform.
+    const prompt = `You are a professional relationship coach and content writer for LoveSpark, a premium relationship intelligence platform.
 
 Generate a high-quality blog article about: ${topic}
 
@@ -127,7 +128,16 @@ Return the result as a valid JSON object with the following structure:
   "tags": ["tag1", "tag2", "tag3"]
 }`
 
-    const response = await window.spark.llm(prompt, 'gpt-4o', true)
+    const response = await generateAIResponse([
+      {
+        role: 'system',
+        content: 'You are LoveSpark AI. Return valid JSON only when asked for structured output.',
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ])
     const result = JSON.parse(response)
     
     return {
