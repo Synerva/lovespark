@@ -29,9 +29,17 @@ export type AppView =
 
 interface PricingProps {
   onNavigate: (view: AppView) => void
+  backButtonLabel?: string
+  showBackButton?: boolean
+  isMarketingPage?: boolean
 }
 
-export function Pricing({ onNavigate }: PricingProps) {
+export function Pricing({
+  onNavigate,
+  backButtonLabel = 'Back to Dashboard',
+  showBackButton = true,
+  isMarketingPage = false,
+}: PricingProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
   const [isProcessing, setIsProcessing] = useState(false)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
@@ -100,30 +108,44 @@ export function Pricing({ onNavigate }: PricingProps) {
       ?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const outerClasses = isMarketingPage ? 'py-12 pb-20' : 'min-h-screen bg-background'
+  const containerClasses = isMarketingPage
+    ? 'container mx-auto px-4 sm:px-6 lg:px-8'
+    : 'container max-w-7xl mx-auto px-4 py-8'
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => onNavigate('dashboard')}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2" />
-          Back to Dashboard
-        </Button>
+    <div className={outerClasses}>
+      <div className={containerClasses}>
+        {showBackButton && (
+          <Button
+            variant="ghost"
+            onClick={() => onNavigate('dashboard')}
+            className="mb-6"
+          >
+            <ArrowLeft className="mr-2" />
+            {backButtonLabel}
+          </Button>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className={isMarketingPage ? 'text-center max-w-3xl mx-auto mb-14' : 'text-center mb-16'}
         >
-          <div className="inline-flex items-center gap-2 mb-6">
-            <Sparkle className="text-secondary" size={32} weight="fill" />
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-              Choose Your Growth Path
-            </h1>
-          </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+          {isMarketingPage ? (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+              <Sparkle className="text-primary" size={20} weight="fill" />
+              <span className="text-sm font-medium text-primary">Pricing</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 mb-6">
+              <Sparkle className="text-secondary" size={32} weight="fill" />
+            </div>
+          )}
+          <h1 className={isMarketingPage ? 'text-5xl sm:text-6xl font-bold text-foreground mb-6 leading-tight' : 'text-4xl md:text-5xl font-bold text-foreground mb-6'}>
+            Choose Your Growth Path
+          </h1>
+          <p className={isMarketingPage ? 'text-xl text-muted-foreground leading-relaxed' : 'text-xl text-muted-foreground max-w-2xl mx-auto mb-8'}>
             Select the plan that best fits your relationship intelligence
             journey
           </p>
@@ -131,7 +153,7 @@ export function Pricing({ onNavigate }: PricingProps) {
             onClick={scrollToPlans}
             variant="outline"
             size="lg"
-            className="group"
+            className={isMarketingPage ? 'group mt-8' : 'group'}
           >
             View Plans
             <motion.div
@@ -144,8 +166,8 @@ export function Pricing({ onNavigate }: PricingProps) {
           </Button>
         </motion.div>
 
-        <div id="pricing-cards" className="mb-12">
-          <div className="flex items-center justify-center gap-4 mb-12">
+        <div id="pricing-cards" className={isMarketingPage ? 'mb-14' : 'mb-12'}>
+          <div className="flex items-center justify-center gap-4 mb-10">
             <span
               className={
                 billingCycle === 'monthly'
@@ -208,7 +230,7 @@ export function Pricing({ onNavigate }: PricingProps) {
           transition={{ delay: 0.5 }}
           className="max-w-3xl mx-auto text-center"
         >
-          <div className="bg-accent/10 border border-accent/20 rounded-xl p-8">
+          <div className={isMarketingPage ? 'bg-card rounded-2xl border border-border/50 p-8 md:p-10 shadow-xl' : 'bg-accent/10 border border-accent/20 rounded-xl p-8'}>
             <h3 className="text-2xl font-bold text-foreground mb-4">
               Not sure which plan is right for you?
             </h3>

@@ -136,13 +136,8 @@ export function BlogPage({ onNavigate }: BlogPageProps) {
               <h4 className="font-semibold text-foreground mb-4">Product</h4>
               <ul className="space-y-2">
                 <li>
-                  <button onClick={() => onNavigate('dashboard')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Dashboard
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => onNavigate('ai-coach')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    AI Coach
+                  <button onClick={() => onNavigate('landing')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Home
                   </button>
                 </li>
                 <li>

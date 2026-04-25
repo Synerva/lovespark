@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { House, ChatCircle, CalendarCheck, User, List, X } from '@phosphor-icons/react'
+import { House, ChatCircle, CalendarCheck, User, List, ArrowLeft, ArrowRight } from '@phosphor-icons/react'
 import type { AppView } from '../App'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -71,34 +71,10 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
       <div className="flex flex-col h-full">
         <div className={cn(
           'p-6 border-b border-border flex items-center',
-          isCollapsed ? 'justify-center flex-col' : 'justify-between'
+          isCollapsed ? 'justify-center' : 'justify-start'
         )}>
-          {!isCollapsed && (
-            <>
-              <Logo size={48} showText={true} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="h-8 w-8 flex-shrink-0"
-              >
-                <X size={20} />
-              </Button>
-            </>
-          )}
-          {isCollapsed && (
-            <>
-              <Logo size={40} showText={false} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="h-8 w-8 flex-shrink-0 mt-2"
-              >
-                <List size={20} />
-              </Button>
-            </>
-          )}
+          {!isCollapsed && <Logo size={48} showText={true} />}
+          {isCollapsed && <Logo size={40} showText={false} />}
         </div>
 
         <div className={cn(
@@ -125,6 +101,21 @@ export function DesktopSidebar({ currentView, onNavigate }: DesktopSidebarProps)
               </button>
             )
           })}
+        </div>
+
+        <div className={cn(
+          'border-t border-border p-3',
+          isCollapsed ? 'flex justify-center' : 'flex justify-end'
+        )}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-8 w-8 flex-shrink-0"
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
+          </Button>
         </div>
       </div>
       

@@ -5,6 +5,7 @@ import { Logo } from '@/components/Logo'
 import { List, X } from '@phosphor-icons/react'
 import type { AppView } from '@/App'
 import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
 
 interface PublicHeaderProps {
   currentView: AppView
@@ -15,9 +16,10 @@ export function PublicHeader({ currentView, onNavigate }: PublicHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = [
-    { label: 'Home', view: 'landing' as AppView },
-    { label: 'About', view: 'about' as AppView },
-    { label: 'Contact', view: 'contact' as AppView },
+    { label: 'Home', view: 'landing' as AppView, path: '/' },
+    { label: 'About', view: 'about' as AppView, path: '/about' },
+    { label: 'Pricing', view: 'pricing' as AppView, path: '/pricing' },
+    { label: 'Contact', view: 'contact' as AppView, path: '/contact' },
   ]
 
   const handleNavClick = (view: AppView) => {
@@ -29,18 +31,15 @@ export function PublicHeader({ currentView, onNavigate }: PublicHeaderProps) {
     <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <button 
-            onClick={() => handleNavClick('landing')} 
-            className="hover:opacity-80 transition-opacity"
-          >
+          <Link to="/" className="hover:opacity-80 transition-opacity">
             <Logo />
-          </button>
+          </Link>
 
           <nav className="hidden md:flex items-center gap-6">
             {navItems.map((item) => (
-              <button
+              <Link
                 key={item.view}
-                onClick={() => handleNavClick(item.view)}
+                to={item.path}
                 className={cn(
                   "text-sm font-medium transition-colors",
                   currentView === item.view
@@ -49,7 +48,7 @@ export function PublicHeader({ currentView, onNavigate }: PublicHeaderProps) {
                 )}
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
           </nav>
 
@@ -100,22 +99,26 @@ export function PublicHeader({ currentView, onNavigate }: PublicHeaderProps) {
               className="container mx-auto px-4 py-4 flex flex-col gap-2"
             >
               {navItems.map((item, index) => (
-                <motion.button
+                <motion.div
                   key={item.view}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2, delay: index * 0.05 }}
-                  onClick={() => handleNavClick(item.view)}
-                  className={cn(
-                    "text-left px-4 py-3 rounded-lg font-medium transition-all",
-                    currentView === item.view
-                      ? "bg-gradient-to-r from-primary/10 via-secondary/10 to-align/10 text-foreground"
-                      : "text-foreground/70 hover:bg-muted/50 hover:text-foreground"
-                  )}
                 >
-                  {item.label}
-                </motion.button>
+                  <Link
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "block text-left px-4 py-3 rounded-lg font-medium transition-all",
+                      currentView === item.view
+                        ? "bg-gradient-to-r from-primary/10 via-secondary/10 to-align/10 text-foreground"
+                        : "text-foreground/70 hover:bg-muted/50 hover:text-foreground"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                </motion.div>
               ))}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
