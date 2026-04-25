@@ -49,6 +49,18 @@ function createProvider(provider: ConfiguredAIProvider): AIProvider {
   return new SparkProvider()
 }
 
+function resolveProviderWithFallback(configuredProvider: ConfiguredAIProvider): ConfiguredAIProvider {
+  const hasOpenAIKey = Boolean(import.meta.env.VITE_OPENAI_API_KEY?.trim())
+  const sparkRuntimeAvailable = Boolean(window.spark?.llm)
+
+  if (configuredProvider === 'openai' && !hasOpenAIKey && sparkRuntimeAvailable) {
+    console.warn('[AI] Falling back to Spark provider because OpenAI is configured without an API key.')
+    return 'spark'
+  }
+
+  return configuredProvider
+}
+
 export function getAIProviderStatus(): AIProviderStatus {
   return {
     configuredProvider: getConfiguredAIProvider(),
@@ -70,7 +82,8 @@ export async function generateAIResponse(messages: AIProviderMessage[]): Promise
     throw new AIProviderError('unconfigured', diagnostic)
   }
 
-  const provider = createProvider(configuredProvider)
+  const resolvedProvider = resolveProviderWithFallback(configuredProvider)
+  const provider = createProvider(resolvedProvider)
 
   try {
     return await provider.generateResponse(messages)

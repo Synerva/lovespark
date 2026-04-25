@@ -9,7 +9,7 @@ import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHi
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
-import { isAIProviderError, USER_SAFE_AI_ERROR_MESSAGE } from '@/lib/ai/ai-provider'
+import { getAIProviderUserMessage, isAIProviderError, USER_SAFE_AI_ERROR_MESSAGE } from '@/lib/ai/ai-provider'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { FeatureGateService } from '@/lib/feature-gate-service'
 import { toast } from 'sonner'
@@ -795,7 +795,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
         if (isAIProviderError(error)) {
           setChatError({
             kind: 'provider',
-            message: USER_SAFE_AI_ERROR_MESSAGE,
+            message: getAIProviderUserMessage(error.diagnostic),
             retryInput: pendingInput,
           })
         } else {

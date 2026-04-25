@@ -109,6 +109,37 @@ export function createAIDiagnostic(providerAttempted: string, error: unknown): A
   }
 }
 
+export function getAIProviderUserMessage(diagnostic: AIDiagnostic): string {
+  const statusCode = diagnostic.statusCode
+  const normalizedMessage = diagnostic.errorMessage.toLowerCase()
+
+  if (statusCode === 401 || statusCode === 403) {
+    return 'Authentication with the AI provider failed. Verify your API key and provider permissions.'
+  }
+
+  if (statusCode === 429) {
+    return 'The AI provider is rate-limiting requests right now. Please wait a moment and retry.'
+  }
+
+  if (statusCode && statusCode >= 500) {
+    return 'The AI provider is temporarily unavailable. Please try again shortly.'
+  }
+
+  if (normalizedMessage.includes('missing') || normalizedMessage.includes('not configured')) {
+    return 'AI provider configuration is missing. Set your provider and required environment variables.'
+  }
+
+  if (
+    normalizedMessage.includes('failed to fetch') ||
+    normalizedMessage.includes('network') ||
+    normalizedMessage.includes('cors')
+  ) {
+    return 'Unable to reach the AI provider. Check your internet connection and provider network access settings.'
+  }
+
+  return USER_SAFE_AI_ERROR_MESSAGE
+}
+
 export function formatMessagesAsPrompt(messages: AIProviderMessage[]): string {
   return messages
     .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
