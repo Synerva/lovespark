@@ -1,5 +1,6 @@
 import type { AuthUser } from './types'
 import { supabase, supabaseInitError } from './supabase'
+import { APP_URL } from '@/config/domains'
 
 export interface RegisterData {
   email: string
@@ -72,6 +73,7 @@ class AuthService {
       email: data.email,
       password: data.password,
       options: {
+        emailRedirectTo: APP_URL,
         data: {
           name: data.name,
           full_name: data.name,
@@ -178,7 +180,7 @@ class AuthService {
 
     console.log('[AuthService] Requesting password reset for:', email)
 
-    const redirectTo = `${window.location.origin}`
+    const redirectTo = APP_URL
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
 
     if (error) {

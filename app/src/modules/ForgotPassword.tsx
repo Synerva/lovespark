@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Sparkle, ArrowLeft, EnvelopeSimple } from '@phosphor-icons/react'
 import { authService } from '@/lib/auth-service'
 import { toast } from 'sonner'
+import { SITE_URL } from '@/config/domains'
 
 interface ForgotPasswordProps {
   onBackToLogin: () => void
@@ -61,6 +62,12 @@ export function ForgotPassword({ onBackToLogin, onResetRequested }: ForgotPasswo
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
+          <a
+            href={SITE_URL}
+            className="inline-block text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          >
+            Back to website
+          </a>
           <div className="inline-flex items-center justify-center p-3 bg-secondary/20 rounded-full mb-4">
             <Sparkle size={40} weight="duotone" className="text-secondary" />
           </div>
