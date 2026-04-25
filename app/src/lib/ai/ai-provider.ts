@@ -137,7 +137,21 @@ export function getAIProviderUserMessage(diagnostic: AIDiagnostic): string {
     return 'Unable to reach the AI provider. Check your internet connection and provider network access settings.'
   }
 
-  return USER_SAFE_AI_ERROR_MESSAGE
+  if (normalizedMessage.includes('spark runtime is unavailable')) {
+    return 'Spark runtime is not available in this session. Switch provider to OpenAI or run inside Spark runtime.'
+  }
+
+  const sanitizedDetail = diagnostic.errorMessage
+    .replace(/sk-[A-Za-z0-9_-]{8,}/g, 'sk-***')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (sanitizedDetail && sanitizedDetail.toLowerCase() !== 'unknown ai provider error') {
+    const detailSnippet = sanitizedDetail.slice(0, 180)
+    return `AI request failed with ${diagnostic.providerAttempted}. ${detailSnippet}`
+  }
+
+  return `AI request failed with ${diagnostic.providerAttempted}. Please try again in a moment.`
 }
 
 export function formatMessagesAsPrompt(messages: AIProviderMessage[]): string {
