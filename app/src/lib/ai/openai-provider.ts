@@ -5,42 +5,29 @@ import {
 } from './ai-provider'
 
 type OpenAIChatCompletionResponse = {
-  choices?: Array<{
-    message?: {
-      content?: string | null
-    }
-  }>
+  content?: string
   error?: {
     message?: string
   }
 }
 
-const OPENAI_CHAT_COMPLETIONS_URL = 'https://api.openai.com/v1/chat/completions'
+const OPENAI_CHAT_COMPLETIONS_URL = '/api/ai/chat'
 const DEFAULT_OPENAI_MODEL = 'gpt-4o-mini'
 
 export class OpenAIProvider implements AIProvider {
   name = 'openai'
 
-  private readonly apiKey = import.meta.env.VITE_OPENAI_API_KEY?.trim()
   private readonly model = import.meta.env.VITE_OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL
 
   async generateResponse(messages: AIProviderMessage[]): Promise<string> {
-    // WARNING: VITE_OPENAI_API_KEY is only acceptable for local development.
-    // Production should call a backend or Supabase Edge Function instead.
-    if (!this.apiKey) {
-      throw new AIProviderRequestError(this.name, 'OpenAI API key is missing. Set VITE_OPENAI_API_KEY for local development.')
-    }
-
     const response = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: this.model,
         messages,
-        temperature: 0.7,
       }),
     })
 
@@ -55,15 +42,15 @@ export class OpenAIProvider implements AIProvider {
     if (!response.ok) {
       throw new AIProviderRequestError(
         this.name,
-        payload?.error?.message || `OpenAI request failed with status ${response.status}.`,
+        payload?.error?.message || `OpenAI API route failed with status ${response.status}.`,
         response.status,
       )
     }
 
-    const content = payload?.choices?.[0]?.message?.content?.trim()
+    const content = payload?.content?.trim()
 
     if (!content) {
-      throw new AIProviderRequestError(this.name, 'OpenAI returned an empty response.', response.status)
+      throw new AIProviderRequestError(this.name, 'OpenAI API route returned an empty response.', response.status)
     }
 
     return content

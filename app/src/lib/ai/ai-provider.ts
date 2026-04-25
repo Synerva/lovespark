@@ -113,6 +113,13 @@ export function getAIProviderUserMessage(diagnostic: AIDiagnostic): string {
   const statusCode = diagnostic.statusCode
   const normalizedMessage = diagnostic.errorMessage.toLowerCase()
 
+  if (
+    diagnostic.providerAttempted === 'spark' &&
+    (normalizedMessage.includes('404') || normalizedMessage.includes('page could not be found') || normalizedMessage.includes('llm request failed'))
+  ) {
+    return 'Spark AI runtime is not available on Vercel. Set VITE_AI_PROVIDER=openai and OPENAI_API_KEY in Vercel.'
+  }
+
   if (statusCode === 401 || statusCode === 403) {
     return 'Authentication with the AI provider failed. Verify your API key and provider permissions.'
   }
@@ -126,7 +133,7 @@ export function getAIProviderUserMessage(diagnostic: AIDiagnostic): string {
   }
 
   if (normalizedMessage.includes('missing') || normalizedMessage.includes('not configured')) {
-    return 'AI provider configuration is missing. Set your provider and required environment variables.'
+    return 'AI provider configuration is missing. Set VITE_AI_PROVIDER=openai and OPENAI_API_KEY in Vercel.'
   }
 
   if (

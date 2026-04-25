@@ -31,14 +31,43 @@ Avoid blame, manipulation, diagnosis, or acting like a licensed therapist.
 When confidence is low, ask one gentle clarifying question.
 Always give one practical next step when appropriate.`
 
+function getHostname(): string {
+  return window.location.hostname.toLowerCase()
+}
+
+function isVercelProductionHost(hostname: string): boolean {
+  return hostname === 'lovespark-app.synerva.tech' || hostname.endsWith('.vercel.app')
+}
+
+function isSparkRuntimeSession(hostname: string): boolean {
+  if (!window.spark?.llm) {
+    return false
+  }
+
+  // Spark runtime injects these globals; Vercel deployments should not have them.
+  const hasSparkRuntimeGlobal = Boolean((globalThis as { GITHUB_RUNTIME_PERMANENT_NAME?: string }).GITHUB_RUNTIME_PERMANENT_NAME)
+  const hasSparkKvGlobal = Boolean((globalThis as { BASE_KV_SERVICE_URL?: string }).BASE_KV_SERVICE_URL)
+
+  return !isVercelProductionHost(hostname) && (hasSparkRuntimeGlobal || hasSparkKvGlobal)
+}
+
 function getConfiguredAIProvider(): ConfiguredAIProvider | null {
   const provider = import.meta.env.VITE_AI_PROVIDER?.trim().toLowerCase()
+  const hostname = getHostname()
 
   if (provider === 'openai' || provider === 'spark') {
     return provider
   }
 
-  return null
+  if (isVercelProductionHost(hostname)) {
+    return 'openai'
+  }
+
+  if (isSparkRuntimeSession(hostname)) {
+    return 'spark'
+  }
+
+  return 'openai'
 }
 
 function createProvider(provider: ConfiguredAIProvider): AIProvider {
@@ -49,25 +78,13 @@ function createProvider(provider: ConfiguredAIProvider): AIProvider {
   return new SparkProvider()
 }
 
-function resolveProviderWithFallback(configuredProvider: ConfiguredAIProvider): ConfiguredAIProvider {
-  const hasOpenAIKey = Boolean(import.meta.env.VITE_OPENAI_API_KEY?.trim())
-  const sparkRuntimeAvailable = Boolean(window.spark?.llm)
-
-  if (configuredProvider === 'openai' && !hasOpenAIKey && sparkRuntimeAvailable) {
-    console.warn('[AI] Falling back to Spark provider because OpenAI is configured without an API key.')
-    return 'spark'
-  }
-
-  return configuredProvider
-}
-
 export function getAIProviderStatus(): AIProviderStatus {
   return {
     configuredProvider: getConfiguredAIProvider(),
     env: {
       hasProvider: Boolean(import.meta.env.VITE_AI_PROVIDER),
       hasOpenAIModel: Boolean(import.meta.env.VITE_OPENAI_MODEL),
-      hasOpenAIKey: Boolean(import.meta.env.VITE_OPENAI_API_KEY),
+      hasOpenAIKey: false,
     },
     sparkRuntimeAvailable: Boolean(window.spark?.llm),
   }
@@ -82,8 +99,7 @@ export async function generateAIResponse(messages: AIProviderMessage[]): Promise
     throw new AIProviderError('unconfigured', diagnostic)
   }
 
-  const resolvedProvider = resolveProviderWithFallback(configuredProvider)
-  const provider = createProvider(resolvedProvider)
+  const provider = createProvider(configuredProvider)
 
   try {
     return await provider.generateResponse(messages)
