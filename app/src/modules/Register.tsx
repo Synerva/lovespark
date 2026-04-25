@@ -4,10 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Sparkle, Eye, EyeSlash, GoogleLogo, GithubLogo } from '@phosphor-icons/react'
+import { Sparkle, Eye, EyeSlash } from '@phosphor-icons/react'
 import { authService } from '@/lib/auth-service'
-import { socialAuthService } from '@/lib/social-auth-service'
 import { toast } from 'sonner'
 import type { AuthUser } from '@/lib/types'
 import { SITE_URL } from '@/config/domains'
@@ -24,7 +22,6 @@ export function Register({ onRegisterSuccess, onSwitchToLogin }: RegisterProps) 
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [socialLoading, setSocialLoading] = useState<'google' | 'github' | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -83,26 +80,6 @@ export function Register({ onRegisterSuccess, onSwitchToLogin }: RegisterProps) 
       }
       
       toast.error(displayMessage)
-    }
-  }
-
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
-    setSocialLoading(provider)
-    
-    try {
-      const socialResult = provider === 'google' 
-        ? await socialAuthService.loginWithGoogle()
-        : await socialAuthService.loginWithGitHub()
-      
-      if (socialResult.success) {
-        toast.success('Redirecting to provider...')
-      } else {
-        toast.error(socialResult.error || 'Social login failed')
-      }
-    } catch (error) {
-      toast.error('Authentication failed. Please try again.')
-    } finally {
-      setSocialLoading(null)
     }
   }
 
@@ -214,63 +191,15 @@ export function Register({ onRegisterSuccess, onSwitchToLogin }: RegisterProps) 
               </Button>
             </form>
 
-            <div className="my-6 flex items-center gap-4">
-              <Separator className="flex-1" />
-              <span className="text-xs text-muted-foreground">OR CONTINUE WITH</span>
-              <Separator className="flex-1" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleSocialLogin('google')}
-                disabled={socialLoading !== null}
-                className="w-full"
-              >
-                {socialLoading === 'google' ? (
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    <span>Signing up...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <GoogleLogo size={20} weight="bold" />
-                    <span>Google</span>
-                  </div>
-                )}
-              </Button>
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleSocialLogin('github')}
-                disabled={socialLoading !== null}
-                className="w-full"
-              >
-                {socialLoading === 'github' ? (
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    <span>Signing up...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <GithubLogo size={20} weight="fill" />
-                    <span>GitHub</span>
-                  </div>
-                )}
-              </Button>
-            </div>
-
-            <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Already have an account? </span>
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Already have an account?{' '}
               <button
                 onClick={onSwitchToLogin}
                 className="text-accent hover:underline font-medium"
               >
                 Sign In
               </button>
-            </div>
+            </p>
           </CardContent>
         </Card>
       </motion.div>
