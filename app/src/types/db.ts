@@ -78,8 +78,11 @@ export interface InsightRow {
   pillar: string
   title: string
   content: string
+  reflection_question: string | null
   actionable: string | null
   read: boolean
+  module_scope: string | null
+  metadata: JsonValue | null
   created_at: string
 }
 
@@ -88,9 +91,13 @@ export interface RecommendationRow {
   user_id: string
   title: string
   description: string
+  recommendation_type: string | null
   pillar: string | null
   status: string
   source: string | null
+  module_scope: string | null
+  priority: string | null
+  linked_insight_id: string | null
   metadata: JsonValue | null
   created_at: string
   updated_at: string

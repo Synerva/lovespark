@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { PublicHeader } from '@/components/PublicHeader'
 import { Logo } from '@/components/Logo'
-import { Sparkle, PaperPlaneTilt, EnvelopeSimple, MapPin, Phone } from '@phosphor-icons/react'
+import { Sparkle, PaperPlaneTilt } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import type { AppView } from '@/App'
 
@@ -21,16 +21,46 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
     message: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const contactRecipient = 'solarius.ns@gmail.com'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    setTimeout(() => {
+    try {
+      const response = await fetch(`https://formsubmit.co/ajax/${contactRecipient}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          _subject: `LoveSpark Contact: ${formData.subject}`,
+          _template: 'table',
+          _captcha: 'false',
+        }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      const success = result?.success === true || result?.success === 'true'
+
+      if (!response.ok || !success) {
+        throw new Error(result?.message || 'Contact form request failed')
+      }
+
       toast.success('Message sent successfully! We\'ll get back to you soon.')
       setFormData({ name: '', email: '', subject: '', message: '' })
+    } catch (error) {
+      console.error('Contact submission failed:', error)
+      const message = error instanceof Error ? error.message : 'Unable to send message right now. Please try again shortly.'
+      toast.error(message)
+    } finally {
       setIsSubmitting(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -61,30 +91,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       <section className="py-12 pb-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              <div className="bg-card rounded-2xl border border-border/50 p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <EnvelopeSimple size={24} className="text-primary" weight="fill" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                <p className="text-sm text-muted-foreground">hello@lovespark.ai</p>
-              </div>
-              <div className="bg-card rounded-2xl border border-border/50 p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-4">
-                  <MapPin size={24} className="text-secondary" weight="fill" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Location</h3>
-                <p className="text-sm text-muted-foreground">San Francisco, CA</p>
-              </div>
-              <div className="bg-card rounded-2xl border border-border/50 p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-align/10 flex items-center justify-center mx-auto mb-4">
-                  <Phone size={24} className="text-align" weight="fill" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Support</h3>
-                <p className="text-sm text-muted-foreground">Available 24/7</p>
-              </div>
-            </div>
-
             <div className="bg-card rounded-3xl border border-border/50 p-8 md:p-12 shadow-xl">
               <h2 className="text-3xl font-bold text-foreground mb-6">Send us a message</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -156,7 +162,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Logo />
+                <Logo showText={false} />
                 <span className="text-lg font-semibold text-foreground">LoveSpark</span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -169,11 +175,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                 <li>
                   <button onClick={() => onNavigate('dashboard')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Dashboard
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => onNavigate('ai-coach')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    AI Coach
                   </button>
                 </li>
                 <li>

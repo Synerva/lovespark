@@ -9,7 +9,6 @@ import { PaperPlaneTilt, Robot, Lock, Sparkle, User, Microphone, Stop, SpeakerHi
 import type { AppView } from '../App'
 import type { RISScore, AIMessage, Subscription } from '@/lib/types'
 import { generateAICoachResponse } from '@/lib/ai-service'
-import { getAIProviderStatus, runAIDiagnostic } from '@/lib/ai/ai-service'
 import { isAIProviderError, USER_SAFE_AI_ERROR_MESSAGE } from '@/lib/ai/ai-provider'
 import { ArrowLeft } from '@phosphor-icons/react'
 import { FeatureGateService } from '@/lib/feature-gate-service'
@@ -73,8 +72,6 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
   const [searchActive, setSearchActive] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [chatError, setChatError] = useState<ChatErrorState | null>(null)
-  const [diagnosticSummary, setDiagnosticSummary] = useState<string | null>(null)
-  const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const finalTranscriptRef = useRef('')
@@ -85,7 +82,6 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     const loadData = async () => {
       const userId = await getAuthenticatedUserId()
       if (!userId) {
-        console.log('[Chat] No authenticated user, skipping chat init')
         setChatError({
           kind: 'auth',
           message: 'Your session is not available. Sign in again to use LoveSpark AI.',
@@ -94,11 +90,9 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       }
 
       try {
-        console.log('[Chat] Init started', { userId })
         const history = await loadChatHistory()
         setConversationId(history.conversationId)
         setMessages(history.messages)
-        console.log('[Chat] Conversation loaded', { conversationId: history.conversationId, messageCount: history.messages.length })
       } catch (error) {
         console.error('Failed to load Supabase chat history:', error)
       }
@@ -268,7 +262,6 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
 
   const hasSearchResults = searchQuery.trim() && filteredMessages.length > 0
   const hasNoSearchResults = searchQuery.trim() && filteredMessages.length === 0
-  const providerStatus = getAIProviderStatus()
 
   const getLowestPillar = () => {
     const scores = {
@@ -717,14 +710,11 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       setIsLoading(true)
       setChatError(null)
       setMessages((prev) => [...(prev || []), userMessage])
-      console.log('[Chat] Send message start')
 
       let activeConversationId = conversationId
       if (!activeConversationId) {
         try {
-          console.log('[Chat] Conversation bootstrap start')
           activeConversationId = await getOrCreatePrimaryConversation()
-          console.log('[Chat] Conversation bootstrap success:', activeConversationId)
           setConversationId(activeConversationId)
         } catch (error) {
           console.error('[Chat] Conversation bootstrap failed:', error)
@@ -737,11 +727,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       }
 
       if (activeConversationId) {
-        console.log('[Chat] User message insert start')
         void saveChatMessage(activeConversationId, userMessage)
-          .then(() => {
-            console.log('[Chat] User message insert success')
-          })
           .catch((error) => {
             console.error('Failed writing user AI message to Supabase:', error)
             setChatError({
@@ -787,11 +773,7 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
         setMessages((prev) => [...(prev || []), aiMessage])
 
         if (activeConversationId) {
-          console.log('[Chat] Assistant message insert start')
           void saveChatMessage(activeConversationId, aiMessage)
-            .then(() => {
-              console.log('[Chat] Assistant message insert success')
-            })
             .catch((error) => {
               console.error('Failed writing assistant AI message to Supabase:', error)
               setChatError({
@@ -851,45 +833,6 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
     }
 
     void handleSend(chatError.retryInput)
-  }
-
-  const handleRunDiagnostic = async () => {
-    setIsRunningDiagnostic(true)
-    setDiagnosticSummary(null)
-
-    try {
-      const result = await runAIDiagnostic()
-
-      if (result.ok) {
-        const summary = `Provider ${result.provider} responded successfully.`
-        setDiagnosticSummary(summary)
-        toast.success(summary)
-        console.info('[AI] Diagnostic success', {
-          provider: result.provider,
-          configuredProvider: result.configuredProvider,
-          env: result.env,
-          sparkRuntimeAvailable: result.sparkRuntimeAvailable,
-        })
-        return
-      }
-
-      const summary = result.provider
-        ? `Provider ${result.provider} failed: ${result.error}`
-        : `AI diagnostic failed: ${result.error}`
-
-      setDiagnosticSummary(summary)
-      toast.error('AI diagnostic failed. Check the console for details.')
-      console.error('[AI] Diagnostic failure', {
-        provider: result.provider,
-        configuredProvider: result.configuredProvider,
-        env: result.env,
-        sparkRuntimeAvailable: result.sparkRuntimeAvailable,
-        statusCode: result.statusCode,
-        error: result.error,
-      })
-    } finally {
-      setIsRunningDiagnostic(false)
-    }
   }
 
   return (
@@ -1026,37 +969,6 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                 )}
               </div>
             )}
-
-            {import.meta.env.DEV && (
-              <div className="hidden lg:flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRunDiagnostic}
-                  disabled={isRunningDiagnostic}
-                  className="flex items-center gap-2"
-                  title="Run AI provider diagnostic"
-                >
-                  <Warning size={16} weight="bold" />
-                  <span className="text-xs">
-                    {isRunningDiagnostic ? 'Testing AI...' : `Test ${providerStatus.configuredProvider ?? 'AI'}`}
-                  </span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setWeeklyMessageCount(0)
-                    setSubscription(null)
-                    toast.success('Weekly message count reset (dev)')
-                  }}
-                  className="flex items-center gap-2 text-xs text-muted-foreground"
-                  title="Reset weekly message limit (dev only)"
-                >
-                  Reset limit
-                </Button>
-              </div>
-            )}
           </div>
           </div>
           
@@ -1125,18 +1037,6 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
                     View Plans
                   </Button>
                 </div>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {import.meta.env.DEV && (
-            <Alert className="border-dashed bg-muted/40">
-              <Warning className="h-5 w-5 text-muted-foreground" weight="bold" />
-              <AlertDescription className="ml-2 text-sm text-muted-foreground">
-                Provider: <span className="font-medium text-foreground">{providerStatus.configuredProvider ?? 'not configured'}</span>.
-                OpenAI model configured: <span className="font-medium text-foreground">{providerStatus.env.hasOpenAIModel ? 'yes' : 'no'}</span>.
-                OpenAI key present: <span className="font-medium text-foreground">{providerStatus.env.hasOpenAIKey ? 'yes' : 'no'}</span>.
-                Spark runtime available: <span className="font-medium text-foreground">{providerStatus.sparkRuntimeAvailable ? 'yes' : 'no'}</span>.
               </AlertDescription>
             </Alert>
           )}
@@ -1462,11 +1362,6 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
 
       <div className="border-t border-border p-4">
         <div className="max-w-4xl mx-auto space-y-2">
-          {diagnosticSummary && import.meta.env.DEV && (
-            <div className="text-center text-xs text-muted-foreground">
-              {diagnosticSummary}
-            </div>
-          )}
           {!isPremium && remainingMessages > 0 && remainingMessages <= 2 && (
             <div className="text-center text-sm text-muted-foreground">
               {remainingMessages} {remainingMessages === 1 ? 'message' : 'messages'} remaining this week

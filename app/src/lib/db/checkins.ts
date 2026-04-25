@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { CheckIn } from '@/lib/types'
 import { requireAuthenticatedUserId } from './auth'
+import { triggerWeeklyInsightPipeline } from './weekly-insight-pipeline'
 
 export async function saveCheckIn(checkIn: CheckIn) {
   const userId = await requireAuthenticatedUserId()
@@ -23,6 +24,17 @@ export async function saveCheckIn(checkIn: CheckIn) {
     console.error('Failed saving check-in:', error)
     throw new Error('Unable to save check-in.')
   }
+
+  console.log('[WeeklyPipeline] check-in saved', {
+    userId,
+    checkInId: data.id,
+    completedAt: data.completed_at,
+  })
+
+  await triggerWeeklyInsightPipeline(userId, {
+    forceRegenerate: true,
+    source: 'weekly_check_in_completion',
+  })
 
   return data
 }

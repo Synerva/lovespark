@@ -46,7 +46,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                   We believe that relationships are the foundation of a fulfilling life, yet most people navigate them without the tools, insights, or guidance they need to truly thrive.
                 </p>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  LoveSpark transforms relationship growth from guesswork into an intelligent, personalized journey. By combining psychology-backed frameworks with cutting-edge AI, we help you understand your patterns, align with your partner, and elevate your connection—one insight at a time.
+                  LoveSpark transforms relationship growth from guesswork into a guided, personalized journey. By combining psychology-backed frameworks with cutting-edge AI, we help you understand your patterns, align with your partner, and elevate your connection—one insight at a time.
                 </p>
               </div>
               <div className="relative">
@@ -140,6 +140,47 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                 </div>
               </div>
             </div>
+
+            <div className="mt-20 grid lg:grid-cols-2 gap-12 items-start">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground mb-5">
+                  Built for Real-Life Relationships
+                </h2>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-4">
+                  Most relationship advice is either too generic or too reactive. LoveSpark takes a different path by helping you build awareness before conflict escalates. Instead of waiting for a difficult moment, you develop a stronger foundation through consistent reflection, better communication habits, and practical insight you can use every week.
+                </p>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-4">
+                  Our system combines behavioral science, attachment frameworks, and context-aware AI guidance to provide recommendations that feel relevant to your actual relationship dynamics. We focus on small, meaningful changes that compound over time, so growth feels sustainable instead of overwhelming.
+                </p>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Whether you are navigating early dating uncertainty, long-term partnership stress, or a desire for deeper emotional intimacy, LoveSpark gives you a clear structure for improvement. You get direction, not noise, and a roadmap that adapts as your relationship evolves.
+                </p>
+              </div>
+
+              <div className="bg-card rounded-3xl border border-border/50 p-8">
+                <h3 className="text-2xl font-semibold text-foreground mb-5">What You Can Expect</h3>
+                <div className="space-y-5 text-muted-foreground">
+                  <div>
+                    <h4 className="text-base font-semibold text-foreground mb-1">Clarity Over Confusion</h4>
+                    <p>
+                      Understand your emotional patterns, communication blind spots, and recurring friction points with clear, practical language.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-semibold text-foreground mb-1">Guidance You Can Apply Fast</h4>
+                    <p>
+                      Receive concrete next steps designed for everyday situations, so you can improve in the moments that matter most.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-semibold text-foreground mb-1">Progress You Can Measure</h4>
+                    <p>
+                      Track relationship health over time and see how small behavior shifts improve trust, connection, and alignment.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -170,7 +211,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Logo />
+                <Logo showText={false} />
                 <span className="text-lg font-semibold text-foreground">LoveSpark</span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -183,11 +224,6 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                 <li>
                   <button onClick={() => onNavigate('dashboard')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Dashboard
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => onNavigate('ai-coach')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    AI Coach
                   </button>
                 </li>
                 <li>

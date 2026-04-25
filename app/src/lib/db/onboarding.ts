@@ -3,6 +3,7 @@ import type { OnboardingProfile } from '@/lib/types'
 import type { OnboardingComposite } from '@/types/domain'
 import { requireAuthenticatedUserId } from './auth'
 import { setOnboardingCompleted } from './profiles'
+import { triggerWeeklyInsightPipelineSafely } from './weekly-insight-pipeline'
 
 const MODULE_SCOPE = 'lovespark'
 
@@ -179,6 +180,8 @@ export async function saveOnboardingResponse(questionKey: keyof OnboardingCompos
     questionKey,
     moduleScope: MODULE_SCOPE,
   })
+
+  await triggerWeeklyInsightPipelineSafely(userId, 'onboarding_responses_upsert_single')
 }
 
 export async function saveOnboardingComposite(answers: OnboardingComposite) {
@@ -216,6 +219,8 @@ export async function saveOnboardingComposite(answers: OnboardingComposite) {
     moduleScope: MODULE_SCOPE,
     verificationSkipped: Boolean(verificationSkipped),
   })
+
+  await triggerWeeklyInsightPipelineSafely(userId, 'onboarding_responses_upsert_composite')
 }
 
 export async function loadOnboardingComposite(): Promise<OnboardingComposite | null> {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,11 +6,10 @@ import { Badge } from '@/components/ui/badge'
 import { RISScoreRing } from '@/components/RISScoreRing'
 import { PillarProgressBar } from '@/components/PillarProgressBar'
 import { WeeklyInsightCard } from '@/components/WeeklyInsightCard'
-import { MicroActionTracker } from '@/components/MicroActionTracker'
 import { PatternAlert } from '@/components/PatternAlert'
-import { Brain, UsersThree, TrendUp, ArrowRight, ChartLine, Sparkle, ChatCircleDots } from '@phosphor-icons/react'
+import { Brain, UsersThree, TrendUp, ArrowRight, ChartLine, Sparkle, ChatCircleDots, CheckCircle, Star } from '@phosphor-icons/react'
 import type { AppView } from '../App'
-import type { RISScore, User, Subscription, ScoreHistory, WeeklyInsight, RecurringPattern, AIMessage } from '@/lib/types'
+import type { RISScore, User, Subscription, ScoreHistory, RecurringPattern, AIMessage } from '@/lib/types'
 import { FeatureGateService } from '@/lib/feature-gate-service'
 import { ProgressService } from '@/lib/progress-service'
 import { authService } from '@/lib/auth-service'
@@ -19,12 +18,26 @@ import { loadLatestRISScore } from '@/lib/db/assessments'
 import { getCurrentSubscription } from '@/lib/db/subscriptions'
 import { loadChatHistory } from '@/lib/db/ai'
 import { getStateSnapshot, upsertStateSnapshot } from '@/lib/db/state-snapshots'
+import { backfillCurrentUserWeeklyContent } from '@/lib/db/weekly-insight-pipeline'
+import {
+  loadLatestWeeklyInsight,
+  markWeeklyInsightAsRead,
+  type DashboardWeeklyInsight,
+} from '@/lib/db/insights'
+import {
+  loadRecommendations,
+  saveRecommendationFeedback,
+  updateRecommendationStatus,
+  type RecommendationFeedbackValue,
+  type DashboardRecommendation,
+} from '@/lib/db/recommendations'
 
 interface DashboardProps {
   onNavigate: (view: AppView) => void
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
+  const isDev = import.meta.env.DEV
   const [user, setUser] = useState<User | null>(null)
   const [risScore, setRisScore] = useState<RISScore>({
     overall: 52,
@@ -36,9 +49,76 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [weeklyMessageCount, setWeeklyMessageCount] = useState(0)
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([])
-  const [weeklyInsights, setWeeklyInsights] = useState<WeeklyInsight[]>([])
+  const [weeklyInsight, setWeeklyInsight] = useState<DashboardWeeklyInsight | null>(null)
+  const [weeklyInsightLoading, setWeeklyInsightLoading] = useState(true)
+  const [weeklyInsightError, setWeeklyInsightError] = useState<string | null>(null)
+  const [weeklyPlanActions, setWeeklyPlanActions] = useState<DashboardRecommendation[]>([])
+  const [weeklyPlanActionsLoading, setWeeklyPlanActionsLoading] = useState(true)
+  const [weeklyPlanActionsError, setWeeklyPlanActionsError] = useState<string | null>(null)
+  const [recommendationFeedbackById, setRecommendationFeedbackById] = useState<Record<string, RecommendationFeedbackValue>>({})
   const [recurringPatterns, setRecurringPatterns] = useState<RecurringPattern[]>([])
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([])
+
+  const loadOptionalStateSnapshot = async <T,>(key: string): Promise<T | null> => {
+    try {
+      return await getStateSnapshot<T>(key)
+    } catch (error) {
+      console.warn(`Failed loading optional state snapshot for key "${key}"`, error)
+      return null
+    }
+  }
+
+  const refreshInsightAndRecommendations = async () => {
+    setWeeklyInsightLoading(true)
+    setWeeklyPlanActionsLoading(true)
+    setWeeklyInsightError(null)
+    setWeeklyPlanActionsError(null)
+
+    const [insightResult, weeklyPlanActionsResult] = await Promise.allSettled([
+      loadLatestWeeklyInsight(),
+      loadRecommendations(),
+    ])
+
+    if (insightResult.status === 'fulfilled') {
+      setWeeklyInsight(insightResult.value)
+      setWeeklyInsightError(null)
+    } else {
+      setWeeklyInsight(null)
+      setWeeklyInsightError('Unable to load weekly insight.')
+    }
+
+    if (weeklyPlanActionsResult.status === 'fulfilled') {
+      setWeeklyPlanActions(weeklyPlanActionsResult.value)
+      setWeeklyPlanActionsError(null)
+    } else {
+      setWeeklyPlanActions([])
+      setWeeklyPlanActionsError('Unable to load recommendations.')
+    }
+
+    setWeeklyInsightLoading(false)
+    setWeeklyPlanActionsLoading(false)
+
+    console.log('[Dashboard] reloaded', {
+      weeklyInsightLoaded: insightResult.status === 'fulfilled' && Boolean(insightResult.value),
+      weeklyPlanActionsCount: weeklyPlanActionsResult.status === 'fulfilled' ? weeklyPlanActionsResult.value.length : 0,
+    })
+  }
+
+  const handleBackfillCurrentUserWeeklyContent = async () => {
+    setWeeklyInsightLoading(true)
+    setWeeklyPlanActionsLoading(true)
+
+    try {
+      await backfillCurrentUserWeeklyContent()
+      await refreshInsightAndRecommendations()
+    } catch (error) {
+      console.error('[WeeklyPipeline] manual backfill failed:', error)
+      setWeeklyInsightError('Unable to load weekly insight.')
+      setWeeklyPlanActionsError('Unable to load recommendations.')
+      setWeeklyInsightLoading(false)
+      setWeeklyPlanActionsLoading(false)
+    }
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,15 +128,22 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       }
 
       try {
-        const [profile, dbRis, currentSubscription, history, weeklyCount, scoreHistorySnapshot, weeklyInsightsSnapshot, recurringPatternsSnapshot] = await Promise.all([
+        const [
+          profile,
+          dbRis,
+          currentSubscription,
+          history,
+          weeklyCount,
+          scoreHistorySnapshot,
+          recurringPatternsSnapshot,
+        ] = await Promise.all([
           getOrCreateProfile({ name: session.name, email: session.email, avatarUrl: session.avatarUrl }),
           loadLatestRISScore(),
           getCurrentSubscription(),
           loadChatHistory(),
-          getStateSnapshot<number>('weekly_message_count'),
-          getStateSnapshot<ScoreHistory[]>('score_history'),
-          getStateSnapshot<WeeklyInsight[]>('weekly_insights'),
-          getStateSnapshot<RecurringPattern[]>('recurring_patterns'),
+          loadOptionalStateSnapshot<number>('weekly_message_count'),
+          loadOptionalStateSnapshot<ScoreHistory[]>('score_history'),
+          loadOptionalStateSnapshot<RecurringPattern[]>('recurring_patterns'),
         ])
 
         setUser({
@@ -75,10 +162,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         setAiMessages(history.messages)
         setWeeklyMessageCount(weeklyCount ?? 0)
         setScoreHistory(scoreHistorySnapshot ?? [])
-        setWeeklyInsights(weeklyInsightsSnapshot ?? [])
         setRecurringPatterns(recurringPatternsSnapshot ?? [])
+
+        await refreshInsightAndRecommendations()
       } catch (error) {
         console.error('Failed loading dashboard data from Supabase:', error)
+        setWeeklyInsightError('Unable to load weekly insight.')
+        setWeeklyPlanActionsError('Unable to load recommendations.')
+      } finally {
+        setWeeklyInsightLoading(false)
+        setWeeklyPlanActionsLoading(false)
       }
     }
 
@@ -98,8 +191,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const weekNumber = ProgressService.getCurrentWeekNumber()
   const currentStage = ProgressService.determineUserStage(currentRisScore)
-
-  const currentWeekInsight = (weeklyInsights || []).find(i => i.weekNumber === weekNumber)
   const unacknowledgedPatterns = (recurringPatterns || []).filter(p => !p.acknowledged)
 
 
@@ -122,17 +213,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       void upsertStateSnapshot('score_history', [...(scoreHistory || []), newHistory])
     }
 
-    if (!(weeklyInsights || []).some((i: WeeklyInsight) => i.weekNumber === weekNumber)) {
-      ProgressService.generateInsight(user.id, currentRisScore, aiMessages || []).then(insight => {
-        const fullInsight: WeeklyInsight = {
-          ...insight as WeeklyInsight,
-          id: `insight-${weekNumber}-${Date.now()}`
-        }
-        setWeeklyInsights((current) => [...(current || []), fullInsight])
-        void upsertStateSnapshot('weekly_insights', [...(weeklyInsights || []), fullInsight])
-      })
-    }
-
     const detectedPatterns = ProgressService.detectRecurringPatterns(aiMessages || [])
     for (const detected of detectedPatterns) {
       if (!(recurringPatterns || []).some((p: RecurringPattern) => p.pattern === detected.pattern)) {
@@ -153,18 +233,105 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     }
   }, [user?.id, weekNumber])
 
-  const handleMarkInsightRead = () => {
-    if (currentWeekInsight) {
-      setWeeklyInsights((current) =>
-        (current || []).map((i: WeeklyInsight) => i.id === currentWeekInsight.id ? { ...i, read: true } : i)
-      )
-      void upsertStateSnapshot(
-        'weekly_insights',
-        (weeklyInsights || []).map((i: WeeklyInsight) =>
-          i.id === currentWeekInsight.id ? { ...i, read: true } : i
-        )
-      )
+  const handleMarkInsightRead = async () => {
+    if (!weeklyInsight) return
+    try {
+      await markWeeklyInsightAsRead(weeklyInsight.id)
+      setWeeklyInsight((current) => (current ? { ...current, read: true } : current))
+    } catch (error) {
+      console.error('Failed marking weekly insight as read:', error)
     }
+  }
+
+  const handleUpdateRecommendationStatus = async (recommendationId: string, status: string) => {
+    try {
+      await updateRecommendationStatus(recommendationId, status)
+      await refreshInsightAndRecommendations()
+    } catch (error) {
+      console.error('Failed updating recommendation status:', error)
+    }
+  }
+
+  const handleSaveRecommendationFeedback = async (
+    recommendationId: string,
+    feedback: RecommendationFeedbackValue
+  ) => {
+    try {
+      await saveRecommendationFeedback(recommendationId, feedback)
+      setRecommendationFeedbackById((current) => ({
+        ...current,
+        [recommendationId]: feedback,
+      }))
+    } catch (error) {
+      console.error('Failed saving recommendation feedback:', error)
+    }
+  }
+
+  const weeklySummaryFallback = 'This week, focus on improving communication clarity and emotional timing.'
+  const weeklyPlanSummary = useMemo(() => {
+    const insightText = weeklyInsight?.content?.trim()
+    if (!insightText) {
+      return weeklySummaryFallback
+    }
+
+    const focusMatch = insightText.match(/(?:opportunity is to improve|focus on improving)\s+([^.]*)/i)
+    if (focusMatch?.[1]) {
+      return `This week, focus on improving ${focusMatch[1].trim()}.`
+    }
+
+    return weeklySummaryFallback
+  }, [weeklyInsight?.content])
+
+  const sortedRecommendations = useMemo(() => {
+    const statusRank = (status: string) => {
+      const normalized = String(status).toLowerCase()
+      if (normalized === 'pending') return 0
+      if (normalized === 'completed') return 2
+      return 1
+    }
+
+    return [...weeklyPlanActions].sort((a, b) => {
+      const statusDiff = statusRank(a.status) - statusRank(b.status)
+      if (statusDiff !== 0) {
+        return statusDiff
+      }
+
+      const createdAtA = Date.parse(a.createdAt)
+      const createdAtB = Date.parse(b.createdAt)
+      return createdAtB - createdAtA
+    })
+  }, [weeklyPlanActions])
+
+  const completedRecommendationsCount = useMemo(
+    () => weeklyPlanActions.filter((recommendation) => String(recommendation.status).toLowerCase() === 'completed').length,
+    [weeklyPlanActions]
+  )
+  const totalRecommendationsCount = weeklyPlanActions.length
+  const completionPercent = totalRecommendationsCount > 0
+    ? Math.round((completedRecommendationsCount / totalRecommendationsCount) * 100)
+    : 0
+
+  const firstPendingRecommendationId = useMemo(
+    () => sortedRecommendations.find((recommendation) => String(recommendation.status).toLowerCase() === 'pending')?.id,
+    [sortedRecommendations]
+  )
+
+  const getRecommendationIcon = (recommendation: DashboardRecommendation) => {
+    const typeText = `${recommendation.recommendationType ?? ''} ${recommendation.title ?? ''}`.toLowerCase()
+
+    if (typeText.includes('align') || typeText.includes('communication')) {
+      return <UsersThree size={18} className="text-align" weight="duotone" />
+    }
+
+    if (typeText.includes('understand') || typeText.includes('emotion')) {
+      return <Brain size={18} className="text-understand" weight="duotone" />
+    }
+
+    if (typeText.includes('elevate') || typeText.includes('habit') || typeText.includes('ritual')) {
+      return <TrendUp size={18} className="text-elevate" weight="duotone" />
+    }
+
+    return <Sparkle size={18} className="text-primary" weight="duotone" />
   }
 
   const handleAcknowledgePattern = (patternId: string) => {
@@ -191,6 +358,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               Your Relationship Intelligence Dashboard
             </p>
           </div>
+          {isDev && (
+            <Button variant="outline" onClick={() => { void handleBackfillCurrentUserWeeklyContent() }}>
+              Backfill Weekly Content
+            </Button>
+          )}
         </header>
 
         {!isPremium && (
@@ -301,31 +473,174 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </motion.div>
         </div>
 
-        {currentWeekInsight && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <WeeklyInsightCard 
-              insight={currentWeekInsight}
-              onMarkRead={handleMarkInsightRead}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          {weeklyInsightLoading ? (
+            <Card className="shadow-md border-accent/30 bg-gradient-to-br from-accent/5 to-transparent">
+              <CardContent className="p-6 text-sm text-muted-foreground">
+                Loading weekly insight...
+              </CardContent>
+            </Card>
+          ) : weeklyInsightError ? (
+            <Card className="shadow-md border-destructive/30">
+              <CardContent className="p-6 text-sm text-destructive">
+                {weeklyInsightError}
+              </CardContent>
+            </Card>
+          ) : weeklyInsight ? (
+            <WeeklyInsightCard
+              insight={weeklyInsight}
+              onMarkRead={() => { void handleMarkInsightRead() }}
             />
-          </motion.div>
-        )}
+          ) : (
+            <Card className="shadow-md border-accent/30 bg-gradient-to-br from-accent/5 to-transparent">
+              <CardHeader>
+                <CardTitle className="text-lg">Weekly Insight</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Complete your weekly check-in to unlock your next weekly insight.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </motion.div>
 
-        {user?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 }}
-          >
-            <MicroActionTracker 
-              userId={user.id}
-              weekNumber={weekNumber}
-            />
-          </motion.div>
-        )}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle className="text-lg">Your Weekly Plan</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="rounded-lg border border-accent/30 bg-accent/5 p-3">
+                <p className="text-sm text-muted-foreground">{weeklyPlanSummary}</p>
+              </div>
+
+              {!weeklyPlanActionsLoading && !weeklyPlanActionsError && totalRecommendationsCount > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">
+                    Weekly Progress: {completedRecommendationsCount} / {totalRecommendationsCount} completed
+                  </p>
+                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${completionPercent}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {weeklyPlanActionsLoading && (
+                <p className="text-sm text-muted-foreground">Loading recommendations...</p>
+              )}
+
+              {!weeklyPlanActionsLoading && weeklyPlanActionsError && (
+                <p className="text-sm text-destructive">{weeklyPlanActionsError}</p>
+              )}
+
+              {!weeklyPlanActionsLoading && !weeklyPlanActionsError && weeklyPlanActions.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Your personalized weekly plan will appear after your check-in.
+                </p>
+              )}
+
+              {!weeklyPlanActionsLoading && !weeklyPlanActionsError && sortedRecommendations.map((recommendation) => {
+                const isCompleted = String(recommendation.status).toLowerCase() === 'completed'
+                const selectedFeedback = recommendationFeedbackById[recommendation.id]
+                const isTodaysFocus = recommendation.id === firstPendingRecommendationId
+
+                return (
+                  <div key={recommendation.id} className="p-3 rounded-lg border border-border">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5">{getRecommendationIcon(recommendation)}</div>
+                        <div>
+                          <p className="text-sm font-medium">{recommendation.title}</p>
+                          {recommendation.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{recommendation.description}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-2">
+                            <span className="font-medium text-foreground/80">Why this matters:</span>{' '}
+                            {recommendation.whyThis ?? 'Small consistent steps help build trust, safety, and connection over time.'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Estimated time: {recommendation.estimatedTime ?? '2-3 minutes'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {isTodaysFocus && (
+                        <Badge variant="outline" className="bg-primary/5 border-primary/30 text-primary">
+                          <Star size={12} className="mr-1" weight="fill" />
+                          Today's focus
+                        </Badge>
+                      )}
+                    </div>
+
+                    {!isCompleted && (
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { void handleUpdateRecommendationStatus(recommendation.id, 'completed') }}
+                        >
+                          Mark as Done
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => { void handleUpdateRecommendationStatus(recommendation.id, 'dismissed') }}
+                        >
+                          Skip
+                        </Button>
+                      </div>
+                    )}
+
+                    {isCompleted && (
+                      <div className="mt-3 space-y-2">
+                        <div className="rounded-md border border-success/30 bg-success/10 p-2 text-sm text-success flex items-center gap-2">
+                          <CheckCircle size={16} weight="fill" />
+                          <span>Nice — small actions like this improve connection over time.</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant={selectedFeedback === 'helpful' ? 'default' : 'outline'}
+                            onClick={() => { void handleSaveRecommendationFeedback(recommendation.id, 'helpful') }}
+                          >
+                            👍 Helpful
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={selectedFeedback === 'neutral' ? 'default' : 'outline'}
+                            onClick={() => { void handleSaveRecommendationFeedback(recommendation.id, 'neutral') }}
+                          >
+                            😐 Neutral
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={selectedFeedback === 'not_helpful' ? 'default' : 'outline'}
+                            onClick={() => { void handleSaveRecommendationFeedback(recommendation.id, 'not_helpful') }}
+                          >
+                            👎 Not helpful
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {unacknowledgedPatterns.length > 0 && (
           <div className="space-y-4">

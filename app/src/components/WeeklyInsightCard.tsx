@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Lightbulb, Sparkle, Check } from '@phosphor-icons/react'
-import type { WeeklyInsight } from '@/lib/types'
+import type { DashboardWeeklyInsight } from '@/lib/db/insights'
 
 interface WeeklyInsightCardProps {
-  insight: WeeklyInsight
+  insight: DashboardWeeklyInsight
   onMarkRead: () => void
 }
 
@@ -46,28 +46,38 @@ export function WeeklyInsightCard({ insight, onMarkRead }: WeeklyInsightCardProp
             <div className="flex items-start gap-2">
               <Lightbulb size={18} className="text-accent mt-0.5 flex-shrink-0" weight="fill" />
               <div>
-                <p className="text-sm font-medium text-foreground/80">Pattern Observation</p>
-                <p className="text-sm text-muted-foreground">{insight.patternObservation}</p>
+                <p className="text-sm font-medium text-foreground/80">{insight.title}</p>
+                <p className="text-sm text-muted-foreground">{insight.content}</p>
               </div>
             </div>
           </div>
 
-          <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-start gap-2">
-              <Check size={18} className="text-success mt-0.5 flex-shrink-0" weight="bold" />
-              <div>
-                <p className="text-sm font-medium text-foreground/80">Micro-Action</p>
-                <p className="text-sm text-muted-foreground">{insight.microAction}</p>
+          {insight.reflectionQuestion && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground/80">Reflection Question</p>
+              <p className="text-sm italic text-muted-foreground border-l-2 border-accent pl-3">
+                {insight.reflectionQuestion}
+              </p>
+            </div>
+          )}
+
+          {insight.whyThis && (
+            <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Check size={18} className="text-success mt-0.5 flex-shrink-0" weight="bold" />
+                <div>
+                  <p className="text-sm font-medium text-foreground/80">Why This</p>
+                  <p className="text-sm text-muted-foreground">{insight.whyThis}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground/80">Reflection Question</p>
-            <p className="text-sm italic text-muted-foreground border-l-2 border-accent pl-3">
-              {insight.reflectionQuestion}
+          {typeof insight.confidence === 'number' && (
+            <p className="text-xs text-muted-foreground">
+              Confidence: {Math.round(insight.confidence <= 1 ? insight.confidence * 100 : insight.confidence)}%
             </p>
-          </div>
+          )}
         </motion.div>
 
         {!isRead && (

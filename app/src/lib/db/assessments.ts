@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import type { RISScore } from '@/lib/types'
 import type { AssessmentSaveInput } from '@/types/domain'
 import { requireAuthenticatedUserId } from './auth'
+import { triggerWeeklyInsightPipelineSafely } from './weekly-insight-pipeline'
 
 const LEGACY_TO_CANONICAL_ASSESSMENT_TYPE: Record<string, AssessmentSaveInput['type']> = {
   relationship_intelligence_score: 'relationship_intelligence_score',
@@ -87,6 +88,8 @@ export async function saveAssessment(input: AssessmentSaveInput) {
     assessmentType,
     assessmentId: data.id,
   })
+
+  await triggerWeeklyInsightPipelineSafely(userId, 'assessments_insert')
 
   return data
 }

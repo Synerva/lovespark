@@ -298,7 +298,14 @@ export function CheckIn({ onComplete }: CheckInProps) {
         }, newScore)
         await saveCheckIn(checkInRecord)
         await saveInsights(generatedInsights)
-        await saveRecommendationsFromInsights(generatedInsights)
+        const recommendationsInserted = await saveRecommendationsFromInsights(generatedInsights)
+
+        console.log('[WeeklyPipeline] check-in completion persisted', {
+          risSaved: true,
+          checkInSaved: true,
+          insightsSaved: generatedInsights.length,
+          recommendationsInserted,
+        })
       } catch (error) {
         console.error('Failed persisting check-in results to Supabase:', error)
       }

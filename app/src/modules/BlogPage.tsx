@@ -141,11 +141,6 @@ export function BlogPage({ onNavigate }: BlogPageProps) {
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => onNavigate('ai-coach')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    AI Coach
-                  </button>
-                </li>
-                <li>
                   <button onClick={() => onNavigate('pricing')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Pricing
                   </button>
