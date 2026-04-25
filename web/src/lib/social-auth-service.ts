@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { APP_URL } from '@/config/domains'
 
 export interface SocialProfile {
   id: string
@@ -12,7 +13,7 @@ class SocialAuthService {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin },
+        options: { redirectTo: APP_URL },
       })
       if (error) {
         return { success: false, error: error.message }
@@ -27,7 +28,7 @@ class SocialAuthService {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
-        options: { redirectTo: window.location.origin },
+        options: { redirectTo: APP_URL },
       })
       if (error) {
         return { success: false, error: error.message }

@@ -1,0 +1,32 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/app",
+      "destination": "https://lovespark-app.synerva.tech",
+      "permanent": true
+    },
+    {
+      "source": "/login",
+      "destination": "https://lovespark-app.synerva.tech/login",
+      "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "https://lovespark-app.synerva.tech/signup",
+      "permanent": true
+    },
+    {
+      "source": "/dashboard",
+      "destination": "https://lovespark-app.synerva.tech/dashboard",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
