@@ -184,7 +184,8 @@ Provide a helpful, actionable response (2-4 sentences). If relevant, suggest spe
     const response = await window.spark.llm(promptText, 'gpt-4o', false)
     return response
   } catch (error) {
-    return "I'm processing your request. Could you rephrase that or ask about a specific area of your relationship intelligence?"
+    const errorMessage = error instanceof Error ? error.message : 'Unknown Spark AI error.'
+    throw new Error(`AI provider request failed: ${errorMessage}`)
   }
 }
 

@@ -28,77 +28,72 @@ export function PricingCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.9 }}
-      animate={{ 
-        opacity: 1, 
-        y: 0, 
-        scale: plan.isPopular ? 1.05 : 1 
-      }}
-      transition={{ 
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
         type: 'spring',
-        stiffness: 280,
-        damping: 22,
-        mass: 0.9
+        stiffness: 260,
+        damping: 24,
+        mass: 0.9,
       }}
-      whileHover={{ 
-        scale: plan.isPopular ? 1.08 : 1.05,
+      whileHover={{
         y: -8,
-        transition: { 
-          type: 'spring', 
-          stiffness: 350, 
-          damping: 15 
-        }
+        transition: {
+          type: 'spring',
+          stiffness: 320,
+          damping: 20,
+        },
       }}
-      whileTap={{ 
-        scale: plan.isPopular ? 1.03 : 1,
-        transition: { 
-          type: 'spring', 
-          stiffness: 500, 
-          damping: 20 
-        }
+      whileTap={{
+        y: -2,
+        transition: {
+          type: 'spring',
+          stiffness: 420,
+          damping: 28,
+        },
       }}
     >
       <Card
         className={cn(
-          'relative overflow-hidden group',
+          'relative flex h-full flex-col overflow-hidden rounded-[28px] border bg-card/90 shadow-[0_28px_80px_-48px_rgba(170,76,105,0.45)] backdrop-blur-sm transition-all duration-300',
           plan.isPopular
-            ? 'border-accent shadow-lg bg-gradient-to-b from-card to-accent/5'
-            : 'border-border'
+            ? 'border-primary/25 bg-gradient-to-b from-white via-primary/5 to-secondary/10 shadow-[0_32px_90px_-44px_rgba(209,73,118,0.55)]'
+            : 'border-primary/10'
         )}
       >
       {plan.isPopular && (
         <>
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-secondary/15 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-shift" />
-          <div className="absolute top-0 right-0 bg-secondary text-secondary-foreground text-xs font-semibold px-4 py-1.5 rounded-bl-lg z-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-align/10 opacity-80" />
+          <div className="absolute right-6 top-6 z-10 rounded-full bg-gradient-to-r from-primary via-secondary to-align px-4 py-1.5 text-xs font-semibold tracking-[0.18em] text-primary-foreground shadow-[0_18px_40px_-20px_rgba(209,73,118,0.85)]">
             MOST POPULAR
           </div>
         </>
       )}
       
       {!plan.isPopular && (
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-primary/5 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/6 via-secondary/6 to-align/6 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       )}
 
-      <div className="p-8">
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-foreground mb-2">
+      <div className="relative flex h-full flex-col p-8 md:p-9">
+        <div className="mb-8">
+          <h3 className="mb-3 text-2xl font-bold text-foreground md:text-3xl">
             {plan.displayName}
           </h3>
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-bold text-foreground">
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-bold leading-none text-foreground md:text-5xl">
               €{displayPrice}
             </span>
             {!isFree && (
-              <span className="text-muted-foreground">/month</span>
+              <span className="pb-1 text-sm font-medium text-muted-foreground">/month</span>
             )}
           </div>
           {billingCycle === 'yearly' && !isFree && savings > 0 && (
-            <p className="text-sm text-secondary font-medium mt-1">
+            <p className="mt-2 text-sm font-medium text-primary">
               Save {savings}% with yearly billing
             </p>
           )}
           {billingCycle === 'yearly' && !isFree && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-1 text-xs text-muted-foreground">
               €{price} billed annually
             </p>
           )}
@@ -108,10 +103,12 @@ export function PricingCard({
           onClick={onSelect}
           disabled={isCurrentPlan || isLoading}
           className={cn(
-            'w-full mb-6',
+            'mb-8 h-auto w-full rounded-full px-8 py-6 text-base font-semibold shadow-[0_24px_50px_-28px_rgba(209,73,118,0.9)] transition-opacity',
             plan.isPopular
-              ? 'bg-accent hover:bg-accent/90 text-accent-foreground'
-              : ''
+              ? 'bg-gradient-to-r from-primary via-secondary to-align text-primary-foreground hover:opacity-90'
+              : isCurrentPlan
+              ? 'bg-primary/10 text-primary hover:bg-primary/10'
+              : 'bg-gradient-to-r from-primary via-secondary to-align text-primary-foreground hover:opacity-90'
           )}
           size="lg"
         >
@@ -124,14 +121,14 @@ export function PricingCard({
             : 'Upgrade Now'}
         </Button>
 
-        <div className="space-y-3">
+        <div className="mt-auto space-y-4">
           {plan.features.map((feature, index) => (
             <div key={index} className="flex items-start gap-3">
               <Check
-                className="text-accent flex-shrink-0 mt-0.5"
+                className="mt-0.5 flex-shrink-0 text-primary"
                 weight="bold"
               />
-              <span className="text-sm text-foreground">{feature}</span>
+              <span className="text-sm leading-6 text-foreground/88">{feature}</span>
             </div>
           ))}
         </div>

@@ -1,31 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import { PricingCard } from '@/components/PricingCard'
+import { PublicHeader } from '@/components/PublicHeader'
 import { ArrowLeft, Sparkle } from '@phosphor-icons/react'
 import { SubscriptionService } from '@/lib/subscription-service'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
+import type { AppView } from '@/App'
 import type { Subscription, BillingCycle } from '@/lib/types'
 import { getCurrentSubscription, upsertSubscription } from '@/lib/db/subscriptions'
 import { authService } from '@/lib/auth-service'
-import { useEffect } from 'react'
-
-export type AppView =
-  | 'login'
-  | 'register'
-  | 'forgot-password'
-  | 'reset-password'
-  | 'onboarding'
-  | 'dashboard'
-  | 'ai-coach'
-  | 'check-in'
-  | 'check-in-history'
-  | 'understand'
-  | 'align'
-  | 'elevate'
-  | 'profile'
-  | 'pricing'
 
 interface PricingProps {
   onNavigate: (view: AppView) => void
@@ -50,6 +34,7 @@ export function Pricing({ onNavigate }: PricingProps) {
   }, [])
 
   const plans = SubscriptionService.getPlans()
+  const isAuthenticated = authService.isAuthenticated()
 
   const handleSelectPlan = async (planId: string) => {
     const user = authService.getSession()
@@ -101,93 +86,104 @@ export function Pricing({ onNavigate }: PricingProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => onNavigate('dashboard')}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2" />
-          Back to Dashboard
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <PublicHeader currentView="pricing" onNavigate={onNavigate} />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <div className="inline-flex items-center gap-2 mb-6">
-            <Sparkle className="text-secondary" size={32} weight="fill" />
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-              Choose Your Growth Path
-            </h1>
-          </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Select the plan that best fits your relationship intelligence
-            journey
-          </p>
-          <Button
-            onClick={scrollToPlans}
-            variant="outline"
-            size="lg"
-            className="group"
+      <section className="relative overflow-hidden py-20 sm:py-32">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-align/5" />
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+          {isAuthenticated && (
+            <div className="mb-8 flex justify-start">
+              <Button
+                variant="ghost"
+                onClick={() => onNavigate('dashboard')}
+                className="rounded-full border border-primary/10 bg-card/80 px-5 text-sm backdrop-blur-sm hover:bg-card"
+              >
+                <ArrowLeft className="mr-2" />
+                Back to Dashboard
+              </Button>
+            </div>
+          )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto max-w-4xl text-center"
           >
-            View Plans
-            <motion.div
-              animate={{ y: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="ml-2"
-            >
-              ↓
-            </motion.div>
-          </Button>
-        </motion.div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
+              <Sparkle className="text-primary" size={20} weight="fill" />
+              <span className="text-sm font-medium text-primary">
+                AI-Powered Relationship Intelligence
+              </span>
+            </div>
+            <h1 className="mb-6 text-5xl font-bold leading-tight text-foreground sm:text-6xl lg:text-7xl">
+              Choose your{' '}
+              <span className="bg-gradient-to-r from-primary via-secondary to-align bg-clip-text text-transparent">
+                growth path
+              </span>
+            </h1>
+            <p className="mx-auto mb-10 max-w-2xl text-xl leading-relaxed text-muted-foreground">
+              Select the plan that best fits your relationship intelligence journey.
+            </p>
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Button
+                size="lg"
+                onClick={scrollToPlans}
+                className="bg-gradient-to-r from-primary via-secondary to-align px-8 py-6 text-base shadow-[0_24px_60px_-30px_rgba(209,73,118,0.95)] transition-opacity hover:opacity-90"
+              >
+                View Plans
+                <Sparkle className="ml-2" weight="fill" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-        <div id="pricing-cards" className="mb-12">
-          <div className="flex items-center justify-center gap-4 mb-12">
-            <span
-              className={
-                billingCycle === 'monthly'
-                  ? 'text-foreground font-semibold'
-                  : 'text-muted-foreground'
-              }
-            >
-              Monthly
-            </span>
-            <Switch
-              checked={billingCycle === 'yearly'}
-              onCheckedChange={(checked) =>
-                setBillingCycle(checked ? 'yearly' : 'monthly')
-              }
-            />
-            <span
-              className={
-                billingCycle === 'yearly'
-                  ? 'text-foreground font-semibold'
-                  : 'text-muted-foreground'
-              }
-            >
-              Yearly
-            </span>
-            {billingCycle === 'yearly' && (
+      <section id="pricing-cards" className="pb-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-12 flex max-w-6xl justify-center">
+            <div className="inline-flex flex-wrap items-center justify-center gap-3 rounded-full border border-primary/10 bg-card/80 p-2 shadow-[0_24px_60px_-40px_rgba(170,76,105,0.45)] backdrop-blur-sm">
+              <Button
+                type="button"
+                onClick={() => setBillingCycle('monthly')}
+                className={
+                  billingCycle === 'monthly'
+                    ? 'rounded-full bg-gradient-to-r from-primary via-secondary to-align px-5 text-primary-foreground hover:opacity-90'
+                    : 'rounded-full bg-transparent px-5 text-foreground/70 shadow-none hover:bg-primary/5 hover:text-foreground'
+                }
+              >
+                Monthly
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setBillingCycle('yearly')}
+                className={
+                  billingCycle === 'yearly'
+                    ? 'rounded-full bg-gradient-to-r from-primary via-secondary to-align px-5 text-primary-foreground hover:opacity-90'
+                    : 'rounded-full bg-transparent px-5 text-foreground/70 shadow-none hover:bg-primary/5 hover:text-foreground'
+                }
+              >
+                Yearly
+              </Button>
               <motion.span
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-secondary font-semibold text-sm ml-2"
+                key={billingCycle}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
               >
                 Save up to 48%
               </motion.span>
-            )}
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
             {plans.map((plan, index) => (
               <motion.div
                 key={plan.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.08 }}
+                className="h-full"
               >
                 <PricingCard
                   plan={plan}
@@ -200,35 +196,34 @@ export function Pricing({ onNavigate }: PricingProps) {
               </motion.div>
             ))}
           </div>
-        </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <div className="bg-accent/10 border border-accent/20 rounded-xl p-8">
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              Not sure which plan is right for you?
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Start with our free plan and upgrade anytime as your needs grow.
-              All plans include our core RIS tracking and weekly check-ins.
-            </p>
-            <Button
-              onClick={() => handleSelectPlan('plan-free')}
-              variant="outline"
-              size="lg"
-              disabled={
-                isProcessing || subscription?.planName === 'FREE'
-              }
-            >
-              Start Free Today
-            </Button>
-          </div>
-        </motion.div>
-      </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="mx-auto mt-16 max-w-3xl text-center"
+          >
+            <div className="rounded-[28px] border border-primary/10 bg-gradient-to-br from-white/90 via-primary/5 to-secondary/10 p-8 shadow-[0_28px_80px_-48px_rgba(170,76,105,0.45)] backdrop-blur-sm md:p-10">
+              <h3 className="mb-4 text-2xl font-bold text-foreground md:text-3xl">
+                Not sure which plan is right for you?
+              </h3>
+              <p className="mb-6 text-lg leading-relaxed text-muted-foreground">
+                Start with our free plan and upgrade anytime as your needs grow.
+                All plans include our core RIS tracking and weekly check-ins.
+              </p>
+              <Button
+                onClick={() => handleSelectPlan('plan-free')}
+                size="lg"
+                disabled={isProcessing || subscription?.planName === 'FREE'}
+                className="bg-gradient-to-r from-primary via-secondary to-align px-10 py-6 text-base shadow-[0_24px_60px_-30px_rgba(209,73,118,0.95)] transition-opacity hover:opacity-90"
+              >
+                Start Free Today
+                <Sparkle className="ml-2" weight="fill" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </div>
   )
 }

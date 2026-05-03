@@ -22,6 +22,9 @@ import { ProfileSettings } from './modules/ProfileSettings'
 import { CheckInHistory } from './modules/CheckInHistory'
 import { Pricing } from './modules/Pricing'
 import { UsageStats } from './modules/UsageStats'
+import { LandingPage } from './modules/LandingPage'
+import { AboutPage } from './modules/AboutPage'
+import { ContactPage } from './modules/ContactPage'
 import { DesktopSidebar } from './components/DesktopSidebar'
 import { MobileHeader } from './components/MobileHeader'
 import { BottomNav } from './components/BottomNav'
@@ -35,6 +38,11 @@ import { loadLatestRISScore, saveRelationshipIntelligenceScore } from './lib/db/
 import { hasFeatureMigrationCompleted, loadLegacyRIS, loadLegacyUser, markFeatureMigrationCompleted } from './lib/db/migration'
 
 export type AppView =
+  | 'landing'
+  | 'about'
+  | 'contact'
+  | 'blog'
+  | 'coaching'
   | 'login'
   | 'register'
   | 'forgot-password'
@@ -247,6 +255,12 @@ function App() {
     }
 
     switch (currentView) {
+      case 'landing':
+        return <LandingPage onNavigate={setCurrentView} />
+      case 'about':
+        return <AboutPage onNavigate={setCurrentView} />
+      case 'contact':
+        return <ContactPage onNavigate={setCurrentView} />
       case 'login':
         return <Login 
           onLoginSuccess={handleLoginSuccess} 

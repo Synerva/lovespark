@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -203,14 +204,19 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
               <h4 className="font-semibold text-foreground mb-4">Legal</h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Privacy Policy
-                  </a>
+                  <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Terms of Service
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Terms of Service
-                  </a>
+                  <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/refund" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Refund Policy
+                  </Link>
                 </li>
               </ul>
             </div>

@@ -747,10 +747,13 @@ export function AICoach({ risScore, onNavigate }: AICoachProps) {
       }
     } catch (error) {
       console.error('[Chat] Failed generating or persisting assistant message:', error)
+      const providerMessage = error instanceof Error && error.message
+        ? error.message
+        : 'I could not complete this response because the AI provider is unavailable. Please retry.'
       const errorMessage: AIMessage = {
         id: `msg-${Date.now()}-error`,
         role: 'assistant',
-        content: "I could not complete this response because a save failed. Please retry.",
+        content: providerMessage,
         timestamp: new Date().toISOString(),
       }
       setMessages((prev) => [...(prev || []), errorMessage])

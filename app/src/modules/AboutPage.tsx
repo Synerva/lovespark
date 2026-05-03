@@ -192,7 +192,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               Ready to Get Started?
             </h2>
             <p className="text-lg text-muted-foreground mb-10">
-              Join individuals and couples who are building stronger relationships through intelligence, not intuition alone.
+              Join individuals and couples who are building stronger relationships through intelligence, not guesswork.
             </p>
             <Button 
               size="lg"

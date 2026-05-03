@@ -43,10 +43,10 @@ export function PublicHeader({ currentView, onNavigate }: PublicHeaderProps) {
                 key={item.view}
                 onClick={() => handleNavClick(item.view)}
                 className={cn(
-                  "text-sm font-medium transition-colors",
+                  "relative text-sm font-medium transition-colors after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:rounded-full after:transition-all",
                   currentView === item.view
-                    ? "text-foreground"
-                    : "text-foreground/70 hover:text-foreground"
+                    ? "text-foreground after:w-full after:bg-gradient-to-r after:from-primary after:via-secondary after:to-align"
+                    : "text-foreground/70 after:w-0 hover:text-foreground"
                 )}
               >
                 {item.label}

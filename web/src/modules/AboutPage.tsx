@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { PublicHeader } from '@/components/PublicHeader'
 import { Logo } from '@/components/Logo'
@@ -192,7 +193,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               Ready to Get Started?
             </h2>
             <p className="text-lg text-muted-foreground mb-10">
-              Join individuals and couples who are building stronger relationships through intelligence, not intuition alone.
+              Join individuals and couples who are building stronger relationships through intelligence, not guesswork.
             </p>
             <Button 
               size="lg"
@@ -252,14 +253,19 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               <h4 className="font-semibold text-foreground mb-4">Legal</h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Privacy Policy
-                  </a>
+                  <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Terms of Service
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Terms of Service
-                  </a>
+                  <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/refund" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Refund Policy
+                  </Link>
                 </li>
               </ul>
             </div>
